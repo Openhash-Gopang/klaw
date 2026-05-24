@@ -483,6 +483,7 @@ a { text-decoration: none; color: inherit; }
     <div class="topnav-right">
       <div class="topnav-status"><div class="status-dot"></div>AI 분석 가동 중</div>
       <div class="topnav-badge" id="sim-counter">0건</div>
+      <div class="topnav-badge" id="klaw-ver-badge" style="background:rgba(168,212,255,.18);color:#A8D4FF">K-Law 로딩중…</div>
       <div class="topnav-clock" id="clock">--:--:--</div>
     </div>
   </div>
@@ -1024,6 +1025,44 @@ async function callLLM(messages, maxTokens = 2000) {
   return data.choices?.[0]?.message?.content || '';
 }
 
+// ══ K-Law 버전 동적 로드 (GitHub) ════════════════════════════
+const KLAW_REPO_API  = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
+const KLAW_RAW_BASE  = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
+
+let klawVersion    = '로딩 중…';
+let klawMethodText = '';
+
+async function loadKlawVersion() {
+  try {
+    const res   = await fetch(KLAW_REPO_API, { cache: 'no-cache' });
+    const files = await res.json();
+    const vFiles = (Array.isArray(files) ? files : [])
+      .map(f => f.name)
+      .filter(n => /^klaw_v[\d_]+\.md$/i.test(n));
+
+    function parseVer(name) {
+      const m = name.match(/klaw_v([\d]+)_?([\d]*)\.md/i);
+      return m ? parseFloat(m[1] + '.' + (m[2] || '0')) : 0;
+    }
+    vFiles.sort((a, b) => parseVer(b) - parseVer(a));
+    const latestFile = vFiles[0] || 'klaw_v15_0.md';
+
+    const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
+    klawVersion = verMatch ? 'v' + verMatch[1].replace('_', '.') : 'v15.1';
+
+    const raw = await fetch(KLAW_RAW_BASE + latestFile, { cache: 'no-cache' });
+    klawMethodText = await raw.text();
+    console.log('[K-Law] 로드 완료:', klawVersion, '(' + latestFile + ')');
+  } catch(e) {
+    console.warn('[K-Law] GitHub 로드 실패, 내장 기본값 사용:', e.message);
+    klawVersion    = 'v15.1';
+    klawMethodText = '';
+  }
+  const badge = document.getElementById('klaw-ver-badge');
+  if (badge) badge.textContent = 'K-Law ' + klawVersion;
+}
+loadKlawVersion();
+
 // ══ 시스템 프롬프트 ════════════════════════════════════════
 const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
 사용자가 제출한 사건의 개요를 분석하여 아래 형식으로 정확히 응답하세요.
@@ -1033,6 +1072,9 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 
 【사건분류】
 민사(본안) / 형사 / 행정 / 가사 / 소액사건 / 노동 중 하나
+
+【사건종류_상세】
+사건의 구체적 유형 (예: 행정처분 취소소송, 신고포상금 지급거부, 계약 불이행, 손해배상 등)
 
 【사건의 개요】
 입력된 내용을 바탕으로 명확하게 정리
@@ -1055,86 +1097,47 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 
 응답은 반드시 위 형식만 사용하세요.`;
 
-const KLAW_V13_PROMPT = `당신은 K-Law 판결 방법론 v13.2를 적용하는 대한민국 법원 판결 AI입니다.
-아래 형식을 반드시 준수하여 가상 판결문을 작성하세요.
+function buildKlawSimPrompt(caseNo, level) {
+  const methodSummary = klawMethodText ? klawMethodText.slice(0, 5000) : '';
+  return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
+${methodSummary ? '[K-Law 방법론 원문(발췌)]\n' + methodSummary + '\n\n---\n\n' : ''}
+아래 형식을 준수하여 가상 판결문을 작성하세요.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-출력 형식 (가상판결 출력형식 v13.2 준수)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[K-Law v13.2 적용 | 사건번호: {자동생성} | 심급: {심급}]
+[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
 
 ── STEP 0 ──
-[0-α 직관] [원고 유리 / 피고 유리 / 불명확]
+[0-α 직관] 원고 유리 / 피고 유리 / 불명확
 근거: ① 입증책임 관점 ② 신뢰보호 관점 ③ 결과수긍 관점
 [0-β 격리] 이전 결론 격리 선언
 [명제] 총 N쌍: 제1층위(소송요건) N개 / 제2층위(법적성격) N개 / 제3층위(본안) N개
 [STEP-0-COMPLETE | 명제 N쌍 | 0-α: X유리 | 0-β: 해당/없음]
 
 ── STEP A ──
-[A-0 판례 법리 군] 수집 N건. 전원합의체 검색 완료. 하위 판단 요소 N개 추출.
-[A-0-S 의미 해석] 핵심 단어·문구 N개 해석. 특별법 감지: 존재/부존재.
-[STEP-A-0-COMPLETE]
-[A-1 역방향 추론] 피고 최강 논거 / 원고 대응 논거
-[STEP-A-1-COMPLETE]
-[A-2 법률관계 확정] 특별법 감지 / 법령 시제 / 복잡도 / 공격·방어 목록
-[STEP-A-2-COMPLETE]
-[A-3 인과 분해] 6층위 전부 분해
-[STEP-A-3-COMPLETE]
-[A-4 명제 정교화] 숨은 명제 N개 추가. 최종 명제 N개.
-[STEP-A-4-COMPLETE]
-[A-5 충돌 지점] N개 식별. 상식 vs 법리 비교.
-[STEP-A-5-COMPLETE]
+[A-0 판례 법리 군] [A-0-S 의미 해석] [A-1 역방향 추론] [A-2 법률관계 확정]
+[A-3 인과 분해 6층위] [A-4 명제 정교화] [A-5 충돌 지점]
+(각 항목 완료 태그 포함. 허위 판례 번호 금지.)
 
 ── STEP B ──
-[B-1 법률관계 최종 확정]
-[B-2 쟁점 계층적 처리]
-[B-3 법률행위 해석]
-[B-4 해석 우선순위] 공리 H 적용
-[형식-실질 비교 분석]
-[B-5 손해액 산정] (해당 시)
-[B-5-A 역방향 판결 초안] (발동 조건 해당 시)
-[B-6 상식 필터·반전 논거]
-[B-7 최종 판결문]
-
-주 문:
-이 유:
-
+[B-1~B-7 순서대로. B-7에 주문+이유 완성]
 [STEP-B-COMPLETE | 판결문 완료 | 확신도 포함]
 
 ── STEP C ──
-[C-1] 인권 보호
-[C-2] 판례 인용 5단계 검증
-[C-3] 출력 형식 확인
-[C-4] 자기 갱신 트리거
-
-[C-α 완결 게이트웨이]
-(1) 명제-판단 일치 완전성: 완료
-(2) 확신도 출력: 완료
-...
-[STEP-C-α-COMPLETE | 전 항목 완료]
-
-── 확신도 및 자기 평가 ──
-[법리 확신도: X/10] [사실 확신도: Y/10]
-[종합 확신도: Z/10]
-[결론 유형: 판단유보 / 조건부 / 확정적]
-[AI 예측 일치도: XX%]
-[사건 복잡도: X/10]
-
-── 자기 검증 ──
+[C-1~C-4, C-α 완결 게이트웨이(10항목)]
+[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]
+[결론 유형: 확정적 / 조건부 / 판단유보]
+[AI 예측 일치도: XX%] [사건 복잡도: X/10]
 ==============================
 [자기 검증]
 □ 강제규칙 1~16 준수: 예/아니오
 □ 준수하지 않은 규칙: 없음
 □ 재생성 필요 여부: 불필요
 ==============================
+[STEP-C-COMPLETE | C-α 완료 후 최종 출력]
 
-판결 요약: [판결 핵심 2~3문장. 주문·핵심 법리·확신도 포함.]
+판결 요약: [핵심 2~3문장. 주문·핵심법리·확신도 포함.]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-중요: 모든 STEP을 순서대로 완료하고 완료 태그를 출력하세요.
-허위 판례 인용 금지. 판례 번호 없이 원칙 수준 서술 사용.
 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.`;
+}
 
 // ══ STEP 1: 입력 완료 → 분석 ══════════════════════════════
 async function runSimulation() {
@@ -1201,6 +1204,7 @@ function parseAnalysis(text) {
   return {
     level:    get('심급'),
     type:     get('사건분류'),
+    typeDetail: get('사건종류_상세'),
     overview: get('사건의 개요'),
     plaintiff:get('원고의 주장'),
     defendant:get('피고의 주장'),
@@ -1210,16 +1214,58 @@ function parseAnalysis(text) {
   };
 }
 
+// 사건 종류별 색상 매핑
+function caseTypeColor(type) {
+  const map = {
+    '민사': '#0057A8', '민사(본안)': '#0057A8',
+    '형사': '#C01C28',
+    '행정': '#1B6B3A',
+    '가사': '#7B3FA0',
+    '소액사건': '#C05621',
+    '노동': '#B8952A',
+    '헌법재판': '#003C82'
+  };
+  for (const [k, v] of Object.entries(map)) {
+    if (type && type.includes(k)) return v;
+  }
+  return '#0057A8';
+}
+
 function renderAnalysis(d) {
   const panel = document.getElementById('analysis-panel');
+  const typeColor = caseTypeColor(d.type);
   panel.style.display = 'block';
   panel.innerHTML = `
-    <div class="section-title" style="margin-bottom:12px">사건 분석 결과
-      <span>
-        <span class="badge badge-blue">${d.level || '—'}</span>
-        <span class="badge badge-orange" style="margin-left:4px">${d.type || '—'}</span>
-      </span>
+    <!-- 사건 종류 히어로 배너 -->
+    <div style="
+      background: linear-gradient(135deg, ${typeColor} 0%, ${typeColor}CC 100%);
+      border-radius: var(--r); padding: 18px 22px; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    ">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">사건 분류</div>
+          <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px">${escHtml(d.type || '—')}</div>
+          ${d.typeDetail ? `<div style="font-size:12px;color:rgba(255,255,255,.80);margin-top:3px;font-weight:600">${escHtml(d.typeDetail)}</div>` : ''}
+        </div>
+        <div style="width:1px;height:40px;background:rgba(255,255,255,.2)"></div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">심급</div>
+          <div style="font-size:18px;font-weight:800;color:#fff">${escHtml(d.level || '—')}</div>
+        </div>
+      </div>
+      <div style="
+        background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+        border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;
+        color:rgba(255,255,255,.90);display:flex;align-items:center;gap:6px;
+      ">
+        <span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;animation:pulse 2s infinite"></span>
+        K-Law <span id="analysis-klaw-ver">${escHtml(klawVersion)}</span> 적용 예정
+      </div>
     </div>
+
+    <!-- 분석 결과 테이블 -->
+    <div class="section-title" style="margin-bottom:10px">사건 분석 결과</div>
     <div class="card">
       <div class="card-body" style="padding:0">
         ${analysisRow('사건의 개요', d.overview)}
@@ -1460,7 +1506,7 @@ async function runJudgementSim() {
       <div class="verdict-doc-header">
         <div>
           <div class="verdict-doc-title">⚖ K-Law 가상 판결문</div>
-          <div class="verdict-doc-meta">사건번호: ${escHtml(caseNo)} · ${escHtml(level)} · K-Law v13.2 · ${new Date().toLocaleString('ko-KR')}</div>
+          <div class="verdict-doc-meta">사건번호: ${escHtml(caseNo)} · ${escHtml(level)} · <strong>K-Law ${escHtml(klawVersion)}</strong> · ${new Date().toLocaleString('ko-KR')}</div>
         </div>
         <button class="download-verdict-btn" id="dl-btn" onclick="downloadVerdict()" style="display:none">💾 판결문 저장</button>
       </div>
@@ -1524,7 +1570,7 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
     .replace(/{LEVEL}/g, level);
 
   const msgs = [
-    { role: 'system', content: KLAW_V13_PROMPT.replace('{자동생성}', caseNo).replace('{심급}', level) },
+    { role: 'system', content: buildKlawSimPrompt(caseNo, level) },
     { role: 'user', content: prompt }
   ];
 
@@ -1585,7 +1631,7 @@ function appendConfidenceBlock(fullText) {
       <div class="verdict-conf-item"><span class="verdict-conf-label">결론 유형</span><span style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(vType)}</span></div>
     </div>
     <div class="result-caution" style="margin-top:8px">
-      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과로, 법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
+      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과로 (적용 방법론: <strong>K-Law ${escHtml(klawVersion)}</strong>), 법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
     </div>`;
   body.insertBefore(div, body.firstChild);
 }
