@@ -226,7 +226,18 @@ a { text-decoration: none; color: inherit; }
 .card-header-title { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 7px; }
 .card-body { padding: 16px; }
 
-/* 판결문 출력 스타일 */
+/* 채팅 메시지 스타일 */
+.klaw-msg {
+  background: var(--primary-bg); border: 1px solid var(--primary-bd);
+  border-radius: var(--r); padding: 11px 14px; margin-bottom: 8px;
+  font-size: 13px; line-height: 1.75; color: var(--primary);
+}
+.klaw-msg::before { content: '⚖ K-Law  '; font-weight: 700; }
+.user-msg {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 9px 14px; margin-bottom: 8px;
+  font-size: 13px; color: var(--text); line-height: 1.6;
+}
 .verdict-doc {
   background: #fff; border: 1px solid var(--border); border-radius: var(--r);
   box-shadow: var(--shadow-2); margin-bottom: 20px; overflow: hidden;
@@ -485,7 +496,7 @@ a { text-decoration: none; color: inherit; }
       <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
       <p>사건의 개요를 입력하면, 수년 뒤의 대법원 판결을 정확히 예측할 뿐 아니라, 엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
       <div class="hero-btns">
-        <a href="#case-input" class="hero-btn-primary" onclick="setTimeout(()=>document.getElementById('case-input').focus(),100)">⚖ 지금 시뮬레이션</a>
+        <a href="https://gopang.net/" target="_blank" class="hero-btn-primary">🚀 고팡 앱 실행</a>
         <a href="dashboard.html" class="hero-btn-outline">🖥 관리자 대시보드</a>
       </div>
     </div>
@@ -1163,8 +1174,15 @@ async function runSimulation() {
       conversationState.phase = 'chatting';
       renderChatPanel(addQ);
     } else {
-      // 대화 불필요 → 바로 시뮬레이션 버튼 표시
-      showSimRunButton();
+      // 추가 질문 없음 → 채팅 패널에 준비완료 메시지 + 버튼 표시
+      const panel = document.getElementById('chat-panel');
+      panel.style.display = 'block';
+      panel.innerHTML = `
+        <div class="section-title" style="margin-bottom:12px">⚖ K-Law 추가 정보 요청</div>
+        <div class="card"><div class="card-body">
+          <div id="chat-messages"></div>
+        </div></div>`;
+      showReadyMessage();
     }
   } catch(e) {
     showAnalysisLoading(false);
@@ -1228,31 +1246,44 @@ function renderChatPanel(question) {
     <div class="section-title" style="margin-bottom:12px">⚖ K-Law 추가 정보 요청</div>
     <div class="card">
       <div class="card-body">
-        <div id="chat-messages"></div>
-        <div style="background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.75;color:var(--primary)">
-          <strong>⚖ K-Law:</strong><br>${question.replace(/\n/g, '<br>')}
+        <div id="chat-messages">
+          <div class="klaw-msg">${question.replace(/\n/g, '<br>')}</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea id="chat-reply" class="input-band-textarea" style="height:100px;flex:1;resize:vertical;overflow-y:auto"
+        <div id="chat-input-area" style="display:flex;gap:8px;align-items:flex-end;margin-top:10px">
+          <textarea id="chat-reply" class="input-band-textarea" style="height:90px;flex:1;resize:vertical;overflow-y:auto"
             placeholder="추가 정보를 입력하세요..."></textarea>
-          <button onclick="sendChatReply()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;align-self:flex-end">전송</button>
-        </div>
-        <div style="margin-top:8px;text-align:right">
-          <button onclick="confirmCaseAndShowSimBtn()" style="padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--sub)">추가 정보 없이 진행</button>
+          <div style="display:flex;flex-direction:column;gap:6px;align-self:flex-end">
+            <button onclick="sendChatReply()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">전송</button>
+            <button onclick="requestReadyCheck()" style="padding:7px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;color:var(--sub);white-space:nowrap">생략하고 진행</button>
+          </div>
         </div>
       </div>
     </div>`;
   panel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function appendKlawMsg(html) {
+  const chatMsgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'klaw-msg';
+  div.innerHTML = html;
+  chatMsgs.appendChild(div);
+}
+
+function appendUserMsg(text) {
+  const chatMsgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'user-msg';
+  div.innerHTML = `<strong>사용자:</strong> ${escHtml(text)}`;
+  chatMsgs.appendChild(div);
+}
+
 async function sendChatReply() {
   const reply = document.getElementById('chat-reply').value.trim();
   if (!reply) return;
 
-  const chatMsgs = document.getElementById('chat-messages');
-  chatMsgs.innerHTML += `<div style="padding:8px 12px;background:var(--bg);border-radius:var(--r);font-size:13px;margin-bottom:6px;color:var(--text)"><strong>사용자:</strong> ${reply}</div>`;
+  appendUserMsg(reply);
   document.getElementById('chat-reply').value = '';
-
   conversationState.messages.push({ role: 'user', content: reply });
 
   const checkPrompt = [
@@ -1260,38 +1291,157 @@ async function sendChatReply() {
     { role: 'user', content: '위 추가 답변을 반영하여, 판결 시뮬레이션에 충분한 정보가 갖춰졌는지 판단하세요. 추가 질문이 필요하면 【추가질문】 형식으로, 충분하면 "시뮬레이션_진행" 이라고만 답하세요.' }
   ];
 
+  const loadId = 'chat-loading-' + Date.now();
+  appendKlawMsg(`<span id="${loadId}" style="opacity:.5">⏳ 검토 중…</span>`);
+
   try {
-    const resp = await callLLM(checkPrompt, 400);
+    const resp = await callLLM(checkPrompt, 500);
+    document.getElementById(loadId)?.parentElement?.remove();
+
     if (resp.includes('시뮬레이션_진행') || resp.includes('시뮬레이션 진행')) {
-      confirmCaseAndShowSimBtn();
+      showReadyMessage();
     } else {
       const qM = resp.match(/【추가질문】\s*([\s\S]*?)(?=【|$)/);
       const nextQ = qM ? qM[1].trim() : resp.trim();
-      chatMsgs.innerHTML += `<div style="padding:8px 12px;background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);font-size:13px;margin-bottom:6px;color:var(--primary)"><strong>⚖ K-Law:</strong><br>${nextQ.replace(/\n/g,'<br>')}</div>`;
+      appendKlawMsg(nextQ.replace(/\n/g,'<br>'));
       conversationState.messages.push({ role: 'assistant', content: resp });
-      document.getElementById('chat-reply').placeholder = '답변을 입력하세요...';
       document.getElementById('chat-panel').scrollIntoView({behavior:'smooth', block:'end'});
     }
   } catch(e) {
-    chatMsgs.innerHTML += `<div style="color:var(--red);font-size:12px;padding:6px">오류: ${e.message}</div>`;
+    document.getElementById(loadId)?.parentElement?.remove();
+    appendKlawMsg(`<span style="color:var(--red)">오류: ${escHtml(e.message)}</span>`);
   }
 }
 
+async function requestReadyCheck() {
+  const checkPrompt = [
+    ...conversationState.messages,
+    { role: 'user', content: '현재까지 수집된 정보만으로 판결 시뮬레이션을 진행합니다. "시뮬레이션_진행"으로 답하세요.' }
+  ];
+  conversationState.messages.push({ role: 'user', content: '(추가 정보 없이 진행)' });
+  showReadyMessage();
+}
+
+function showReadyMessage() {
+  // 입력창 숨기기
+  const inputArea = document.getElementById('chat-input-area');
+  if (inputArea) inputArea.style.display = 'none';
+
+  // 준비 완료 메시지
+  appendKlawMsg(`
+    <div style="margin-top:4px">
+      판결문 작성 준비가 완료되었습니다. 사용자가 추가적으로 입력할 내용은 없습니다.
+    </div>
+  `);
+
+  // 대법원 판결 시뮬레이션 실행 버튼
+  const chatMsgs = document.getElementById('chat-messages');
+  const btnDiv = document.createElement('div');
+  btnDiv.style.cssText = 'margin-top:16px;';
+  btnDiv.innerHTML = `
+    <button onclick="runJudgementSim()" style="
+      width:100%;padding:15px 0;
+      background:linear-gradient(135deg,var(--gov-header) 0%,var(--primary) 100%);
+      color:#fff;border:none;border-radius:var(--r);
+      font-family:var(--font);font-size:15px;font-weight:800;
+      cursor:pointer;letter-spacing:-.3px;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:opacity .15s;
+    " onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+      ⚖ 대법원 판결 시뮬레이션 실행
+    </button>`;
+  chatMsgs.appendChild(btnDiv);
+  document.getElementById('chat-panel').scrollIntoView({behavior:'smooth', block:'end'});
+}
+
 function confirmCaseAndShowSimBtn() {
-  document.getElementById('chat-panel').style.display = 'none';
-  showSimRunButton();
+  showReadyMessage();
 }
 
 function showSimRunButton() {
-  const sec = document.getElementById('sim-run-section');
-  sec.classList.add('visible');
-  sec.scrollIntoView({behavior:'smooth', block:'center'});
+  showReadyMessage();
 }
 
-// ══ STEP 2: 대법원 판결 시뮬레이션 ═══════════════════════
+// ══ STEP별 순차 출력 ════════════════════════════════════════
+
+const STEP_DEFS = [
+  {
+    id: 'step0',
+    tag: 'STEP 0',
+    icon: '🔍',
+    title: 'STEP 0 — 사건 기본 분석 · 명제 설정',
+    prompt: (ctx) => `${ctx}
+
+지금 K-Law 판결 방법론 v13.2의 ── STEP 0 ── 만 작성하세요.
+반드시 아래 항목을 포함하고 완료 태그로 마무리하세요:
+
+[K-Law v13.2 적용 | 사건번호: {CASENO} | 심급: {LEVEL}]
+
+── STEP 0 ──
+[0-α 직관] 원고 유리 / 피고 유리 / 불명확 중 선택
+근거: ① 입증책임 관점 ② 신뢰보호 관점 ③ 결과수긍 관점
+[0-β 격리] 이전 결론 격리 선언
+[명제] 총 N쌍: 제1층위(소송요건) N개 / 제2층위(법적성격) N개 / 제3층위(본안) N개
+[STEP-0-COMPLETE | 명제 N쌍 | 0-α: X유리 | 0-β: 해당/없음]`
+  },
+  {
+    id: 'stepA',
+    tag: 'STEP A',
+    icon: '⚖',
+    title: 'STEP A — 판례 법리·법률관계 분석',
+    prompt: (ctx) => `${ctx}
+
+STEP 0이 완료되었습니다. 이어서 ── STEP A ── 만 작성하세요.
+A-0 판례법리군 / A-0-S 의미해석 / A-1 역방향추론 / A-2 법률관계확정 /
+A-3 인과분해(6층위) / A-4 명제정교화 / A-5 충돌지점 순서로 작성하고
+각 소항목 완료 태그를 출력하세요. 허위 판례 번호 인용 금지.`
+  },
+  {
+    id: 'stepB',
+    tag: 'STEP B',
+    icon: '📋',
+    title: 'STEP B — 법률관계 확정 · 최종 판결문',
+    prompt: (ctx) => `${ctx}
+
+STEP A가 완료되었습니다. 이어서 ── STEP B ── 만 작성하세요.
+B-1 법률관계최종확정 / B-2 쟁점계층적처리 / B-3 법률행위해석 /
+B-4 해석우선순위(공리H) / 형식-실질비교분석 / B-5 손해액산정(해당시) /
+B-5-A 역방향판결초안(조건해당시) / B-6 상식필터·반전논거 /
+B-7 최종판결문(주문+이유 완성) 순서로 작성.
+[STEP-B-COMPLETE | 판결문 완료 | 확신도 포함]`
+  },
+  {
+    id: 'stepC',
+    tag: 'STEP C',
+    icon: '✅',
+    title: 'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+    prompt: (ctx) => `${ctx}
+
+STEP B가 완료되었습니다. 이어서 ── STEP C ── 를 작성하세요.
+C-1~C-4 검토, C-α 완결 게이트웨이(10개 항목 체크), 확신도 출력,
+자기 검증 블록을 순서대로 작성하고 아래로 마무리하세요:
+
+[법리 확신도: X/10] [사실 확신도: Y/10]
+[종합 확신도: Z/10]
+[결론 유형: 확정적 / 조건부 / 판단유보]
+[AI 예측 일치도: XX%]
+[사건 복잡도: X/10]
+
+==============================
+[자기 검증]
+□ 강제규칙 1~16 준수: 예/아니오
+□ 준수하지 않은 규칙: 없음
+□ 재생성 필요 여부: 불필요
+==============================
+[STEP-C-COMPLETE | C-α 완료 후 최종 출력]
+
+판결 요약: [핵심 2~3문장. 주문·핵심법리·확신도 포함.]`
+  }
+];
+
 async function runJudgementSim() {
   const model = conversationState.llmModel || 'deepseek';
-  const apiKey = document.getElementById('api-key').value.trim();
+  const apiKey = document.getElementById('api-key') ? document.getElementById('api-key').value.trim() : '';
 
   if (model !== 'deepseek' && !apiKey) {
     alert('선택한 LLM의 API Key를 입력해 주세요.');
@@ -1299,177 +1449,145 @@ async function runJudgementSim() {
   }
   conversationState.apiKey = apiKey;
 
+  const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
+  const level  = conversationState.caseData?.level || '3심';
+
+  // 판결문 컨테이너 초기화
   const simPanel = document.getElementById('sim-panel');
   simPanel.style.display = 'block';
   simPanel.innerHTML = `
-    <div class="verdict-doc">
-      <div class="verdict-doc-header">
-        <div>
-          <div class="verdict-doc-title">⚖ K-Law 가상 판결문 생성 중</div>
-          <div class="verdict-doc-meta">K-Law 판결 방법론 v13.2 · STEP 0→A→B→C 적용</div>
-        </div>
-      </div>
-      <div class="verdict-doc-body" style="padding:40px;display:flex;align-items:center;justify-content:center;gap:16px">
-        <div class="spinner"></div>
-        <span style="font-size:13px;font-weight:600;color:var(--sub)">공리 체계 적용 · 법리 분석 · 판결문 작성 중…</span>
-      </div>
-    </div>`;
-  document.getElementById('sim-run-section').classList.remove('visible');
-  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
-
-  const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
-  const level = conversationState.caseData?.level || '1심';
-
-  const simMsgs = [
-    {
-      role: 'system',
-      content: KLAW_V13_PROMPT.replace('{자동생성}', caseNo).replace('{심급}', level)
-    },
-    ...conversationState.messages.filter(m => m.role !== 'system'),
-    {
-      role: 'user',
-      content: `위 수집된 사건 정보를 바탕으로, K-Law 판결 방법론 v13.2 가상판결 출력형식에 따라 완전한 판결문을 작성하세요. 사건번호: ${caseNo}, 심급: ${level}.`
-    }
-  ];
-
-  try {
-    const result = await callLLM(simMsgs, 4000);
-    renderVerdictDoc(result, caseNo, level);
-  } catch(e) {
-    simPanel.innerHTML = `<div class="card"><div class="card-body result-error"><p>⚠️ 시뮬레이션 오류: ${e.message}</p></div></div>`;
-  }
-}
-
-function renderVerdictDoc(text, caseNo, level) {
-  const simPanel = document.getElementById('sim-panel');
-
-  // 각 STEP 섹션 파싱
-  const steps = [
-    { tag: 'STEP 0', label: 'STEP 0 — 사건 기본 분석', icon: '🔍' },
-    { tag: 'STEP A', label: 'STEP A — 법률관계·법리 분석', icon: '⚖' },
-    { tag: 'STEP B', label: 'STEP B — 법률관계 확정·판결문', icon: '📋' },
-    { tag: 'STEP C', label: 'STEP C — 완결 게이트웨이·검증', icon: '✅' },
-  ];
-
-  function extractSection(t, startTag, nextTag) {
-    const r = new RegExp('──\\s*' + startTag + '\\s*──([\\s\\S]*?)(?=──\\s*' + nextTag + '\\s*──|$)');
-    const m = t.match(r);
-    return m ? m[1].trim() : '';
-  }
-
-  const step0 = extractSection(text, 'STEP 0', 'STEP A');
-  const stepA = extractSection(text, 'STEP A', 'STEP B');
-  const stepB = extractSection(text, 'STEP B', 'STEP C');
-  const stepC = text.includes('── STEP C ──') ? text.split('── STEP C ──')[1] : '';
-
-  // 확신도 파싱
-  const confM = text.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
-  const factM = text.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
-  const totalM = text.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
-  const aiM = text.match(/\[AI 예측 일치도:\s*(\d+)%\]/);
-  const summaryM = text.match(/판결 요약:\s*([\s\S]*?)(?:\n\n|$)/);
-  const typeM = text.match(/\[결론 유형:\s*([^\]]+)\]/);
-
-  const lawConf = confM ? confM[1] : '—';
-  const factConf = factM ? factM[1] : '—';
-  const totalConf = totalM ? totalM[1] : '—';
-  const aiMatch = aiM ? aiM[1] : '—';
-  const summary = summaryM ? summaryM[1].trim() : '';
-  const verdictType = typeM ? typeM[1].trim() : '—';
-
-  const confColor = parseFloat(totalConf) >= 7 ? 'var(--green)' : parseFloat(totalConf) >= 5 ? 'var(--primary)' : 'var(--orange)';
-
-  simPanel.innerHTML = `
-    <div class="verdict-doc">
+    <div class="verdict-doc" id="verdict-container">
       <div class="verdict-doc-header">
         <div>
           <div class="verdict-doc-title">⚖ K-Law 가상 판결문</div>
-          <div class="verdict-doc-meta">사건번호: ${caseNo} · ${level} · K-Law v13.2 · ${new Date().toLocaleString('ko-KR')}</div>
+          <div class="verdict-doc-meta">사건번호: ${escHtml(caseNo)} · ${escHtml(level)} · K-Law v13.2 · ${new Date().toLocaleString('ko-KR')}</div>
         </div>
-        <button class="download-verdict-btn" onclick="downloadVerdict()">💾 판결문 저장</button>
+        <button class="download-verdict-btn" id="dl-btn" onclick="downloadVerdict()" style="display:none">💾 판결문 저장</button>
       </div>
-      <div class="verdict-doc-body">
-
-        ${summary ? `
-        <div style="background:var(--primary-bg);border:2px solid var(--primary-bd);border-radius:var(--r);padding:14px 18px;margin-bottom:20px">
-          <div style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">판결 요약</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.75;font-weight:600">${summary}</div>
-        </div>` : ''}
-
-        <div class="verdict-confidence">
-          <div class="verdict-conf-item">
-            <span class="verdict-conf-label">법리 확신도</span>
-            <span class="verdict-conf-val" style="color:${confColor}">${lawConf}/10</span>
-          </div>
-          <div class="verdict-conf-item">
-            <span class="verdict-conf-label">사실 확신도</span>
-            <span class="verdict-conf-val" style="color:${confColor}">${factConf}/10</span>
-          </div>
-          <div class="verdict-conf-item">
-            <span class="verdict-conf-label">종합 확신도</span>
-            <span class="verdict-conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span>
-          </div>
-          <div class="verdict-conf-item">
-            <span class="verdict-conf-label">AI 예측 일치도</span>
-            <span class="verdict-conf-val">${aiMatch}%</span>
-          </div>
-          <div class="verdict-conf-item">
-            <span class="verdict-conf-label">결론 유형</span>
-            <span style="font-size:13px;font-weight:700;color:var(--text)">${verdictType}</span>
-          </div>
-        </div>
-
-        ${step0 ? `
-        <div class="verdict-step">
-          <div class="verdict-step-header">
-            <span class="verdict-step-tag">🔍 STEP 0</span>
-            <span class="verdict-step-title">사건 기본 분석</span>
-          </div>
-          <div class="verdict-step-body">${escHtml(step0)}</div>
-        </div>` : ''}
-
-        ${stepA ? `
-        <div class="verdict-step">
-          <div class="verdict-step-header">
-            <span class="verdict-step-tag">⚖ STEP A</span>
-            <span class="verdict-step-title">법률관계 · 법리 분석</span>
-          </div>
-          <div class="verdict-step-body">${escHtml(stepA)}</div>
-        </div>` : ''}
-
-        ${stepB ? `
-        <div class="verdict-step">
-          <div class="verdict-step-header">
-            <span class="verdict-step-tag">📋 STEP B</span>
-            <span class="verdict-step-title">법률관계 확정 · 판결문</span>
-          </div>
-          <div class="verdict-step-body">${escHtml(stepB)}</div>
-        </div>` : ''}
-
-        ${stepC ? `
-        <div class="verdict-step">
-          <div class="verdict-step-header">
-            <span class="verdict-step-tag">✅ STEP C</span>
-            <span class="verdict-step-title">완결 게이트웨이 · 자기 검증</span>
-          </div>
-          <div class="verdict-step-body">${escHtml(stepC.trim())}</div>
-        </div>` : ''}
-
-        ${(!step0 && !stepA && !stepB) ? `
-        <div class="verdict-step">
-          <div class="verdict-step-body">${escHtml(text)}</div>
-        </div>` : ''}
-
-        <div class="result-caution" style="margin-top:16px">
-          ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과로, 법률 정보 제공 목적이며 법률 자문이 아닙니다.
-          실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
-        </div>
+      <div class="verdict-doc-body" id="verdict-body">
+        <div id="verdict-steps"></div>
       </div>
     </div>`;
-
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
-  window._verdictText = text;
+
+  // 대화 컨텍스트 구성
+  const baseCtx = conversationState.messages
+    .filter(m => m.role !== 'system')
+    .map(m => (m.role === 'user' ? '사용자: ' : 'K-Law: ') + m.content)
+    .join('\n\n');
+
+  window._verdictParts = {};
   window._verdictCaseNo = caseNo;
+
+  // STEP별 순차 호출
+  for (const stepDef of STEP_DEFS) {
+    await renderStepStreaming(stepDef, baseCtx, caseNo, level);
+  }
+
+  // 확신도 & 판결 요약 블록 추가
+  const fullText = Object.values(window._verdictParts).join('\n\n');
+  appendConfidenceBlock(fullText);
+  window._verdictText = fullText;
+  document.getElementById('dl-btn').style.display = '';
+  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+  const stepsEl = document.getElementById('verdict-steps');
+
+  // 로딩 카드 삽입
+  const card = document.createElement('div');
+  card.className = 'verdict-step';
+  card.id = 'vs-' + stepDef.id;
+  card.innerHTML = `
+    <div class="verdict-step-header">
+      <span class="verdict-step-tag">${stepDef.icon} ${stepDef.tag}</span>
+      <span class="verdict-step-title">${stepDef.title}</span>
+    </div>
+    <div class="verdict-step-body" id="vsb-${stepDef.id}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 0;color:var(--hint)">
+        <div class="spinner"></div>
+        <span style="font-size:12px;font-weight:600">${stepDef.tag} 작성 중…</span>
+      </div>
+    </div>`;
+  stepsEl.appendChild(card);
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  // 프롬프트 구성
+  const prevParts = Object.values(window._verdictParts).join('\n\n');
+  const contextWithPrev = prevParts
+    ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}`
+    : `[사건 정보]\n${baseCtx}`;
+
+  const prompt = stepDef.prompt(contextWithPrev)
+    .replace(/{CASENO}/g, caseNo)
+    .replace(/{LEVEL}/g, level);
+
+  const msgs = [
+    { role: 'system', content: KLAW_V13_PROMPT.replace('{자동생성}', caseNo).replace('{심급}', level) },
+    { role: 'user', content: prompt }
+  ];
+
+  try {
+    const result = await callLLM(msgs, 3000);
+    window._verdictParts[stepDef.id] = result;
+
+    const bodyEl = document.getElementById('vsb-' + stepDef.id);
+    if (bodyEl) {
+      bodyEl.innerHTML = `<div class="verdict-step-body">${escHtml(result)}</div>`;
+    }
+
+    // 완료 태그 배지
+    const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
+    if (completeMatch) {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'margin-top:8px;';
+      badge.innerHTML = completeMatch.map(t =>
+        `<span class="verdict-complete-tag">${escHtml(t)}</span>`
+      ).join(' ');
+      document.getElementById('vs-' + stepDef.id).appendChild(badge);
+    }
+  } catch(e) {
+    const bodyEl = document.getElementById('vsb-' + stepDef.id);
+    if (bodyEl) bodyEl.innerHTML = `<span style="color:var(--red)">⚠ ${stepDef.tag} 생성 오류: ${escHtml(e.message)}</span>`;
+  }
+}
+
+function appendConfidenceBlock(fullText) {
+  const confM  = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
+  const factM  = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+  const totalM = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const aiM    = fullText.match(/\[AI 예측 일치도:\s*(\d+)%\]/);
+  const typeM  = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+  const summM  = fullText.match(/판결 요약:\s*([\s\S]*?)(?:\n\n|\[|$)/);
+
+  const lawConf   = confM  ? confM[1]  : '—';
+  const factConf  = factM  ? factM[1]  : '—';
+  const totalConf = totalM ? totalM[1] : '—';
+  const aiMatch   = aiM    ? aiM[1]    : '—';
+  const vType     = typeM  ? typeM[1].trim() : '—';
+  const summary   = summM  ? summM[1].trim() : '';
+  const cc = parseFloat(totalConf) >= 7 ? 'var(--green)' : parseFloat(totalConf) >= 5 ? 'var(--primary)' : 'var(--orange)';
+
+  const body = document.getElementById('verdict-body');
+  const div = document.createElement('div');
+  div.innerHTML = `
+    ${summary ? `
+    <div style="background:var(--primary-bg);border:2px solid var(--primary-bd);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;margin-top:8px">
+      <div style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📌 판결 요약</div>
+      <div style="font-size:14px;color:var(--text);line-height:1.8;font-weight:600">${escHtml(summary)}</div>
+    </div>` : ''}
+    <div class="verdict-confidence">
+      <div class="verdict-conf-item"><span class="verdict-conf-label">법리 확신도</span><span class="verdict-conf-val" style="color:${cc}">${lawConf}/10</span></div>
+      <div class="verdict-conf-item"><span class="verdict-conf-label">사실 확신도</span><span class="verdict-conf-val" style="color:${cc}">${factConf}/10</span></div>
+      <div class="verdict-conf-item"><span class="verdict-conf-label">종합 확신도</span><span class="verdict-conf-val" style="color:${cc};font-size:24px">${totalConf}/10</span></div>
+      <div class="verdict-conf-item"><span class="verdict-conf-label">AI 예측 일치도</span><span class="verdict-conf-val">${aiMatch}%</span></div>
+      <div class="verdict-conf-item"><span class="verdict-conf-label">결론 유형</span><span style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(vType)}</span></div>
+    </div>
+    <div class="result-caution" style="margin-top:8px">
+      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과로, 법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
+    </div>`;
+  body.insertBefore(div, body.firstChild);
 }
 
 function escHtml(str) {
