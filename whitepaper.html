@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — GPT 공개 백서 v1.2</title>
+<link rel="stylesheet" href="klaw_shared.css">
+<style>.doc-body{max-width:820px;font-size:14px;line-height:1.75;}</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a href="index.html" class="sb-brand"><div class="sb-icon">⚖</div><div><div class="sb-name">K-Law</div><div class="sb-sub">AI 사법 예측 시스템</div></div></a>
+  <nav class="sb-nav">
+    <div class="sb-sec">서비스</div>
+    <a class="sb-item" href="dashboard.html"><span>🖥</span> 판결 시뮬레이터</a>
+    <a class="sb-item" href="report.html"><span>📊</span> 실증 결과 보고서</a>
+    <div class="sb-sec">문서</div>
+    <a class="sb-item" href="business.html"><span>💼</span> 사업화 계획서</a>
+    <a class="sb-item active" href="whitepaper.html"><span>📄</span> GPT 백서</a>
+    <a class="sb-item" href="participation.html"><span>🤝</span> 파트너 참여 제안</a>
+    <div class="sb-sec">관련 서비스</div>
+    <a class="sb-item" href="https://gopang.net" target="_blank"><span>🤖</span> 고팡</a>
+    <a class="sb-item" href="https://fiil.kr" target="_blank"><span>🌊</span> FIIL.kr</a>
+  </nav>
+  <div class="sb-user"><strong>law.openhash.kr</strong>AI City Inc. / K-Law Inc.</div>
+</aside>
+<div class="main">
+  <header class="topbar">
+    <nav class="breadcrumb"><a href="index.html">K-Law</a> › <strong style="color:var(--text)">GPT 공개 백서 v1.2</strong></nav>
+    <div class="topbar-right">
+      <span class="chip chip-red">규제 승인 전 내부 검토용</span>
+      <span class="clock" id="clock"></span>
+    </div>
+  </header>
+  <div class="content">
+    <div style="background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:12px 16px;font-size:12px;color:#991B1B;margin-bottom:16px;line-height:1.7">
+      ⚠️ <strong>면책 고지:</strong> 본 백서는 정보 제공 목적의 초안이며, 어떠한 국가에서도 증권 청약 권유가 아닙니다. GPT 구매는 높은 위험을 수반하며, 투자 원금 전액 손실이 가능합니다. 미국 시민·거주자, 중국 거주자 및 OFAC 제재 대상국 거주자는 참여가 제한됩니다.
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-val">2억<span style="font-size:14px">GPT</span></div><div class="stat-lbl">총 공급량</div></div>
+      <div class="stat-card"><div class="stat-icon">🌏</div><div class="stat-val">193<span style="font-size:14px">개국</span></div><div class="stat-lbl">동시 런칭 목표</div></div>
+      <div class="stat-card"><div class="stat-icon">🔒</div><div class="stat-val">v1.2</div><div class="stat-lbl">백서 버전</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📄 고팡 글로벌 디지털 통화 시스템 (GPT) 백서 v1.2</div><span class="chip chip-orange">내부 검토용</span></div>
+      <div class="card-body doc-body"><h1 style="font-size:22px;font-weight:800;margin:24px 0 10px;color:#1A202C">고팡 글로벌 디지털 통화 시스템 (GPT)</h1>
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">공개 백서 v1.2</h2>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**발행 주체:** AI City Inc. / OpenHash 컨소시엄</blockquote>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**발행일:** 2026년 5월</blockquote>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**버전:** 1.2 — GPT 명칭 전환 + 글로벌 디지털 화폐 아키텍처 통합 (규제 승인 전 내부 검토용)</blockquote>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**참조 프로토콜:** GAS v1.5</blockquote>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**면책 고지**</blockquote>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">본 백서는 정보 제공 목적의 초안이며, 어떠한 국가에서도 증권 청약 권유가 아닙니다. GPT 구매는 높은 위험을 수반하며, 투자 원금 전액 손실이 가능합니다. 구매 전 반드시 해당 국가의 법률 및 규제 전문가와 상담하십시오. 미국 시민·거주자, 중국 거주자 및 OFAC 제재 대상국 거주자는 참여가 제한됩니다.</blockquote>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">v1.1 대비 주요 변경 사항</h2>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">항목</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">변경 내용</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|----------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">**명칭**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPC(Gopang Payment Currency) → **GPT(Gopang Token)** 전면 변경</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§1 비전**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">글로벌 디지털 화폐(국적 화폐 보완재)로서의 최종 목표 추가</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§4 통화 설계**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">총 공급량 2억 GPT, 인플레이션 조건 개정</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§7 글로벌 결제**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">국경 간 결제 메커니즘 신규 (여행 결제 시나리오 포함)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§8 다국적 통화 풀**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">193개국 동시 런칭 기반 다국적 통화 풀(Pool) 구조 신규</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§9 화폐 표시 선택**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">사용자별 국적 화폐 표시(Denomination) 메커니즘 신규</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§10 자동 외환 보고**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">각국 외환 관리법 준수 자동 보고 프레임워크 신규</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§11 Smart Vault**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">자산 바스켓 기반 가치 저장 기능 신규</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**§18 로드맵**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">글로벌 확장 목표(193개국, SDR 협의) 반영</td></tr>
+</tbody></table></div>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">목차</h2>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">1. [비전과 사명: GPT as Global Digital Currency](#1-비전과-사명)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">2. [고팡 생태계 개요](#2-고팡-생태계-개요)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">3. [GPT의 화폐적 기능 및 프로토콜 역할](#3-gpt의-화폐적-기능-및-프로토콜-역할)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">4. [통화 아키텍처](#4-통화-아키텍처)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">5. [Gopang Economic Index (GEI)](#5-gopang-economic-index-gei)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">6. [생태계 통합: GPT-프로토콜 완전 융합](#6-생태계-통합)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">7. [글로벌 결제: 국경 없는 직불 시스템 (신규)](#7-글로벌-결제)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">8. [다국적 통화 풀: 고팡의 글로벌 외환 보유고 (신규)](#8-다국적-통화-풀)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">9. [국적 화폐 표시 선택 메커니즘 (신규)](#9-국적-화폐-표시-선택-메커니즘)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">10. [각국 외환 관리법 준수: 자동 보고 프레임워크 (신규)](#10-외환-관리법-준수)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">11. [Smart Vault: GPT 가치 저장 기능 (신규)](#11-smart-vault)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">12. [토큰 발행 및 배분](#12-토큰-발행-및-배분)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">13. [오프라인 큐: GPT 예치금 모델](#13-오프라인-큐)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">14. [법적 컴플라이언스와 GPT](#14-법적-컴플라이언스와-gpt)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">15. [초기 토큰 세일](#15-초기-토큰-세일)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">16. [포크 중재: GPT 거버넌스 메커니즘](#16-포크-중재)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">17. [자금 사용 계획](#17-자금-사용-계획)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">18. [GPT 흐름 전체 구조 및 재무 전망](#18-gpt-흐름-전체-구조-및-재무-전망)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">19. [통화 거버넌스](#19-통화-거버넌스)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">20. [유통 및 환전 인프라](#20-유통-및-환전-인프라)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">21. [법적 구조 및 규제 대응](#21-법적-구조-및-규제-대응)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">22. [위험 요소](#22-위험-요소)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">23. [로드맵](#23-로드맵)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">24. [팀 및 거버넌스 기구](#24-팀-및-거버넌스-기구)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">25. [결론](#25-결론)</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">26. [부록](#26-부록)</p>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">1. 비전과 사명</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">1.1 GPT의 최종 목표: 국적 화폐의 보완재</h3>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**"국적 화폐는 각국 정부가 발행 권한을 갖는다. GPT는 아무도 발행 권한을 갖지 않는다. 수학적 신뢰만이 GPT의 중앙은행이다."**</blockquote>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">금, 글로벌 기업의 주식, 채권, 미국 국채가 사실상 글로벌 화폐 기능을 수행하듯, GPT는 탈중앙 디지털 경제의 글로벌 기축 통화를 지향합니다. GPT는 국적 화폐의 대체재가 아닌 <strong>보완재</strong>로서, 국경 없는 디지털 경제에서 가치 저장, 교환 매체, 회계 단위 세 가지 화폐 기능을 수행합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">1.2 핵심 명제의 삼중 구조</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">계층</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">명제</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">구현</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|------|------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">**프로토콜**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT as Protocol Primitive — 암호화·라우팅·법적 절차의 내장 자원</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GAS v1.5 완전 통합</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**생태계**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT as Digital Sovereign Currency — 고팡 생태계의 유일한 결제 수단</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">K-Law AI·메시징·마켓플레이스</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**글로벌**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT as Global Digital Currency — 193개국 국경 간 결제·환전 인프라</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">다국적 통화 풀 + 자동 보고</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">1.3 패러다임 전환 (v1.1 → v1.2)</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">기존 모델 (v1.1)</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">글로벌 화폐 모델 (v1.2)</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|-----------------|----------------------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT는 생태계 내부 화폐</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT는 193개국 국경 간 결제 수단</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">법정화폐는 온/오프램프에서만 접촉</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">법정화폐가 다국적 통화 풀에 상시 적립·운용</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">환전은 외부 거래소 경유</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">환전이 고팡 내부 풀 간 장부 이동으로 처리</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">사용자는 GPT 잔고 하나만 보유</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">사용자는 GPT를 원하는 국적 화폐로 표시 선택 가능</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">외환 보고는 사용자 개인 의무</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">고팡 시스템이 ZKP 기반 보고를 자동 대행</td></tr>
+</tbody></table></div>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">2. 고팡 생태계 개요</h2>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">고팡 네트워크는 GAS v1.5를 기반으로 작동하며, 세계 193개국 동시 런칭을 통해 글로벌 디지털 경제권을 형성합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">2.1 생태계 계층 구조</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+L0 (글로벌)    : OpenHash 컨소시엄 원장 — GUID·닉네임·GPT 스테이킹 앵커링
+L1 (지역)      : 읍면동 단위 클러스터, K=3 리던던시
+L2 (개인)      : 사용자 디바이스 (PDV, Personal Device Vault)
+통화 풀 레이어 : 193개국 법정화폐 에스크로 계좌 (§8 참조)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">2.2 생태계 구성 서비스</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">서비스</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">설명</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT 연계</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|--------|------|----------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">**고팡 메시징**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">E2E 암호화 탈중앙 메시지</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">전송 수수료, 큐 예치금, Stealth 소각</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**K-Law AI**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">AI 법률 분석·판결 예측 (193개국 동시 제공)</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">성과 기반 수수료, ZKP 증거 비용</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**글로벌 결제**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">193개국 현지 가맹점 GPT 직불 결제</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">다국적 통화 풀 활용 (§7)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**다국적 환전**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">통화 풀 간 법정화폐 교환 서비스</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT를 브릿지 통화로 활용 (§8)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**화폐 표시 선택**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT를 원하는 국적 화폐로 표시</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">사용자 지분 토큰 (§9)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**Smart Vault**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">자산 바스켓 기반 가치 저장</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 예치 + 자동 자산 운용 (§11)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**Gopang Pay**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">현실 가맹점 카드 결제</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">즉시 현지 화폐 환산</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**디지털 신원 (DID)**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">탈중앙 신원 인증·전자 서명</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">인증 수수료</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**L1/Mixnet 스테이킹**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">노드 운영</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">연 3~8% GPT 보상</td></tr>
+</tbody></table></div>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">3. GPT의 화폐적 기능 및 프로토콜 역할</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">3.1 3대 화폐 기능</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>교환 매체 (Medium of Exchange)</strong></p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">생태계 내 모든 재화·서비스 결제 수단. P2P 전송 수수료는 0 GPT. 국경 간 결제 시 다국적 통화 풀을 통해 현지 법정화폐로 즉시 환산됩니다(§7).</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>회계 단위 (Unit of Account)</strong></p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">모든 가격을 GPT로 표시합니다. 장기 계약과 구독료는 GEI 기준으로 고정하여 변동성을 완화합니다(§5). 현지 가맹점에는 현지 통화 가격이 GPT 동등 금액과 함께 표시됩니다.</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>가치 저장 (Store of Value)</strong></p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">알고리즘적 공급 조절(최대 2% 인플레이션), 다중 소각 메커니즘, Smart Vault(자산 바스켓 고정, §11), 스테이킹 이자(연 3~8%)로 장기 구매력을 유지합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">3.2 프로토콜 내장 기능 (GAS v1.5 연동)</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">프로토콜 계층</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT 역할</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|-------------|---------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">**주소 생성**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT 마스터 공개키와 최초 스테이킹 블록이 GUID 파생에 참여</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**IPv6 신뢰 등급**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 스테이킹 수준이 IPv6 하위 니블에 인코딩</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**Stealth 암호화**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 소각량이 태그 비트 수 결정 (32~40비트)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**DHT 라우팅**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 스테이킹이 Kademlia 가중 거리 함수의 입력값</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**Mixnet**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 스테이킹 비율로 Mixnode 가중치·보상 결정</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**오프라인 큐**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 예치금이 스팸을 경제적으로 억제</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**법적 절차**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 예치금(Legal Hold)·수수료(ZKP)가 사법 남용 방지</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**통화 풀**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT가 193개국 법정화폐 간 가치 기준(unit of account) 역할</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**거버넌스**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 스테이킹이 DAO 투표·포크 중재·메인넷 결정에 관여</td></tr>
+</tbody></table></div>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">4. 통화 아키텍처</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">4.1 발행 구조 (v1.2 개정)</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">구분</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">수량 (GPT)</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">비고</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|-----------|------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">제네시스 발행 (최초 공급)</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">100,000,000</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">최초 블록 생성 시</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">최대 총 공급량</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">200,000,000</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">100년에 걸쳐 2% 인플레이션; 소각으로 실제는 낮아짐</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">연간 최대 인플레이션율</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">2%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">생태계 성장·스테이킹 보상</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">인플레이션 발동 조건</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">생태계 GDP 성장률 > 30%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">디플레이션 방지 최소 발행 보장</td></tr>
+</tbody></table></div>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**v1.1 대비 변경:** 총 공급량을 1억 GPT(고정)에서 최대 2억 GPT(100년 누적)로 조정했습니다. 동시에 인플레이션 발동 조건을 사용자 수 YoY 50% 성장에서 생태계 GDP 성장률 30% 초과로 정밀화하여 과도한 희석을 방지합니다.</blockquote>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">4.2 통화 정책 스마트 컨트랙트</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+인플레이션율 = 기준율(0~2%)
+             + α × (GDP_성장률 - 목표_성장률)
+             - β × 소각률
+
+α = 0.20  (성장 가속 계수)
+β = 0.50  (소각 반응 계수)
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>신규 발행 GPT 배분:</strong></p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">배분처</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">비율</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">내용</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|--------|------|------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">L1 노드 스테이킹 보상</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">40%</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">네트워크 유지 인센티브</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">생태계 성장 기금</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">30%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">개발자 그랜트, 마케팅</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">재단 운영</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">20%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">통화 안정화 준비금</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">소각</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">10%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">디플레이션 압력 유지</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">4.3 다중 소각 구조</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">소각 경로</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">발생 조건</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|---------|---------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">수수료 일부</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">메시지 전송 시</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">스테이킹 슬래싱</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">악의적 L1/Mixnode 행위</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">Stealth 태그 확장</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">발신자 선택적 소각</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">닉네임 등록</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">매 등록 시 (0.001 GPT)</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">닉네임 경매</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">낙찰금의 20%</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">Legal Hold 패널티</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">위법한 증거 압류 요청</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">DAO 결의</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">수시</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">4.4 초기 가치 안정화 (초기 5년간)</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">GPT-USD 안정화 펀드를 운영합니다. 재단 보유분 중 1,000만 GPT와 조달한 USD 1,500만 달러로 풀을 조성하며, GPT 시장 가격이 기준가($0.05) 대비 ±20% 이탈 시 자동 개입합니다.</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">상황</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">조치</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">가격 **< $0.04**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">재단 보유분으로 시장 매수, 스테이킹 보상 인상</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">가격 **> $0.10**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">2% 한도 내 추가 발행 가속, 수수료 GPT 할인 쿠폰 배포</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">5년 후 시장 성숙도를 보고 펀드를 해산하거나 DAO 투표로 연장합니다.</p>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">5. Gopang Economic Index (GEI)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">5.1 산출 공식</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+GEI = (CPI_global_weighted + GPI_gopang) / 2
+
+CPI_global_weighted : 주요 10개국 CPI 가중평균 (Chainlink 오라클)
+GPI_gopang          : 고팡 생태계 내 서비스 가격 지수 (K-Law AI 산출)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">5.2 적용 방식</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+K-Law AI 분석 1회 = 0.5 GEI
+
+GPT $0.05, 1 GEI = $1.00 → 0.5 GEI = 10 GPT
+GPT $0.10, 1 GEI = $1.00 → 0.5 GEI = 5 GPT  (서비스 실질 비용 유지)
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">현지 가맹점에서는 현지 통화 가격과 GEI 기준 GPT 동등 금액을 병기합니다.</p>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">6. 생태계 통합: GPT-프로토콜 완전 융합</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.1 Stealth Address 태그 확장</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+burn_amount_factor = floor( log₂( burned_GPT + 1 ) )   ← 최대 8
+
+소각 0 GPT  → 태그 32비트 (기본)
+소각 7 GPT  → 태그 35비트
+소각 255 GPT → 태그 40비트 (충돌 확률 2^-40)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.2 GPT 가중 DHT 라우팅</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+거리(A, B) = XOR(GUID_A, GUID_B) - 2^40 × log₂(stake_GPT_B + 1)
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">스테이킹이 높은 사용자가 DHT에서 '더 가깝게' 위치합니다. Sybil 공격자는 GPT 스테이킹 없이 DHT 근접 불가합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.3 IPv6 신뢰 등급 인코딩</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+하위 니블 (비트 124~127):
+  0x0 = L0 (익명, 스테이킹 0)
+  0x1 = L1 (전화번호 인증)
+  0x2 = L2 (≥100 GPT 스테이킹)
+  0x3 = L3 (≥1,000 GPT 스테이킹 + KYC)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.4 닉네임 경매</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+낙찰금의 80% → 이전 소유자 환불
+낙찰금의 20% → 소각
+경쟁 없을 경우: 갱신 비용 0.0001 GPT
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.5 K-Law AI 성과 기반 수수료 (193개국)</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+정확도 ≥ 90%  →  1 GPT 수수료 (9 GPT 환불)
+정확도 70~90% →  5 GPT 수수료 (5 GPT 환불)
+정확도 &lt; 70%  →  전액 환불 + 2 GPT 추가 보상
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">K-Law AI는 세계 193개국 법률 체계에서 동시 서비스하며, 각국 법률 데이터를 GPT 수수료 수익과 교환하는 방식으로 현지화됩니다.</p>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">7. 글로벌 결제: 국경 없는 직불 시스템 (신규)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">7.1 핵심 시나리오: 한국인의 태국·라오스 여행 결제</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+상황: 한국인 사용자가 태국에서 500 바트(THB) 상품 구매
+
+[1] 고팡 앱에서 결제 금액 입력 (500 THB)
+[2] 실시간 환율 조회:
+    GPT/USD (Chainlink·Band Protocol 중간값)
+    USD/THB (현지 은행 중간가)
+    → GPT 소요량 자동 계산
+
+[3] 사용자 결제 승인
+    → 해당 GPT가 스마트 컨트랙트에 에스크로
+
+[4] 가맹점(태국 상인):
+    → 고팡 앱으로 결제 요청 수신
+    → 원하는 정산 통화(THB) 선택
+
+[5] 고팡 네트워크:
+    에스크로 GPT → 내부 유동성 풀에서 THB로 스왑
+    → 가맹점 은행 계좌로 THB 즉시 이체
+
+[6] 완료: 사용자(결제 알림) + 가맹점(THB 입금 알림)
+    소요 시간: 3~10초
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">7.2 환전 수수료 구조</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">구간</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">기준</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">수수료</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|------|--------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">GPT → USD</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">Gemini·Coinbase·Binance 평균가</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">0.10%</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">USD → THB</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">현지 은행 중간가 (마진 없음)</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">0.20%</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**총**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top"></td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**0.30%**</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">Visa/Mastercard 해외 결제 수수료(1~3%), 환전소 마진(1~5%)보다 현저히 저렴합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">7.3 오프라인 결제 지원</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">인터넷이 불안정한 지역(태국 섬, 라오스 산간)을 위한 오프라인 결제:</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+[1] 사용자: 앱에서 GPT를 QR 코드로 생성 (미리 충전)
+[2] 가맹점: 오프라인 스캐너로 QR 읽기 → 암호화된 영수증 교환
+[3] 이중 지불 방지: 소액 GPT를 임시 보류 상태로 잠금
+[4] 네트워크 복구 시: 자동 검증 및 정산
+</pre>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">8. 다국적 통화 풀: 고팡의 글로벌 외환 보유고 (신규)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">8.1 핵심 원리: GPT를 브릿지 통화로</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">193개국 사용자가 자국 법정화폐로 GPT를 구매하면, 해당 법정화폐는 국가별 통화 풀에 적립됩니다. 이 풀이 고팡의 다국적 외환 보유고가 되어 국가 간 환전 서비스를 제공합니다.</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+예시 초기 풀 상태:
+  KRW 풀: 1,000,000원  (1 GPT = 10원 기준 100,000 GPT 가치)
+  THB 풀: 500,000 바트 (1 GPT = 5바트 기준 100,000 GPT 가치)
+  USD 풀: 10,000 달러  (1 GPT = 0.1달러 기준 100,000 GPT 가치)
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>GPT는 실제로 이동하지 않습니다.</strong> 풀 간 내부 장부(ledger)에서 GPT 가치를 기준으로 환율을 계산하고, 각 풀의 법정화폐 잔고만 조정합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">8.2 환전 메커니즘: 원화 → 태국 바트 예시</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+초기 풀:
+  KRW 풀: 1,000,000원 (100,000 GPT 가치, 1 GPT = 10원)
+  THB 풀:   500,000바트 (100,000 GPT 가치, 1 GPT = 5바트)
+
+사용자 요청: 1,000원 → 바트 환전
+
+계산:
+  1,000원 ÷ 10원/GPT = 100 GPT 가치
+  100 GPT × 5바트/GPT = 500바트
+
+지급:
+  사용자 → 500바트 수령
+  KRW 풀: 999,000원  (99,900 GPT 가치)
+  THB 풀: 499,500바트 (99,900 GPT 가치)
+
+→ 실제 국제 송금 없음 / 즉시 정산 / 수수료 0.10~0.30%
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>핵심:</strong> 한국 원화가 태국으로 송금되는 것이 아니라, 태국 풀 내 바트(태국 사용자가 이전에 예치한 바트)가 한국 원화 청구권과 교환됩니다. <strong>양국 간 자금 흐름이 없습니다.</strong></p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">8.3 환율 결정 및 리밸런싱</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>환율 소스:</strong> GPT/법정화폐 환율은 Chainlink·Band Protocol 오라클 중간값 사용.</p>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>리밸런싱 메커니즘:</strong></p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+풀의 GPT 평가 가치가 시장 환율과 1% 이상 괴리 시:
+  → 아비트라지 트레이더에게 기회 제공
+  → 트레이더가 저렴한 풀 매수·비싼 시장 매도 → 이익 획득
+  → 자동으로 풀 환율이 시장 환율에 수렴
+
+탈중앙화된 가격 안정화 장치: 중앙 개입 없이 시장 원리로 유지
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75"><strong>유동성 관리:</strong></p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+특정 통화 풀 잔고 감소 시:
+  → 해당 통화 환전 수수료 일시 인상 (추가 유출 억제)
+  → 잔고 증가 시 수수료 인하 (유입 촉진)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">8.4 통화 풀 수익 모델</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">수익원</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">요율</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">내용</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|--------|------|------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">환전 수수료</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">0.10~0.30%</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">사용자 지불, GPT로 결제 가능</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">풀 예치 이자</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">연 0.5~2.0%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">풀 법정화폐를 국채 등 안전 자산에 투자</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">유동성 공급자 수수료 분배</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">0.05%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">풀에 GPT 예치한 사용자에게 환전 수수료 일부 배분</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">8.5 GPT의 부분 담보 모델 (장기)</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">각국 통화 풀에 쌓인 법정화폐가 GPT의 부분 담보 역할을 합니다.</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+목표: GPT 발행량의 30%를 각국 풀의 법정화폐로 백킹
+효과: 30% 부분 담보 → GPT 가치 하방 지지
+원칙: 탈중앙성 유지를 위해 100% 담보 스테이블코인화는 지양
+</pre>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">9. 국적 화폐 표시 선택 메커니즘 (신규)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.1 핵심 원리</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">사용자는 자신의 GPT 잔액을 원하는 국적 화폐(KRW·USD·JPY·EUR·THB 등)로 '표시'할 수 있습니다. 고팡의 외환 보유고(통화 풀 총액)는 변하지 않고, 사용자별 지분(claim)만 변동합니다.</p>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**"가치 기준은 GPT, 표시 통화는 사용자가 선택한다."**</blockquote>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.2 사용자 지분 토큰(User Share Token)</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">각 국적 화폐 풀은 지분 토큰을 발행합니다.</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+사용자가 100 GPT를 KRW로 표시 결정 시:
+
+초기 상태:
+  KRW 풀 총액: 1,000,000원 (100,000 GPT 가치, 1 GPT = 10원)
+
+수행:
+  [1] 사용자의 100 GPT → 스마트 컨트랙트에 예치(락업)
+  [2] 지분 토큰 발행:
+      (100 GPT / 100,100 GPT 가치) × 1,000,000원 ≈ 999원 가치의 지분
+  [3] 앱 화면: "보유 KRW: 999원 상당"
+
+풀 상태:
+  KRW 풀 총액: 1,000,000원 (변함 없음)
+  풀 내 GPT 가치: 100,100 GPT (사용자 100 GPT 포함)
+  사용자 지분: 0.0999%
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.3 환율 변동 시 자동 반영</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+GPT/KRW 환율: 10원 → 12원 상승 시
+
+풀 내 GPT 가치: 100,100 GPT × 12원 = 1,201,200원
+사용자 지분 0.0999% → 청구 가능 KRW ≈ 1,200원
+
+앱 화면 자동 갱신: "보유 KRW: 1,200원 상당"
+</pre>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">실제 KRW 인출 시: 지분 토큰 소각 → KRW 수령 + 예치된 GPT 지갑 반환.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.4 다중 통화 포트폴리오</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">사용자는 GPT 보유량을 여러 통화로 분할하여 표시할 수 있습니다.</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+예시: 100 GPT 보유자
+  30 GPT → KRW 표시 (한국 소비용)
+  30 GPT → USD 표시 (글로벌 자산)
+  40 GPT → JPY 표시 (일본 여행 예정)
+
+앱 화면:
+  KRW 잔고: OOO원
+  USD 잔고: OO달러
+  JPY 잔고: OOO엔
+  합계(USD 환산): $XX.XX
+
+비중 조정 수수료: 풀 간 이동 시 0.05%
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.5 외환 보유고 불변성 원칙</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+변하는 것:  풀 내 사용자별 지분(claim) 분배
+변하지 않는 것: 각국 통화 풀의 법정화폐 총액
+
+예외: 사용자가 실제로 법정화폐를 입금하거나 인출할 때만
+      풀 총액(외환 보유고)이 변동됨
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">9.6 스마트 컨트랙트 구현 로직</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+contract CurrencyPool {
+    mapping(address =&gt; uint256) public shares;  // 사용자 지분 (단위: 1/1,000,000)
+    uint256 public totalShares;
+    uint256 public totalFiat;        // 풀 내 실제 법정화폐 총액
+    uint256 public totalGPTvalue;   // 풀 내 예치 GPT 가치 합계
+
+    // 사용자 GPT 예치 + 화폐 표시 설정
+    function depositGPTandDenominate(
+        uint256 gptAmount,
+        uint256 exchangeRate    // GPT/해당통화 실시간 환율 (오라클 제공)
+    ) external {
+        // 1. GPT를 컨트랙트로 전송
+        // 2. 사용자 지분 계산:
+        //    shares = (gptAmount × exchangeRate / totalFiat) × totalShares
+        // 3. totalGPTvalue, totalShares 업데이트
+        // 4. 앱에 표시 통화 잔액 갱신
+    }
+
+    // 실제 법정화폐 인출
+    function withdrawFiat(uint256 shareAmount) external {
+        require(shares[msg.sender] &gt;= shareAmount);
+        uint256 fiatToPay = (shareAmount * totalFiat) / totalShares;
+        // 은행 계좌에서 사용자에게 fiatToPay 송금
+        // shares, totalShares, totalFiat, totalGPTvalue 비례 감소
+    }
+
+    // 오라클이 새 환율 제공 시 전체 지분 가치 자동 갱신
+    function rebalanceCurrency() external onlyOracle {
+        // totalGPTvalue = 현재 환율 × 예치 GPT 수량
+        // 개별 shares 가치는 자동 반영 (별도 액션 불필요)
+    }
+}
+</pre>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">10. 각국 외환 관리법 준수: 자동 보고 프레임워크 (신규)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.1 설계 원칙</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">GPT는 법정화폐가 아니므로 자본 이동 제한의 직접 적용을 받지 않습니다. 그러나 각국 정부의 외환거래법에 따라 일정 금액 초과 거래는 보고 의무가 발생할 수 있습니다. 고팡 시스템은 사용자 개인정보를 최대한 보호하면서 필요한 보고를 자동 대행합니다.</p>
+<blockquote style="border-left:4px solid #0057A8;background:#E8F0FA;padding:10px 14px;margin:12px 0;font-size:13px;color:#1A202C">**"풀 간 거래는 실질적으로 '국내 거래'다."** 한국 원화가 태국으로 이동하는 것이 아니라, 태국 풀 내 바트와 한국 풀 내 원화의 청구권이 교환될 뿐입니다. 이를 각국 정부에 설득하는 외교적·법적 작업이 병행됩니다.</blockquote>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.2 ZKP 기반 자동 보고</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+보고 원칙:
+  개인 신원을 노출하지 않고 집계 통계만 제공 (기본)
+  법원 영장 또는 사용자 동의 시에만 개인 정보 제공
+
+보고 내용 (집계 수준):
+  ① 총 환전량: 국가 A → 국가 B 총 GPT 가치 (익명 집계)
+  ② 통화 풀 잔고: 각국 법정화폐 풀의 총액
+  ③ 이상 거래: 일 $100,000 이상 개인 환전 발생 시
+     → 개인 식별 정보는 ZKP로 암호화하여 익명 제공
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.3 사용자 측 자동 보고 (한국인 해외 사용 예시)</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+트리거: 일일·월간 해외 GPT 사용액이 일정 기준($10,000) 초과 감지
+
+[1] 앱: "해외 지출 보고 필요" 알림 표시
+
+[2] 사용자 동의 시:
+    앱이 한국은행 외환통계시스템에 ZKP 기반 보고서 자동 제출
+    보고 내용: 익명화된 식별자, 사용 금액, 국가, 기간
+    (주민번호 등 개인 신원 미포함)
+
+[3] 사용자 거부 시:
+    일정 금액 이상 해외 GPT 사용 차단
+    또는 직접 신고 의무가 있음을 고지
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.4 가맹점 측 자동 보고 (태국 상인 예시)</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+트리거: 일일 GPT-THB 정산액이 500,000바트 초과
+
+자동 보고:
+  태국 중앙은행 외환 거래 보고 시스템에 자동 제출
+  보고 내용: 상인 등록번호, 정산액, GPT 출처 국가(선택적)
+  사용자 개인정보: 미포함
+
+소상공인 옵션: 간이 보고 (연 1회 일괄)
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.5 국가별 규제 대응</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">국가</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">주요 규제</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">고팡 대응</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|------|----------|----------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">한국</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">외환거래법: $10,000 초과 해외 송금 보고</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">앱 알림 + ZKP 자동 신고 대행</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">태국</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">50만 바트 초과 외환 거래 중앙은행 보고</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">자동 집계 보고</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">라오스</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">외국 화폐 반입 신고 의무</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">디지털 지출은 별도 가이드라인 적용 추진</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">EU</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">PSD2: 제3자 결제 서비스 허가</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 결제를 '선불카드'로 분류 신청</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">일본</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">자금 결제법: 가상화폐 교환업 등록</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">현지 규제 완전 준수, 별도 법인 설립</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">중국</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">암호화폐 전면 금지</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">GPT 환전 서비스 불가 → 국가 제외</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.6 '디지털 통화 특구' 협정</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">관광 의존도가 높은 국가들과 MOU 체결을 추진합니다.</p>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+대상국: 태국, 라오스, 캄보디아, 필리핀, 괌, 베트남 등
+내용: 해당 국가 내에서 GPT 관광 결제를 외환 보고 의무 완화 대상으로 인정
+예: 1일 $2,000 미만 관광 지출은 보고 면제
+</pre>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">10.7 현지 은행 정산 네트워크</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+방콕은행 (태국), BCEL (라오스), BDO (필리핀) 등과 직접 정산 계약:
+
+사용자 GPT 결제 시:
+  → 해당 은행의 정산 계정 내 법정화폐를 가맹점에 즉시 이체
+  → GPT는 '선불 충전 수단'으로만 기능
+  → 가맹점은 환율 위험 없이 현지 화폐 수령
+</pre>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">11. Smart Vault: GPT 가치 저장 기능 (신규)</h2>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">11.1 개념</h3>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">GPT 단독 보유의 변동성을 완화하기 위해 사용자가 GPT를 자산 바스켓에 고정할 수 있습니다. 스마트 컨트랙트가 자동으로 자산을 구매하고, 출금 시 매도하여 GPT로 반환합니다.</p>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">11.2 바스켓 유형</h3>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">바스켓</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">구성</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">예상 변동성</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">적합 사용자</th></tr></thead><tbody>
+</tbody></table></div>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">|--------|------|-----------|-----------|</p>
+<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:13px">
+<thead><tr><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">**안정형**</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">단기 미 국채 50% + 금 30% + GPT 20%</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9"><5%</th><th style="padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#718096;border-bottom:2px solid #D1D9E6;background:#F4F6F9">저축·결제 중심</th></tr></thead><tbody>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**균형형**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">주식(SPY) 30% + 채권 30% + 금 20% + GPT 20%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">10~15%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">장기 보유 투자자</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**성장형**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">주식 60% + 부동산 REIT 20% + 금 10% + GPT 10%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">20~25%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">공격적 장기 투자자</td></tr>
+<tr><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">**통화형**</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">다국적 통화 풀 지분 100%</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">환율 수준</td><td style="padding:8px 11px;border-bottom:1px solid #D1D9E6;vertical-align:top">환전 서비스 활용자</td></tr>
+</tbody></table></div>
+<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">11.3 운용 방식</h3>
+<pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+사용자: GPT를 Smart Vault에 예치
+  → 스마트 컨트랙트: 자동으로 해당 자산 비율 구매 (온체인 DeFi 연동)
+  → 가치 변동: 자동 추적·표시
+
+사용자: 인출 요청
+  → 스마트 컨트랙트: 자산 매도 → GPT로 반환
+
+효과: 개인이 직접 해외 자산에 투자하지 않고도 GPT 구매력 안정화
+법적 유의사항: 국가별 해외 투자 규정 준수 필요 (국내 사용자 한정)
+</pre>
+<hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+<h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">12. 토큰 발행 및 배분</h2>
+<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">총 발행량: **100,</p></div>
+    </div>
+  </div>
+</div>
+<script>(function tick(){const el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});setTimeout(tick,1000);})();</script>
+</body></html>

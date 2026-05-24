@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — 판결 시뮬레이터</title>
+<link rel="stylesheet" href="klaw_shared.css">
+<style>
+.sim-area{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.input-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-1);}
+.input-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.input-title{font-size:12px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;}
+.input-body{padding:16px 18px;}
+.form-label{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.5px;}
+.form-select,.form-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .15s;}
+.form-select:focus,.form-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,87,168,.10);}
+.form-textarea{min-height:180px;resize:vertical;line-height:1.6;}
+.form-group{margin-bottom:14px;}
+.run-btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.run-btn:hover{background:var(--primary-dk);}
+.run-btn:disabled{background:#9AA5B4;cursor:not-allowed;}
+.result-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-1);display:flex;flex-direction:column;}
+.result-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.result-body{padding:16px 18px;flex:1;overflow-y:auto;max-height:500px;}
+.verdict-box{background:var(--primary-bg);border:1px solid var(--primary-bd);border-left:4px solid var(--primary);border-radius:0 var(--r) var(--r) 0;padding:14px 16px;margin-bottom:14px;}
+.verdict-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);margin-bottom:5px;}
+.verdict-text{font-size:15px;font-weight:700;color:var(--text);line-height:1.5;}
+.confidence-bar{margin-bottom:14px;}
+.conf-label{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:5px;}
+.conf-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:4px;background:var(--primary);transition:width 1s ease;}
+.analysis-block{background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.65;color:var(--sub);}
+.analysis-block strong{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--hint);margin-bottom:5px;}
+.caveat-box{background:#FFF8E6;border:1px solid #F5C842;border-radius:var(--r);padding:10px 14px;font-size:11px;color:#7A5700;line-height:1.6;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--hint);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.mini-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-1);}
+.mini-val{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:-1px;}
+.mini-val.gold{color:var(--gold);}
+.mini-lbl{font-size:11px;color:var(--sub);margin-top:2px;}
+.history-table{width:100%;border-collapse:collapse;font-size:13px;}
+.history-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--hint);border-bottom:2px solid var(--border);background:var(--bg);}
+.history-table td{padding:9px 12px;border-bottom:1px solid var(--border);}
+.loading{display:none;text-align:center;padding:40px;}
+.loading.show{display:block;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a href="index.html" class="sb-brand">
+    <div class="sb-icon">⚖</div>
+    <div><div class="sb-name">K-Law</div><div class="sb-sub">AI 사법 예측 시스템</div></div>
+  </a>
+  <nav class="sb-nav">
+    <div class="sb-sec">서비스</div>
+    <a class="sb-item active" href="dashboard.html"><span>🖥</span> 판결 시뮬레이터</a>
+    <a class="sb-item" href="report.html"><span>📊</span> 실증 결과 보고서</a>
+    <div class="sb-sec">문서</div>
+    <a class="sb-item" href="business.html"><span>💼</span> 사업화 계획서</a>
+    <a class="sb-item" href="whitepaper.html"><span>📄</span> GPT 백서</a>
+    <a class="sb-item" href="participation.html"><span>🤝</span> 파트너 참여 제안</a>
+    <div class="sb-sec">관련 서비스</div>
+    <a class="sb-item" href="https://gopang.net" target="_blank"><span>🤖</span> 고팡 (gopang.net)</a>
+    <a class="sb-item" href="https://fiil.kr" target="_blank"><span>🌊</span> FIIL.kr</a>
+  </nav>
+  <div class="sb-user"><strong>law.openhash.kr</strong>AI City Inc. / K-Law Inc.</div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <nav class="breadcrumb">
+      <a href="index.html">K-Law</a> › <strong style="color:var(--text)">판결 시뮬레이터</strong>
+    </nav>
+    <div class="topbar-right">
+      <span style="font-size:11px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:5px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block"></span>
+        K-Law v15.1 운영 중
+      </span>
+      <span class="clock" id="clock"></span>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- 통계 -->
+    <div class="stat-row">
+      <div class="mini-stat"><div class="mini-val gold">73%</div><div class="mini-lbl">대법원 일치도 (실측)</div></div>
+      <div class="mini-stat"><div class="mini-val">+28%p</div><div class="mini-lbl">인간 원심 대비 우위</div></div>
+      <div class="mini-stat"><div class="mini-val" id="sim-count">0</div><div class="mini-lbl">이번 세션 시뮬레이션</div></div>
+      <div class="mini-stat"><div class="mini-val">v15.1</div><div class="mini-lbl">K-Law 버전</div></div>
+    </div>
+
+    <!-- 시뮬레이터 -->
+    <div class="sim-area">
+      <!-- 입력 -->
+      <div class="input-section">
+        <div class="input-head">
+          <div class="input-title">⚖️ 사건 요지 입력</div>
+          <span style="font-size:11px;color:var(--hint)">최대 2,000자</span>
+        </div>
+        <div class="input-body">
+          <div class="form-group">
+            <label class="form-label">사건 분류</label>
+            <select class="form-select" id="case-type">
+              <option value="civil">민사 (본안)</option>
+              <option value="criminal">형사</option>
+              <option value="admin">행정</option>
+              <option value="family">가사</option>
+              <option value="small">소액사건</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">사건 요지</label>
+            <textarea class="form-textarea" id="case-input" placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.
+
+예시:
+원고는 피고에게 2024년 3월 차용증서를 작성하고 3,000만원을 대여하였으나, 피고가 변제기인 2024년 9월이 지나도록 이를 변제하지 않고 있습니다. 피고는 해당 금액이 대여가 아닌 증여라고 주장합니다."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">적용 법조문 (선택)</label>
+            <input class="form-select" type="text" id="law-ref" placeholder="예: 민법 제598조, 대법원 2023다12345">
+          </div>
+          <button class="run-btn" id="run-btn" onclick="runSimulation()">
+            ⚖️ K-Law 판결 예측 실행
+          </button>
+          <div style="text-align:center;margin-top:8px;font-size:10px;color:var(--hint)">
+            본 시뮬레이션은 법률 자문이 아닙니다 · 정보 제공 목적
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 -->
+      <div class="result-section">
+        <div class="result-head">
+          <div class="input-title">📋 K-Law 예측 결과</div>
+          <button onclick="clearResult()" style="font-size:11px;color:var(--hint);background:none;border:none;cursor:pointer">초기화</button>
+        </div>
+        <div class="result-body" id="result-body">
+          <div class="empty-state">
+            <div class="empty-icon">⚖️</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:6px">사건 요지를 입력하세요</div>
+            <div style="font-size:12px">K-Law AI가 대법원 법리 공리 체계로 판결을 예측합니다</div>
+          </div>
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div style="font-size:13px;color:var(--sub)">K-Law 분석 중...</div>
+            <div style="font-size:11px;color:var(--hint);margin-top:4px">법리 공리계 적용 · 판례 DB 검색</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시뮬레이션 이력 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📋 시뮬레이션 이력</div>
+        <button onclick="clearHistory()" style="font-size:11px;color:var(--hint);background:none;border:none;cursor:pointer">전체 삭제</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="history-table" id="history-table">
+          <thead>
+            <tr>
+              <th>#</th><th>사건 유형</th><th>요지 요약</th><th>예측 결과</th><th>신뢰도</th><th>시각</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="6" style="text-align:center;color:var(--hint);padding:20px">시뮬레이션 이력이 없습니다</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 면책 -->
+    <div style="background:#FFF8E6;border:1px solid #F5C842;border-radius:var(--r);padding:12px 16px;margin-top:16px;font-size:11px;color:#7A5700;line-height:1.7;">
+      ⚠️ <strong>중요 고지:</strong> K-Law 시뮬레이션은 법률 정보 제공 목적이며 변호사의 법률 자문을 대체하지 않습니다.
+      73% 일치도는 대법원 선별 공개 판례(고난도 사건) 기준 예비 측정치로, 개별 사건 결과를 보장하지 않습니다.
+      법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하시기 바랍니다.
+    </div>
+  </div>
+</div>
+
+<script>
+// Clock
+(function tick(){
+  const el=document.getElementById('clock');
+  if(el) el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick,1000);
+})();
+
+let simCount = 0;
+const history = [];
+
+const CASE_TYPE_LABELS = {
+  civil:'민사(본안)', criminal:'형사', admin:'행정', family:'가사', small:'소액사건'
+};
+
+// 판결 시뮬레이션 (고팡 API 연동)
+async function runSimulation() {
+  const caseType = document.getElementById('case-type').value;
+  const caseInput = document.getElementById('case-input').value.trim();
+  const lawRef = document.getElementById('law-ref').value.trim();
+
+  if (!caseInput || caseInput.length < 30) {
+    alert('사건 요지를 30자 이상 입력해 주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('run-btn');
+  const resultBody = document.getElementById('result-body');
+  const loading = document.getElementById('loading');
+
+  btn.disabled = true;
+  btn.textContent = '분석 중...';
+  resultBody.querySelector('.empty-state') && (resultBody.querySelector('.empty-state').style.display='none');
+  loading.classList.add('show');
+
+  try {
+    const apiKey = localStorage.getItem('klaw_api_key') || '';
+    const prompt = buildPrompt(caseType, caseInput, lawRef);
+
+    const response = await fetch('https://gopang-proxy.tensor-city.workers.dev/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: KLAW_SYSTEM_PROMPT },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 1000,
+        temperature: 0.1,
+      })
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content || '';
+
+    loading.classList.remove('show');
+    renderResult(result, caseType, caseInput);
+    addHistory(caseType, caseInput, result);
+
+  } catch(e) {
+    loading.classList.remove('show');
+    renderError(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚖️ K-Law 판결 예측 실행';
+  }
+}
+
+const KLAW_SYSTEM_PROMPT = `당신은 K-Law AI 판결 예측 시스템입니다.
+대법원 법리 공리 체계를 기반으로 사건 요지를 분석하고 판결을 예측합니다.
+
+반드시 아래 형식으로 응답하세요:
+
+【판결 예측】
+원고 승소 / 피고 승소 / 일부 승소 / 판단 불가 중 하나
+
+【신뢰도】
+0~100 사이의 숫자만
+
+【법리 분석】
+적용 법리와 근거를 3~5문장으로 설명
+
+【핵심 쟁점】
+주요 법적 쟁점 2~3가지를 간략히
+
+【주의사항】
+이 예측이 갖는 한계나 추가 확인이 필요한 사항
+
+중요: 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.`;
+
+function buildPrompt(caseType, input, lawRef) {
+  return `사건 분류: ${CASE_TYPE_LABELS[caseType]}
+${lawRef ? '참조 법조문: ' + lawRef + '\n' : ''}
+사건 요지:
+${input}
+
+위 사건에 대한 K-Law 판결 예측을 수행해 주세요.`;
+}
+
+function renderResult(text, caseType, input) {
+  const body = document.getElementById('result-body');
+
+  const verdictMatch = text.match(/【판결 예측】\s*([\s\S]*?)(?=【|$)/);
+  const confMatch    = text.match(/【신뢰도】\s*(\d+)/);
+  const analysisMatch= text.match(/【법리 분석】\s*([\s\S]*?)(?=【|$)/);
+  const issueMatch   = text.match(/【핵심 쟁점】\s*([\s\S]*?)(?=【|$)/);
+  const cautionMatch = text.match(/【주의사항】\s*([\s\S]*?)(?=【|$)/);
+
+  const verdict = verdictMatch ? verdictMatch[1].trim() : '판단 불가';
+  const conf    = confMatch    ? parseInt(confMatch[1]) : 50;
+  const analysis= analysisMatch? analysisMatch[1].trim() : text;
+  const issues  = issueMatch   ? issueMatch[1].trim() : '';
+  const caution = cautionMatch ? cautionMatch[1].trim() : '';
+
+  const confColor = conf >= 75 ? 'var(--green)' : conf >= 50 ? 'var(--primary)' : 'var(--orange)';
+
+  body.innerHTML = `
+    <div class="verdict-box">
+      <div class="verdict-label">⚖️ K-Law 판결 예측</div>
+      <div class="verdict-text">${verdict}</div>
+    </div>
+    <div class="confidence-bar">
+      <div class="conf-label">
+        <span>신뢰도</span>
+        <span style="font-weight:700;color:${confColor}">${conf}%</span>
+      </div>
+      <div class="conf-track">
+        <div class="conf-fill" style="width:0%;background:${confColor}" id="conf-fill"></div>
+      </div>
+    </div>
+    ${analysis ? `<div class="analysis-block"><strong>📖 법리 분석</strong>${analysis}</div>` : ''}
+    ${issues   ? `<div class="analysis-block"><strong>⚠️ 핵심 쟁점</strong>${issues}</div>` : ''}
+    ${caution  ? `<div class="caveat-box">💡 ${caution}</div>` : ''}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--hint)">
+      K-Law v15.1 · ${new Date().toLocaleString('ko-KR')} · 법률 자문 아님
+    </div>
+  `;
+
+  setTimeout(() => {
+    const fill = document.getElementById('conf-fill');
+    if (fill) fill.style.width = conf + '%';
+  }, 100);
+
+  simCount++;
+  document.getElementById('sim-count').textContent = simCount;
+}
+
+function renderError(msg) {
+  document.getElementById('result-body').innerHTML = `
+    <div style="text-align:center;padding:40px;color:var(--red)">
+      <div style="font-size:28px;margin-bottom:10px">⚠️</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">분석 오류</div>
+      <div style="font-size:12px;color:var(--sub)">${msg}</div>
+      <div style="margin-top:12px;font-size:11px;color:var(--hint)">고팡(gopang.net)에서 직접 K-Law를 체험해 보세요</div>
+    </div>`;
+}
+
+function clearResult() {
+  document.getElementById('result-body').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⚖️</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">사건 요지를 입력하세요</div>
+      <div style="font-size:12px">K-Law AI가 대법원 법리 공리 체계로 판결을 예측합니다</div>
+    </div>
+    <div class="loading" id="loading"></div>`;
+}
+
+function addHistory(caseType, input, result) {
+  const verdictMatch = result.match(/【판결 예측】\s*([\s\S]*?)(?=【|$)/);
+  const confMatch    = result.match(/【신뢰도】\s*(\d+)/);
+  const verdict = verdictMatch ? verdictMatch[1].trim().slice(0,10) : '판단 불가';
+  const conf    = confMatch    ? confMatch[1] : '—';
+
+  history.unshift({
+    id: history.length + 1,
+    type: CASE_TYPE_LABELS[caseType],
+    summary: input.slice(0, 30) + '...',
+    verdict, conf,
+    time: new Date().toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'})
+  });
+
+  const tbody = document.getElementById('history-body');
+  tbody.innerHTML = history.map(h => `
+    <tr>
+      <td>${h.id}</td>
+      <td><span class="chip chip-blue">${h.type}</span></td>
+      <td style="color:var(--sub)">${h.summary}</td>
+      <td style="font-weight:700">${h.verdict}</td>
+      <td><span class="chip ${parseInt(h.conf)>=75?'chip-green':parseInt(h.conf)>=50?'chip-blue':'chip-orange'}">${h.conf}%</span></td>
+      <td style="color:var(--hint)">${h.time}</td>
+    </tr>`).join('');
+}
+
+function clearHistory() {
+  history.length = 0;
+  document.getElementById('history-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--hint);padding:20px">시뮬레이션 이력이 없습니다</td></tr>';
+}
+</script>
+</body>
+</html>

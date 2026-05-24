@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — AI 판결 예측 시스템</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* ══════════════════════════════════════════════════
+   K-Law Design System v2
+   한국 정부 공식 디자인 지침 기반
+   Primary: #003C82 (header) / #0057A8 (nav) / #006CC3 (accent)
+   Font: Pretendard
+   WCAG 2.1 AA 준수
+══════════════════════════════════════════════════ */
+:root {
+  --gov-header: #002060;   /* 최상단 gov-bar */
+  --gov-nav:    #003C82;   /* 상단 네비게이션 */
+  --primary:    #0057A8;   /* 주요 액션 */
+  --primary-lt: #006CC3;   /* 보조 강조 */
+  --primary-bg: #EBF3FC;
+  --primary-bd: #B8D4F0;
+  --gold:       #B8952A;
+  --surface:    #FFFFFF;
+  --bg:         #F4F6F9;
+  --border:     #D1D9E6;
+  --text:       #1A202C;
+  --sub:        #4A5568;
+  --hint:       #718096;
+  --green:      #1B6B3A;  --green-bg: #E6F4EC;
+  --orange:     #C05621;  --orange-bg:#FEF3E2;
+  --red:        #C01C28;
+  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --r: 4px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+a { text-decoration: none; color: inherit; }
+
+/* ── GOV BAR ── */
+.gov-bar {
+  background: var(--gov-header);
+  color: rgba(255,255,255,.80);
+  font-size: 11px;
+  padding: 6px 0;
+  text-align: center;
+  letter-spacing: .3px;
+  font-weight: 500;
+}
+
+/* ── TOP NAV (짙은 정부 청색) ── */
+.topnav {
+  background: var(--gov-nav);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.topnav-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+.topnav-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -.3px;
+  padding-right: 20px;
+  border-right: 1px solid rgba(255,255,255,.15);
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.topnav-logo svg { opacity: .9; }
+.topnav-links { display: flex; flex: 1; }
+.topnav-links a {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.72);
+  transition: background .15s, color .15s;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.topnav-links a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topnav-links a.active { color: #fff; border-bottom-color: #A8D4FF; background: rgba(255,255,255,.06); }
+.topnav-divider { width: 1px; background: rgba(255,255,255,.15); margin: 12px 8px; flex-shrink: 0; }
+.topnav-doc-label {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,.38);
+  flex-shrink: 0;
+}
+.topnav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  padding-left: 20px;
+  border-left: 1px solid rgba(255,255,255,.12);
+  flex-shrink: 0;
+}
+.topnav-counter { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.55); }
+.topnav-clock { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.70); font-variant-numeric: tabular-nums; }
+
+/* ── HERO BAND ── */
+.hero-band {
+  background: linear-gradient(150deg, #001845 0%, #002D72 60%, #003C82 100%);
+  color: #fff;
+  padding: 24px 0 20px;
+  border-bottom: 3px solid #006CC3;
+}
+.hero-band-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.hero-text h1 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.5px;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+.hero-text h1 em { color: #90C4FF; font-style: normal; }
+.hero-text p { font-size: 13px; color: rgba(255,255,255,.68); line-height: 1.6; max-width: 480px; }
+.hero-kpis { display: flex; gap: 0; flex-shrink: 0; }
+.hero-kpi {
+  text-align: center;
+  padding: 0 24px;
+  border-right: 1px solid rgba(255,255,255,.12);
+}
+.hero-kpi:last-child { border-right: none; padding-right: 0; }
+.hero-kpi-val { font-size: 28px; font-weight: 800; color: #D4AF37; letter-spacing: -1px; line-height: 1; }
+.hero-kpi-lbl { font-size: 10px; color: rgba(255,255,255,.52); margin-top: 4px; line-height: 1.4; }
+.hero-note {
+  max-width: 1160px; margin: 0 auto; padding: 8px 24px 0;
+  font-size: 10px; color: rgba(255,255,255,.30); border-top: 1px solid rgba(255,255,255,.07); margin-top: 16px;
+}
+
+/* ── PAGE BODY ── */
+.page-body {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-title .title-right {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--hint);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font);
+}
+.section-title .title-right:hover { color: var(--primary); }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 16px;
+}
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: #FAFBFD;
+  border-radius: var(--r) var(--r) 0 0;
+}
+.card-header-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.card-body { padding: 16px; }
+
+/* ── FORM ── */
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-group:last-of-type { margin-bottom: 0; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 5px;
+}
+.form-control {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  line-height: 1.5;
+}
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,87,168,.10);
+}
+textarea.form-control {
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.65;
+}
+.run-btn {
+  width: 100%;
+  padding: 11px 0;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+  margin-top: 14px;
+  letter-spacing: -.2px;
+}
+.run-btn:hover { background: #003C82; }
+.run-btn:disabled { background: #9AA5B4; cursor: not-allowed; }
+.form-hint { font-size: 10px; color: var(--hint); margin-top: 8px; text-align: center; }
+
+/* ── RESULT AREA ── */
+.result-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--hint);
+  text-align: center;
+}
+.result-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .5; }
+.result-empty-title { font-size: 13px; font-weight: 700; color: var(--sub); margin-bottom: 4px; }
+.result-empty-desc { font-size: 12px; line-height: 1.5; }
+.result-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 12px;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.result-loading-text { font-size: 12px; color: var(--sub); }
+.result-panel { display: none; }
+.result-error { padding: 20px; color: var(--red); font-size: 13px; }
+.result-error-sub { font-size: 11px; color: var(--hint); margin-top: 5px; }
+
+/* 판결 예측 결과 컴포넌트 */
+.result-verdict-row {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-bd);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 13px 15px;
+  margin-bottom: 14px;
+}
+.result-verdict-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.result-verdict-text { font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+.result-conf-row { margin-bottom: 14px; }
+.result-conf-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.result-conf-label { color: var(--sub); font-weight: 600; }
+.result-conf-val { font-weight: 800; }
+.result-conf-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.result-conf-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.2s ease;
+}
+.result-block {
+  background: var(--bg);
+  border-radius: var(--r);
+  padding: 11px 13px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.result-block-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--hint);
+  margin-bottom: 5px;
+}
+.result-block-body { font-size: 12px; color: var(--sub); line-height: 1.7; }
+.result-caution {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: var(--r);
+  padding: 10px 13px;
+  font-size: 11px;
+  color: #92400E;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.result-meta {
+  font-size: 10px;
+  color: var(--hint);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+
+/* ── 우측 패널 ── */
+.right-col { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 68px; }
+.kpi-list { display: flex; flex-direction: column; }
+.kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.kpi-row:last-child { border-bottom: none; }
+.kpi-label { color: var(--sub); font-size: 12px; }
+.kpi-val { font-weight: 700; font-size: 14px; }
+.kpi-val.gold { color: var(--gold); }
+.kpi-val.blue { color: var(--primary); }
+.kpi-val.green { color: var(--green); }
+
+/* ── 문서 링크 ── */
+.doc-links { display: flex; flex-direction: column; gap: 8px; }
+.doc-link-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg);
+  transition: all .15s;
+}
+.doc-link-item:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary-bd);
+}
+.doc-link-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+.doc-link-text { flex: 1; min-width: 0; }
+.doc-link-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.doc-link-desc { font-size: 11px; color: var(--hint); }
+.doc-link-arrow { color: var(--hint); font-size: 13px; flex-shrink: 0; }
+.doc-link-item:hover .doc-link-name { color: var(--primary); }
+.doc-link-item:hover .doc-link-arrow { color: var(--primary); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 3px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.badge-blue  { background: var(--primary-bg); color: var(--primary); }
+.badge-green { background: var(--green-bg);   color: var(--green); }
+.badge-orange{ background: var(--orange-bg);  color: var(--orange); }
+.badge-gray  { background: #F1F3F4; color: var(--sub); }
+
+/* ── HISTORY TABLE ── */
+.history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.history-table th {
+  padding: 8px 11px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--hint);
+  border-bottom: 2px solid var(--border);
+  background: #FAFBFD;
+}
+.history-table td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--bg); }
+.ht-num { color: var(--hint); width: 32px; }
+.ht-summary { color: var(--sub); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ht-verdict { font-weight: 700; font-size: 12px; }
+.ht-time { color: var(--hint); font-size: 11px; white-space: nowrap; }
+.ht-empty { text-align: center; color: var(--hint); padding: 20px; }
+
+/* ── FOOTER ── */
+.page-footer {
+  max-width: 1160px;
+  margin: 20px auto 0;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--hint);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-disclaimer {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 11px;
+  color: var(--hint);
+  background: #F9FAFB;
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+}
+.site-footer {
+  background: #0A1628;
+  color: rgba(255,255,255,.40);
+  padding: 20px 0;
+  margin-top: 32px;
+  font-size: 11px;
+}
+.site-footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.site-footer a { color: rgba(255,255,255,.35); }
+.site-footer a:hover { color: rgba(255,255,255,.7); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px) {
+  .page-body { grid-template-columns: 1fr; }
+  .right-col { position: static; }
+  .hero-kpis { display: none; }
+}
+@media(max-width:640px) {
+  .topnav-links a { padding: 0 10px; font-size: 12px; }
+  .topnav-doc-label { display: none; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- 최상단 정부 바 -->
+<div class="gov-bar">AI City Inc. / K-Law Inc. &nbsp;|&nbsp; AI 사법 예측 시스템 &nbsp;|&nbsp; 법률 정보 제공 목적 — 법률 자문 대체 불가</div>
+
+<!-- 상단 네비게이션 (짙은 정부 청색) -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="index.html" class="topnav-logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2L12 5"/><path d="M5 7l14 0"/><path d="M7 7l-3 8a4 4 0 008 0l-3-8"/><path d="M17 7l-3 8a4 4 0 008 0l-3-8"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+      K-Law
+    </a>
+    <div class="topnav-links">
+      <a href="index.html" class="active">판결 시뮬레이터</a>
+      <div class="topnav-divider"></div>
+      <div class="topnav-doc-label">문서</div>
+      <a href="report.html">실증 보고서</a>
+      <a href="business.html">사업화 계획</a>
+      <a href="whitepaper.html">GPT 백서</a>
+      <a href="participation.html">파트너 참여</a>
+    </div>
+    <div class="topnav-right">
+      <span class="topnav-counter" id="sim-counter">0건</span>
+      <span class="topnav-clock" id="clock"></span>
+    </div>
+  </div>
+</nav>
+
+<!-- 히어로 밴드 -->
+<div class="hero-band">
+  <div class="hero-band-inner">
+    <div class="hero-text">
+      <h1>K-Law <em>AI 판결 예측 시스템</em></h1>
+      <p>사건 요지를 입력하면 대법원 법리 공리 체계 기반의 AI가 판결을 예측합니다.<br>대법원 공개 판례 기준 실측 일치도 73%, 인간 원심(2심) 대비 +28%p 우위.</p>
+    </div>
+    <div class="hero-kpis">
+      <div class="hero-kpi">
+        <div class="hero-kpi-val">73%</div>
+        <div class="hero-kpi-lbl">대법원 일치도<br><span style="color:rgba(255,255,255,.25);font-size:9px">실측 · 300건</span></div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val">+28p</div>
+        <div class="hero-kpi-lbl">인간 원심 대비<br><span style="color:rgba(255,255,255,.25);font-size:9px">원심 45%</span></div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val">95.5%</div>
+        <div class="hero-kpi-lbl">전수 상고 추정<br><span style="color:rgba(255,255,255,.25);font-size:9px">추정치 ±5%p</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-note">※ 73%, 45%는 대법원 선별 공개 판례(고난도 사건) 기준 예비 측정치. 95.5%는 전수 상고 모형 이론적 추정치〔±5%p〕. 본 시뮬레이션은 법률 자문이 아닙니다.</div>
+</div>
+
+<!-- 페이지 본문 -->
+<div class="page-body">
+
+  <!-- 좌: 입력 + 결과 + 이력 -->
+  <div>
+
+    <!-- ① 사건 입력 섹션 -->
+    <div class="section-title">
+      사건 요지 입력
+      <span style="font-size:10px;color:var(--hint);text-transform:none;letter-spacing:0;font-weight:500">최대 2,000자</span>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          사건 정보
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid-2">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">사건 분류</label>
+            <select class="form-control" id="case-type">
+              <option value="civil">민사 (본안)</option>
+              <option value="criminal">형사</option>
+              <option value="admin">행정</option>
+              <option value="family">가사</option>
+              <option value="small">소액사건</option>
+              <option value="labor">노동</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">참조 법조문 (선택)</label>
+            <input class="form-control" type="text" id="law-ref" placeholder="예: 민법 제598조">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          사건 요지
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea class="form-control" id="case-input" placeholder="사건의 핵심 사실관계와 법적 쟁점을 상세히 입력하세요.
+
+[입력 예시]
+원고는 피고에게 2024년 3월 차용증서를 작성하고 3,000만원을 대여하였으나,
+피고가 변제기인 2024년 9월이 지나도록 이를 변제하지 않고 있습니다.
+피고는 해당 금액이 대여가 아닌 증여라고 주장합니다.
+
+[법적 쟁점]
+- 차용 사실 인정 여부 (민법 제598조)
+- 차용증서의 증거 능력 및 증명력"></textarea>
+        <button class="run-btn" id="run-btn" onclick="runSimulation()">⚖ 판결 예측 실행</button>
+        <div class="form-hint">법률 자문이 아닙니다 &nbsp;·&nbsp; 정보 제공 목적 &nbsp;·&nbsp; K-Law v15.1</div>
+      </div>
+    </div>
+
+    <!-- ② 예측 결과 섹션 -->
+    <div class="section-title">
+      예측 결과
+      <button class="title-right" onclick="clearResult()">초기화</button>
+    </div>
+    <div class="card" style="min-height:200px">
+      <div class="card-body">
+        <div class="result-empty" id="result-empty">
+          <div class="result-empty-icon">⚖</div>
+          <div class="result-empty-title">사건 요지를 입력하고 실행하세요</div>
+          <div class="result-empty-desc">K-Law AI가 대법원 법리 공리 체계로<br>판결을 예측합니다</div>
+        </div>
+        <div class="result-loading" id="result-loading">
+          <div class="spinner"></div>
+          <div class="result-loading-text">K-Law 분석 중 — 법리 공리계 적용 · 판례 DB 검색</div>
+        </div>
+        <div class="result-panel" id="result-panel"></div>
+      </div>
+    </div>
+
+    <!-- ③ 시뮬레이션 이력 섹션 -->
+    <div class="section-title">
+      시뮬레이션 이력
+      <button class="title-right" onclick="clearHistory()">전체 삭제</button>
+    </div>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th class="ht-num">#</th>
+              <th>유형</th>
+              <th>요지 요약</th>
+              <th>예측 결과</th>
+              <th>신뢰도</th>
+              <th>시각</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="6" class="ht-empty">아직 시뮬레이션 이력이 없습니다</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 우: 성능 지표 + 문서 바로가기 -->
+  <div class="right-col">
+
+    <!-- K-Law 성능 지표 -->
+    <div class="section-title">K-Law 성능 지표</div>
+    <div class="card">
+      <div class="card-body" style="padding:0 16px">
+        <div class="kpi-list">
+          <div class="kpi-row"><span class="kpi-label">대법원 일치도 (실측)</span><span class="kpi-val gold">73%</span></div>
+          <div class="kpi-row"><span class="kpi-label">인간 원심(2심) 대비</span><span class="kpi-val blue">+28%p</span></div>
+          <div class="kpi-row"><span class="kpi-label">전수 상고 환경 추정</span><span class="kpi-val blue">95.5%</span></div>
+          <div class="kpi-row"><span class="kpi-label">측정 표본</span><span class="kpi-val">300건</span></div>
+          <div class="kpi-row"><span class="kpi-label">현재 버전</span><span class="kpi-val">v15.1</span></div>
+          <div class="kpi-row"><span class="kpi-label">이번 세션 시뮬레이션</span><span class="kpi-val green" id="session-kpi">0건</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 문서 바로가기 -->
+    <div class="section-title">문서 바로가기</div>
+    <div class="doc-links">
+      <a href="report.html" class="doc-link-item">
+        <span class="doc-link-icon">📊</span>
+        <div class="doc-link-text">
+          <div class="doc-link-name">실증 결과 보고서 v2.1</div>
+          <div class="doc-link-desc">73% 실측 · +28%p 수리 검증</div>
+        </div>
+        <span class="doc-link-arrow">›</span>
+      </a>
+      <a href="business.html" class="doc-link-item">
+        <span class="doc-link-icon">💼</span>
+        <div class="doc-link-text">
+          <div class="doc-link-name">사업화 계획서 2026</div>
+          <div class="doc-link-desc">Seed 500억~1,000억 KRW</div>
+        </div>
+        <span class="doc-link-arrow">›</span>
+      </a>
+      <a href="whitepaper.html" class="doc-link-item">
+        <span class="doc-link-icon">📄</span>
+        <div class="doc-link-text">
+          <div class="doc-link-name">GPT 공개 백서 v1.2</div>
+          <div class="doc-link-desc">글로벌 디지털 통화 시스템</div>
+        </div>
+        <span class="doc-link-arrow">›</span>
+      </a>
+      <a href="participation.html" class="doc-link-item">
+        <span class="doc-link-icon">🤝</span>
+        <div class="doc-link-text">
+          <div class="doc-link-name">파트너 참여 제안 v15</div>
+          <div class="doc-link-desc">법무법인·금융기관·일반 대중</div>
+        </div>
+        <span class="doc-link-arrow">›</span>
+      </a>
+      <a href="https://github.com/nounweb/k-law" target="_blank" class="doc-link-item">
+        <span class="doc-link-icon">📂</span>
+        <div class="doc-link-text">
+          <div class="doc-link-name">GitHub 코드 & 벤치마크</div>
+          <div class="doc-link-desc">오픈소스 · 독립 검증 가능</div>
+        </div>
+        <span class="doc-link-arrow">›</span>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- 면책 고지 -->
+<div class="footer-disclaimer">
+  ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않습니다.
+  73%, 45% 수치는 대법원 선별 공개 판례(극소수 고난도 사건) 기준 예비 측정치〔출처·근거 요망〕.
+  95.5%는 전수 상고 모형 이론적 추정치〔±5%p〕. 법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
+</div>
+
+<!-- 사이트 푸터 -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <span>© 2026 AI City Inc. / K-Law Inc. &nbsp;|&nbsp; law.openhash.kr</span>
+    <span>
+      <a href="https://gopang.net" target="_blank">gopang.net</a> &nbsp;·&nbsp;
+      <a href="https://fiil.kr" target="_blank">fiil.kr</a> &nbsp;·&nbsp;
+      <a href="https://openhash.kr" target="_blank">openhash.kr</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+
+const CASE_TYPE_LABELS={civil:'민사(본안)',criminal:'형사',admin:'행정',family:'가사',small:'소액사건',labor:'노동'};
+let simCount=0;
+const history=[];
+
+(function tick(){
+  const el=document.getElementById('clock');
+  if(el) el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick,1000);
+})();
+
+const KLAW_SYSTEM_PROMPT=`당신은 K-Law AI 판결 예측 시스템입니다.
+대법원 법리 공리 체계를 기반으로 사건 요지를 분석하고 판결을 예측합니다.
+
+반드시 아래 형식으로만 응답하세요:
+
+【판결 예측】
+원고 승소 / 피고 승소 / 일부 승소 / 판단 불가 중 하나를 명확히 기재
+
+【신뢰도】
+0~100 사이의 숫자만 기재
+
+【법리 분석】
+적용된 주요 법리와 판단 근거를 3~5문장으로 설명
+
+【핵심 쟁점】
+주요 법적 쟁점 2~3가지
+
+【주의사항】
+이 예측의 한계나 추가 확인이 필요한 사항
+
+본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.`;
+
+async function runSimulation(){
+  const caseType=document.getElementById('case-type').value;
+  const caseInput=document.getElementById('case-input').value.trim();
+  const lawRef=document.getElementById('law-ref').value.trim();
+  if(!caseInput||caseInput.length<20){alert('사건 요지를 20자 이상 입력해 주세요.');return;}
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true; btn.textContent='분석 중...';
+  showLoading(true);
+  try{
+    const prompt=`사건 분류: ${CASE_TYPE_LABELS[caseType]}\n${lawRef?'참조 법조문: '+lawRef+'\n':''}\n사건 요지:\n${caseInput}\n\n위 사건에 대한 K-Law 판결 예측을 수행해 주세요.`;
+    const response=await fetch('https://gopang-proxy.tensor-city.workers.dev/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'deepseek-chat',messages:[{role:'system',content:KLAW_SYSTEM_PROMPT},{role:'user',content:prompt}],max_tokens:800,temperature:0.1})
+    });
+    const data=await response.json();
+    const result=data.choices?.[0]?.message?.content||'';
+    showLoading(false);
+    renderResult(result);
+    addHistory(caseType,caseInput,result);
+  }catch(e){
+    showLoading(false);
+    document.getElementById('result-panel').innerHTML=`<div class="result-error"><p>⚠️ 오류: ${e.message}</p><p class="result-error-sub">네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.</p></div>`;
+  }finally{btn.disabled=false;btn.textContent='⚖ 판결 예측 실행';}
+}
+
+function showLoading(show){
+  document.getElementById('result-empty').style.display = show?'none':'flex';
+  document.getElementById('result-loading').style.display = show?'flex':'none';
+  document.getElementById('result-panel').style.display = show?'none':'block';
+}
+
+function renderResult(text){
+  document.getElementById('result-panel').style.display='block';
+  const vM=text.match(/【판결 예측】\s*([\s\S]*?)(?=【|$)/);
+  const cM=text.match(/【신뢰도】\s*(\d+)/);
+  const aM=text.match(/【법리 분석】\s*([\s\S]*?)(?=【|$)/);
+  const iM=text.match(/【핵심 쟁점】\s*([\s\S]*?)(?=【|$)/);
+  const wM=text.match(/【주의사항】\s*([\s\S]*?)(?=【|$)/);
+  const verdict=vM?vM[1].trim():'판단 불가';
+  const conf=cM?parseInt(cM[1]):50;
+  const analysis=aM?aM[1].trim():'';
+  const issues=iM?iM[1].trim():'';
+  const caution=wM?wM[1].trim():'';
+  const cColor=conf>=75?'#1B6B3A':conf>=50?'#0057A8':'#C05621';
+
+  document.getElementById('result-panel').innerHTML=`
+    <div class="result-verdict-row">
+      <div class="result-verdict-label">판결 예측</div>
+      <div class="result-verdict-text">${verdict}</div>
+    </div>
+    <div class="result-conf-row">
+      <div class="result-conf-header"><span class="result-conf-label">신뢰도</span><span class="result-conf-val" style="color:${cColor}">${conf}%</span></div>
+      <div class="result-conf-track"><div class="result-conf-fill" style="width:0%;background:${cColor}" id="conf-fill"></div></div>
+    </div>
+    ${analysis?`<div class="result-block"><div class="result-block-label">법리 분석</div><div class="result-block-body">${analysis}</div></div>`:''}
+    ${issues?`<div class="result-block"><div class="result-block-label">핵심 쟁점</div><div class="result-block-body">${issues}</div></div>`:''}
+    ${caution?`<div class="result-caution">${caution}</div>`:''}
+    <div class="result-meta">K-Law v15.1 &nbsp;·&nbsp; ${new Date().toLocaleString('ko-KR')} &nbsp;·&nbsp; 법률 자문 아님</div>`;
+  setTimeout(()=>{const f=document.getElementById('conf-fill');if(f)f.style.width=conf+'%';},80);
+}
+
+function clearResult(){
+  document.getElementById('result-panel').style.display='none';
+  document.getElementById('result-loading').style.display='none';
+  document.getElementById('result-empty').style.display='flex';
+}
+
+function addHistory(caseType,input,result){
+  const vM=result.match(/【판결 예측】\s*([\s\S]*?)(?=【|$)/);
+  const cM=result.match(/【신뢰도】\s*(\d+)/);
+  simCount++;
+  history.unshift({id:simCount,type:CASE_TYPE_LABELS[caseType],summary:input.slice(0,30)+'…',verdict:vM?vM[1].trim().slice(0,12):'판단 불가',conf:cM?cM[1]:'—',time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})});
+  const tbody=document.getElementById('history-body');
+  tbody.innerHTML=history.map(h=>`<tr><td class="ht-num">${h.id}</td><td><span class="badge badge-blue">${h.type}</span></td><td class="ht-summary">${h.summary}</td><td class="ht-verdict">${h.verdict}</td><td><span class="badge ${parseInt(h.conf)>=75?'badge-green':parseInt(h.conf)>=50?'badge-blue':'badge-orange'}">${h.conf}%</span></td><td class="ht-time">${h.time}</td></tr>`).join('');
+  document.getElementById('sim-counter').textContent=simCount+'건';
+}
+
+function clearHistory(){
+  history.length=0;simCount=0;
+  document.getElementById('history-body').innerHTML='<tr><td colspan="6" class="ht-empty">시뮬레이션 이력이 없습니다</td></tr>';
+  document.getElementById('sim-counter').textContent='0건';
+}
+
+// session-kpi 연동
+const _origAddHistory = addHistory;
+window.addHistory = function(a,b,c) {
+  _origAddHistory(a,b,c);
+  document.getElementById('session-kpi').textContent = simCount + '건';
+};
+</script>
+</body>
+</html>
