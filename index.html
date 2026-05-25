@@ -1043,10 +1043,16 @@ async function doLogin() {
   const msg   = document.getElementById('login-msg');
   if (!email || !pw) { msg.className='auth-msg err'; msg.textContent='이메일과 비밀번호를 입력하세요.'; return; }
   btn.disabled = true; btn.textContent = '로그인 중…';
-  msg.textContent = '';
-  const { error } = await supa.auth.signInWithPassword({ email, password: pw });
+  msg.className='auth-msg'; msg.textContent = '';
+  const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
   btn.disabled = false; btn.textContent = '로그인';
-  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; }
+  if (error) {
+    let errMsg = error.message;
+    if (errMsg.includes('Invalid login')) errMsg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+    else if (errMsg.includes('Email not confirmed')) errMsg = '이메일 인증이 필요합니다. 테스트 계정(test@klaw.ai)을 이용하세요.';
+    else if (errMsg.includes('User not found')) errMsg = '존재하지 않는 계정입니다.';
+    msg.className='auth-msg err'; msg.textContent = errMsg;
+  }
 }
 
 async function doSignup() {
