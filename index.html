@@ -1151,19 +1151,23 @@ async function loadKlawHistory(userId) {
   } catch(e) { console.warn('[Supa]', e.message); }
 }
 
-async function recordKlawUsage(klawVer, llmModel) {
+async function recordKlawUsage(klawVer, llmModel, simData = {}) {
   if (!currentUser) return;
   try {
     await supa.from('klaw_sessions').insert({
       user_id:      currentUser.id,
       klaw_version: klawVer,
       llm_model:    llmModel,
-      used_at:      new Date().toISOString()
+      used_at:      new Date().toISOString(),
+      case_type:    simData.caseType    || null,
+      case_level:   simData.caseLevel   || null,
+      case_summary: simData.caseSummary || null,
+      verdict:      simData.verdict     || null,
+      confidence:   simData.confidence  || null,
+      case_input:   simData.caseInput   || null
     });
-    // 캐시 업데이트
     if (!userKlawSentVersions[currentUser.id]) userKlawSentVersions[currentUser.id] = {};
     userKlawSentVersions[currentUser.id][klawVer] = true;
-    // 이력 패널 새로고침
     loadKlawHistory(currentUser.id);
   } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
 }
@@ -1420,6 +1424,17 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 
 응답은 반드시 위 형식만 사용하세요.`;
 
+// ── 복잡도 → 대법원 판결 일치도 예상 계산 (v13.3)
+// 복잡도 1/10 → 99.99%, 복잡도 10/10 → 90%
+// 공식: 99.99 - (복잡도-1) × (99.99-90)/9
+function calcMatchRate(complexity) {
+  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+  const rate = 99.99 - (c - 1) * (9.99 / 9);
+  if (rate >= 99.9)  return rate.toFixed(2) + '%';
+  if (rate >= 99)    return rate.toFixed(1) + '%';
+  return rate.toFixed(0) + '%';
+}
+
 function buildKlawSimPrompt(caseNo, level) {
   // ── 토큰 절약: 이미 이 사용자가 이 버전을 전달한 적 있으면 본문 생략
   const alreadySent = hasKlawBeenSent(klawVersion);
@@ -1432,42 +1447,110 @@ function buildKlawSimPrompt(caseNo, level) {
   return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
 ${tokenNote}
 ${methodSummary ? '[K-Law 방법론 원문(발췌)]\n' + methodSummary + '\n\n---\n\n' : ''}
-아래 형식을 준수하여 가상 판결문을 작성하세요.
+아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+가상판결 출력형식 v13.3 | K-Law ${klawVersion}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
 
 ── STEP 0 ──
 [0-α 직관] 원고 유리 / 피고 유리 / 불명확
-근거: ① 입증책임 관점 ② 신뢰보호 관점 ③ 결과수긍 관점
-[0-β 격리] 이전 결론 격리 선언
+근거: ① 입증책임 관점: [요약] ② 신뢰보호 관점: [요약] ③ 결과수긍 관점: [요약]
+[0-β 격리] 해당 없음 / 이전 결론 격리 선언
 [명제] 총 N쌍: 제1층위(소송요건) N개 / 제2층위(법적성격) N개 / 제3층위(본안) N개
 [STEP-0-COMPLETE | 명제 N쌍 | 0-α: X유리 | 0-β: 해당/없음]
 
 ── STEP A ──
-[A-0 판례 법리 군] [A-0-S 의미 해석] [A-1 역방향 추론] [A-2 법률관계 확정]
-[A-3 인과 분해 6층위] [A-4 명제 정교화] [A-5 충돌 지점]
-(각 항목 완료 태그 포함. 허위 판례 번호 금지.)
+[A-0 판례 법리 군] 수집 N건. 전원합의체 검색: 완료/해당없음. 하위 판단 요소 N개.
+[STEP-A-0-COMPLETE | 판례 N건 | 하위 판단 요소 N개]
+[A-0-S 의미 해석] 핵심 단어·문구 N개 해석. 판례 인용: 있음/없음. 특별법: 존재/부존재.
+[STEP-A-0-S-COMPLETE | 해석 N개 | 특별법: 존재/부존재]
+[A-1 역방향 추론] 피고 최강 논거(300자 이상) / 원고 대응 논거(동등 분량). 입증책임: 원고/피고.
+[STEP-A-1-COMPLETE | 피고 최강: (1문장 요약)]
+[A-2 법률관계 확정] 특별법 감지 / 법령 시제 / 복잡도 N/10 / 공격·방어 목록.
+[STEP-A-2-COMPLETE | 게이트웨이 통과 | 특별법: 존재/부존재]
+[A-3 인과 분해] ① 채권·채무 발생 ② 이익 귀속 ③ 제3자 역할 ④ 사후 행태 ⑤ 근원법령 ⑥ 행정처분 연계
+[STEP-A-3-COMPLETE | 분해 층위 6개]
+[A-4 명제 정교화] 숨은 명제 N개 추가. 최종 명제 N개.
+[STEP-A-4-COMPLETE | 최종 명제 N개]
+[A-5 충돌 지점] N개 식별. 상식(0-α) ↔ 법리 예상: 일치/불일치.
+[STEP-A-5-COMPLETE | 충돌 지점 N개]
 
 ── STEP B ──
-[B-1~B-7 순서대로. B-7에 주문+이유 완성]
+[B-1 법률관계 최종 확정] 강행규정 확인. 특별법-일반법 최종 확인.
+[B-2 쟁점 계층적 처리] 귀속 주체 확인. 행정처분 연계성.
+[B-3 법률행위 해석] 해당 없음 / 계약 해석 5대 요소 적용.
+[B-4 해석 우선순위] 공리 H 적용. 우선순위: 제1.5/1.6/1/2우선 명시.
+[형식-실질 비교 분석] 문언 명확성 게이트 → 형식적/실질적 해석 비교.
+[특별법-일반법 관계 분석] (조건부: 특별법 감지 시)
+[B-5 손해액 산정] 해당 없음 / 손해액·책임제한 산정.
+[B-5-A 역방향 판결 초안] (조건부 발동) 정반대 결론 + 비교 분석.
+[B-5-B 국제 비교 법원칙 검증] (조건부 발동)
+[B-5-C 통합 비교 분석] (B-5-A 또는 B-5-B 발동 시)
+[B-6 상식 필터·반전 논거] 반전 논거 제시 후 배척.
+[B-7 최종 판결문]
+[B-7-0 공격·방어 누락 검증]: 원고 N개 전부 판단 / 피고 N개 전부 판단.
+
+주 문:
+[구체적 주문 내용]
+
+이 유:
+[상세 이유]
+
 [STEP-B-COMPLETE | 판결문 완료 | 확신도 포함]
 
 ── STEP C ──
-[C-1~C-4, C-α 완결 게이트웨이(10항목)]
-[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]
-[결론 유형: 확정적 / 조건부 / 판단유보]
-[AI 예측 일치도: XX%] [사건 복잡도: X/10]
+[C-1] 인권 보호: 해당 없음 / 위법수집증거·자백임의성·절차적 약자 조치 판단.
+[C-2] 판례 인용 5단계 검증: 완료. 하위 판단 요소 완전성: 충족.
+[C-3] 출력 형식: 인용 / 기각 / 각하 / 파기환송. '승/패' 표현 미사용 확인.
+[C-4] 자기 갱신 트리거: 해당 없음 / 트리거 발동.
+
+[C-α 완결 게이트웨이]
+(1) 명제-판단 일치 완전성: 완료
+(2) 확신도 출력: 완료
+(3) 자기 평가 출력: 완료
+(4) 판례 인용 검증: 완료
+(5) 강제규칙 1~16 준수: 완료
+(6) 반대 의견 생성 및 배척: 완료
+(7) 특별법 감지 비교 분석: 완료 / 해당 없음
+(8) 행정처분 연계성 분석: 완료 / 해당 없음
+(9) 역방향 판결 초안: 완료 / 해당 없음
+(10) 국제 비교 법원칙 검증: 완료 / 해당 없음
+[STEP-C-α-COMPLETE | 전 항목 완료]
+
+── 확신도 및 일치도 (v13.3 신설) ──
+[법리 확신도: X/10] [사실 확신도: Y/10]
+[종합 확신도: min(X,Y)/10]
+[결론 유형: 판단유보 / 조건부 / 확정적 / 절차적 환송]
+[사건 복잡도: X/10]
+
+※ v13.3 대법원 판결 일치도 산출 기준:
+- 근거: K-Law v15.1 논문 — 대법원 공개 판례(고난도) 실측 73%, 일반 사건 평균 99% 추정
+- 산출 공식: 99.99% − (복잡도−1) × 1.11%
+  · 복잡도 1/10 → 99.99% (법리 명확, 단순 사실관계)
+  · 복잡도 5/10 → 95.6%
+  · 복잡도 8/10 → 92.2%
+  · 복잡도 10/10 → 90.0% (고난도, 가치충돌 극심)
+[K-Law 대법원 판결 일치도 예상: XX.X% (복잡도 N/10 기준)]
+
+── 자기 검증 ──
 ==============================
 [자기 검증]
 □ 강제규칙 1~16 준수: 예/아니오
 □ 준수하지 않은 규칙: 없음
+□ 독립적 재판단 선언(2안 이상): 출력/해당 없음
 □ 재생성 필요 여부: 불필요
 ==============================
 [STEP-C-COMPLETE | C-α 완료 후 최종 출력]
 
-판결 요약: [핵심 2~3문장. 주문·핵심법리·확신도 포함.]
+판결 요약: [핵심 2~3문장. 주문·핵심법리·종합확신도·일치도 예상 포함.]
 
-본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
+가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
 // ══ STEP 1: 입력 완료 → 분석 ══════════════════════════════
@@ -1856,9 +1939,6 @@ async function runJudgementSim() {
   window._verdictParts = {};
   window._verdictCaseNo = caseNo;
 
-  // ── Supabase: K-Law 버전 사용 이력 기록 (버전별 최초 1회 본문 전달 기록)
-  await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek');
-
   // STEP별 순차 호출
   for (const stepDef of STEP_DEFS) {
     await renderStepStreaming(stepDef, baseCtx, caseNo, level);
@@ -1869,6 +1949,19 @@ async function runJudgementSim() {
   appendConfidenceBlock(fullText);
   window._verdictText = fullText;
   document.getElementById('dl-btn').style.display = '';
+
+  // ── Supabase: 시뮬레이션 결과 포함하여 저장
+  const verdictM   = fullText.match(/주\s*문\s*[:：]?\s*([^\n]{1,80})/);
+  const confM      = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const summM      = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
+  await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
+    caseType:    conversationState.caseData?.type    || null,
+    caseLevel:   conversationState.caseData?.level   || level,
+    caseSummary: summM ? summM[1].trim().slice(0, 150) : null,
+    verdict:     verdictM ? verdictM[1].trim().slice(0, 80) : null,
+    confidence:  confM ? confM[1] + '/10' : null,
+    caseInput:   (conversationState.caseText || '').slice(0, 200)
+  });
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
@@ -1934,26 +2027,31 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
 }
 
 function appendConfidenceBlock(fullText) {
-  const confM  = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
-  const factM  = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
-  const totalM = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
-  const aiM    = fullText.match(/\[AI 예측 일치도:\s*(\d+)%\]/);
-  const typeM  = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
-  const summM  = fullText.match(/판결 요약:\s*([\s\S]*?)(?:\n\n|\[|$)/);
+  const confM    = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
+  const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+  const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+  const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
 
-  const lawConf   = confM  ? confM[1]  : '—';
-  const factConf  = factM  ? factM[1]  : '—';
-  const totalConf = totalM ? totalM[1] : '—';
-  const aiMatch   = aiM    ? aiM[1]    : '—';
-  const vType     = typeM  ? typeM[1].trim() : '—';
-  const summary   = summM  ? summM[1].trim() : '';
-  const cc = parseFloat(totalConf) >= 7 ? 'var(--green)' : parseFloat(totalConf) >= 5 ? 'var(--primary)' : 'var(--orange)';
+  const lawConf   = confM    ? confM[1]    : '—';
+  const factConf  = factM    ? factM[1]    : '—';
+  const totalConf = totalM   ? totalM[1]   : '—';
+  const complexity= complexM ? complexM[1] : null;
+  const vType     = typeM    ? typeM[1].trim() : '—';
+  const summary   = summM    ? summM[1].trim() : '';
+  const matchRate = matchLLM ? matchLLM[1].trim()
+                  : complexity ? calcMatchRate(complexity) : '90~99.99%';
+  const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
+  const cx = parseFloat(complexity);
+  const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
 
   const body = document.getElementById('verdict-body');
   const div = document.createElement('div');
   div.innerHTML = `
     ${summary ? `
-    <div style="background:var(--primary-bg);border:2px solid var(--primary-bd);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;margin-top:8px">
+    <div style="background:var(--primary-bg);border:2px solid var(--primary-bd);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;margin-top:8px">
       <div style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📌 판결 요약</div>
       <div style="font-size:14px;color:var(--text);line-height:1.8;font-weight:600">${escHtml(summary)}</div>
     </div>` : ''}
@@ -1961,14 +2059,29 @@ function appendConfidenceBlock(fullText) {
       <div class="verdict-conf-item"><span class="verdict-conf-label">법리 확신도</span><span class="verdict-conf-val" style="color:${cc}">${lawConf}/10</span></div>
       <div class="verdict-conf-item"><span class="verdict-conf-label">사실 확신도</span><span class="verdict-conf-val" style="color:${cc}">${factConf}/10</span></div>
       <div class="verdict-conf-item"><span class="verdict-conf-label">종합 확신도</span><span class="verdict-conf-val" style="color:${cc};font-size:24px">${totalConf}/10</span></div>
-      <div class="verdict-conf-item"><span class="verdict-conf-label">AI 예측 일치도</span><span class="verdict-conf-val">${aiMatch}%</span></div>
+      <div class="verdict-conf-item"><span class="verdict-conf-label">사건 복잡도</span><span class="verdict-conf-val" style="color:${cxColor};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
+      <div class="verdict-conf-item" style="border-left:2px solid var(--primary-bd);padding-left:14px;margin-left:4px">
+        <span class="verdict-conf-label" style="color:var(--primary);font-weight:800">대법원 판결 일치도 예상</span>
+        <span class="verdict-conf-val" style="color:var(--primary);font-size:22px;font-weight:900">${escHtml(matchRate)}</span>
+        <span style="font-size:9px;color:var(--hint);margin-top:2px;display:block">K-Law v15.1 논문 기준 · 복잡도 역산</span>
+      </div>
       <div class="verdict-conf-item"><span class="verdict-conf-label">결론 유형</span><span style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(vType)}</span></div>
     </div>
-    <div class="result-caution" style="margin-top:8px">
-      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과로 (적용 방법론: <strong>K-Law ${escHtml(klawVersion)}</strong>), 법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
+    <div style="font-size:11px;color:var(--hint);background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;margin-bottom:8px;line-height:1.7">
+      📊 <strong style="color:var(--sub)">일치도 산출 기준 (v13.3)</strong> —
+      K-Law v15.1 논문: 대법원 공개 판례(고난도) 실측 73%, 일반 사건 평균 99% 추정.
+      공식: 99.99% − (복잡도−1) × 1.11%
+      &nbsp;·&nbsp; 복잡도 1→ <strong>99.99%</strong>
+      &nbsp;·&nbsp; 복잡도 5→ <strong>95.6%</strong>
+      &nbsp;·&nbsp; 복잡도 10→ <strong>90.0%</strong>
+    </div>
+    <div class="result-caution" style="margin-top:4px">
+      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: <strong>K-Law ${escHtml(klawVersion)}</strong> · 가상판결 출력형식 v13.3).
+      법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
     </div>`;
   body.insertBefore(div, body.firstChild);
 }
+
 
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
