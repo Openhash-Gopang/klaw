@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — AI 판결 시뮬레이션 시스템</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -457,9 +458,136 @@ a { text-decoration: none; color: inherit; }
   .input-band-inner { flex-wrap: wrap; }
   .cta-grid, .scenario-grid, .roadmap, .dash-stats { grid-template-columns: 1fr; }
 }
+
+/* ══ AUTH OVERLAY ══════════════════════════════════════════ */
+#auth-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(150deg, #001845 0%, #002D72 60%, #003C82 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.auth-box {
+  background: #fff; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  width: 100%; max-width: 420px; overflow: hidden;
+}
+.auth-header {
+  background: linear-gradient(135deg, var(--gov-header) 0%, var(--primary) 100%);
+  padding: 28px 32px 24px; text-align: center; color: #fff;
+}
+.auth-logo { font-size: 36px; margin-bottom: 8px; }
+.auth-title { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
+.auth-subtitle { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 4px; }
+.auth-body { padding: 28px 32px; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 22px; border-bottom: 2px solid var(--border); }
+.auth-tab {
+  flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 700;
+  color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: color .15s, border-color .15s;
+}
+.auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.auth-field { margin-bottom: 14px; }
+.auth-field label { display: block; font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 5px; letter-spacing: .3px; }
+.auth-field input {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r);
+  font-family: var(--font); font-size: 13px; color: var(--text); background: var(--bg);
+  outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,87,168,.10); background: #fff; }
+.auth-submit {
+  width: 100%; padding: 12px 0; margin-top: 4px;
+  background: linear-gradient(135deg, var(--gov-header) 0%, var(--primary) 100%);
+  color: #fff; border: none; border-radius: var(--r);
+  font-family: var(--font); font-size: 14px; font-weight: 800; cursor: pointer;
+  transition: opacity .15s; letter-spacing: -.2px;
+}
+.auth-submit:hover { opacity: .9; }
+.auth-submit:disabled { opacity: .5; cursor: not-allowed; }
+.auth-msg { font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
+.auth-msg.err { color: var(--red); }
+.auth-msg.ok  { color: var(--green); }
+.auth-divider { text-align: center; font-size: 11px; color: var(--hint); margin: 12px 0; }
+
+/* 사용자 정보 바 (로그인 후 nav에 표시) */
+.user-info-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 12px; background: rgba(255,255,255,.10);
+  border-radius: 20px; cursor: pointer; transition: background .15s;
+}
+.user-info-bar:hover { background: rgba(255,255,255,.18); }
+.user-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--primary-lt); color: #fff;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.user-email { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.85); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-klaw-tag { font-size: 10px; color: rgba(255,255,255,.50); }
+
+/* K-Law 버전 이력 드롭다운 */
+.klaw-history-panel {
+  position: fixed; top: 56px; right: 16px; z-index: 500;
+  background: #fff; border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: var(--shadow-2); width: 360px; max-height: 420px; overflow-y: auto;
+  display: none;
+}
+.klaw-history-panel.open { display: block; }
+.klaw-hp-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+.klaw-hp-row { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; gap: 10px; align-items: flex-start; }
+.klaw-hp-row:last-child { border-bottom: none; }
+.klaw-hp-ver { font-weight: 800; color: var(--primary); min-width: 60px; }
+.klaw-hp-model { color: var(--sub); }
+.klaw-hp-time { font-size: 10px; color: var(--hint); margin-left: auto; white-space: nowrap; }
+.klaw-hp-empty { padding: 20px 16px; text-align: center; color: var(--hint); font-size: 12px; }
+
 </style>
 </head>
 <body>
+
+<!-- ══ AUTH OVERLAY ══════════════════════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-header">
+      <div class="auth-logo">⚖</div>
+      <div class="auth-title">K-Law</div>
+      <div class="auth-subtitle">AI 판결 시뮬레이션 시스템 · 로그인</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">로그인</div>
+        <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">회원가입</div>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <div id="form-login">
+        <div class="auth-field"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="auth-field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="auth-submit" id="login-btn" onclick="doLogin()">로그인</button>
+        <div class="auth-msg" id="login-msg"></div>
+      </div>
+
+      <!-- 회원가입 폼 -->
+      <div id="form-signup" style="display:none">
+        <div class="auth-field"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
+        <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="signup-pw" placeholder="비밀번호 설정" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <div class="auth-field"><label>이름 (선택)</label><input type="text" id="signup-name" placeholder="홍길동" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <button class="auth-submit" id="signup-btn" onclick="doSignup()">회원가입</button>
+        <div class="auth-msg" id="signup-msg"></div>
+      </div>
+
+      <div class="auth-divider">테스트 계정으로 바로 시작할 수 있습니다</div>
+    </div>
+  </div>
+</div>
+
+<!-- K-Law 버전 이력 드롭다운 -->
+<div class="klaw-history-panel" id="klaw-history-panel">
+  <div class="klaw-hp-header">
+    📋 K-Law 버전 사용 이력
+    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--hint)">✕</button>
+  </div>
+  <div id="klaw-hp-body"><div class="klaw-hp-empty">이력이 없습니다</div></div>
+</div>
+
 
 <!-- GOV BAR -->
 <div class="gov-bar">
@@ -484,6 +612,15 @@ a { text-decoration: none; color: inherit; }
       <div class="topnav-status"><div class="status-dot"></div>AI 분석 가동 중</div>
       <div class="topnav-badge" id="sim-counter">0건</div>
       <div class="topnav-badge" id="klaw-ver-badge" style="background:rgba(168,212,255,.18);color:#A8D4FF">K-Law 로딩중…</div>
+      <!-- 로그인 후 표시 -->
+      <div class="user-info-bar" id="user-info-bar" style="display:none" onclick="toggleHistoryPanel()">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div>
+          <div class="user-email" id="user-email-display">-</div>
+          <div class="user-klaw-tag" id="user-klaw-tag">K-Law 버전 이력 보기</div>
+        </div>
+      </div>
+      <button id="logout-btn" onclick="doLogout()" style="display:none;padding:4px 12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.20);border-radius:20px;color:rgba(255,255,255,.75);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">로그아웃</button>
       <div class="topnav-clock" id="clock">--:--:--</div>
     </div>
   </div>
@@ -861,6 +998,167 @@ RULES:
 </footer>
 
 <script>
+// ══ SUPABASE 초기화 ════════════════════════════════════════
+const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+// 현재 사용자 상태
+let currentUser = null;
+// 사용자별 K-Law 버전 제공 이력 { userId → { [klawVer]: true } }
+let userKlawSentVersions = {};
+
+// ══ AUTH UI ════════════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('form-login').style.display  = tab === 'login'  ? '' : 'none';
+  document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const btn   = document.getElementById('login-btn');
+  const msg   = document.getElementById('login-msg');
+  if (!email || !pw) { msg.className='auth-msg err'; msg.textContent='이메일과 비밀번호를 입력하세요.'; return; }
+  btn.disabled = true; btn.textContent = '로그인 중…';
+  msg.textContent = '';
+  const { error } = await supa.auth.signInWithPassword({ email, password: pw });
+  btn.disabled = false; btn.textContent = '로그인';
+  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; }
+}
+
+async function doSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const pw    = document.getElementById('signup-pw').value;
+  const name  = document.getElementById('signup-name').value.trim();
+  const btn   = document.getElementById('signup-btn');
+  const msg   = document.getElementById('signup-msg');
+  if (!email || pw.length < 6) { msg.className='auth-msg err'; msg.textContent='이메일과 6자 이상 비밀번호를 입력하세요.'; return; }
+  btn.disabled = true; btn.textContent = '가입 중…';
+  msg.textContent = '';
+  const { error } = await supa.auth.signUp({ email, password: pw, options: { data: { name } } });
+  btn.disabled = false; btn.textContent = '회원가입';
+  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; }
+  else { msg.className='auth-msg ok'; msg.textContent = '가입 완료! 이메일 인증 후 로그인하세요.'; }
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+}
+
+// ══ 로그인 상태 변경 리스너 ══════════════════════════════════
+supa.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    onLoginSuccess(session.user);
+  } else {
+    currentUser = null;
+    onLogout();
+  }
+});
+
+// ── 초기 세션 확인 (새로고침 시 자동 로그인 유지)
+(async () => {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    onLoginSuccess(session.user);
+  }
+  // session 없으면 overlay가 이미 표시됨
+})();
+
+function onLoginSuccess(user) {
+  // overlay 숨기기
+  document.getElementById('auth-overlay').style.display = 'none';
+  // 사용자 정보 표시
+  const emailShort = user.email || '';
+  const initials   = emailShort.slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent       = initials;
+  document.getElementById('user-email-display').textContent = emailShort;
+  document.getElementById('user-info-bar').style.display   = '';
+  document.getElementById('logout-btn').style.display      = '';
+  // K-Law 버전 이력 로드
+  loadKlawHistory(user.id);
+}
+
+function onLogout() {
+  document.getElementById('auth-overlay').style.display = '';
+  document.getElementById('user-info-bar').style.display = 'none';
+  document.getElementById('logout-btn').style.display    = 'none';
+  document.getElementById('klaw-history-panel').classList.remove('open');
+  userKlawSentVersions = {};
+}
+
+// ══ SUPABASE: K-Law 버전 이력 DB ═══════════════════════════
+// 테이블: klaw_sessions (user_id, klaw_version, llm_model, used_at)
+async function ensureKlawTable() {
+  // 테이블이 없으면 자동 생성은 서버에서만 가능 → upsert 시 에러면 무시
+}
+
+async function loadKlawHistory(userId) {
+  try {
+    const { data, error } = await supa
+      .from('klaw_sessions')
+      .select('klaw_version, llm_model, used_at')
+      .eq('user_id', userId)
+      .order('used_at', { ascending: false })
+      .limit(50);
+    if (error) { console.warn('[Supa] 이력 로드 실패:', error.message); return; }
+    // 로컬 캐시: 이미 전달한 버전 목록
+    userKlawSentVersions[userId] = {};
+    (data || []).forEach(r => { userKlawSentVersions[userId][r.klaw_version] = true; });
+    renderKlawHistory(data || []);
+  } catch(e) { console.warn('[Supa]', e.message); }
+}
+
+async function recordKlawUsage(klawVer, llmModel) {
+  if (!currentUser) return;
+  try {
+    await supa.from('klaw_sessions').insert({
+      user_id:      currentUser.id,
+      klaw_version: klawVer,
+      llm_model:    llmModel,
+      used_at:      new Date().toISOString()
+    });
+    // 캐시 업데이트
+    if (!userKlawSentVersions[currentUser.id]) userKlawSentVersions[currentUser.id] = {};
+    userKlawSentVersions[currentUser.id][klawVer] = true;
+    // 이력 패널 새로고침
+    loadKlawHistory(currentUser.id);
+  } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
+}
+
+function hasKlawBeenSent(klawVer) {
+  if (!currentUser) return false;
+  return !!(userKlawSentVersions[currentUser.id]?.[klawVer]);
+}
+
+function renderKlawHistory(rows) {
+  const body = document.getElementById('klaw-hp-body');
+  if (!rows.length) { body.innerHTML = '<div class="klaw-hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
+  const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude', gemini:'Gemini' };
+  body.innerHTML = rows.map(r => `
+    <div class="klaw-hp-row">
+      <div class="klaw-hp-ver">${escHtml(r.klaw_version)}</div>
+      <div class="klaw-hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
+      <div class="klaw-hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+
+function toggleHistoryPanel() {
+  document.getElementById('klaw-history-panel').classList.toggle('open');
+}
+function closeHistoryPanel() {
+  document.getElementById('klaw-history-panel').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('klaw-history-panel');
+  const bar   = document.getElementById('user-info-bar');
+  if (!panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
+});
+
 // ══ 상태 ══════════════════════════════════════════════════
 let simCount = 0;
 let mediaRecorder = null;
@@ -890,19 +1188,20 @@ function selectLLM(model) {
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('card-' + model).classList.add('selected');
 
-  const apiSec = document.getElementById('api-key-section');
+  const apiSec   = document.getElementById('api-key-section');
   const apiLabel = document.getElementById('api-key-label');
   const apiInput = document.getElementById('api-key');
   if (model === 'deepseek') {
     apiSec.classList.remove('visible');
+    conversationState.apiKey = '';  // 기본 키 자동 사용
   } else {
     apiSec.classList.add('visible');
     if (model === 'claude') {
       apiLabel.textContent = 'Anthropic API Key';
-      apiInput.placeholder = 'sk-ant-...';
+      apiInput.placeholder = 'sk-ant-…';
     } else {
       apiLabel.textContent = 'Google API Key';
-      apiInput.placeholder = 'AIza...';
+      apiInput.placeholder = 'AIza…';
     }
   }
 }
@@ -962,21 +1261,19 @@ async function toggleVoice() {
 }
 
 // ══ LLM API 호출 ═══════════════════════════════════════════
+const DEEPSEEK_DEFAULT_KEY = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
+const DEEPSEEK_ENDPOINT    = 'https://api.deepseek.com/v1/chat/completions';
+
 async function callLLM(messages, maxTokens = 2000) {
-  const model = conversationState.llmModel || 'deepseek';
+  const model  = conversationState.llmModel || 'deepseek';
   const apiKey = conversationState.apiKey;
 
   if (model === 'claude') {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: maxTokens,
+        model: 'claude-sonnet-4-20250514', max_tokens: maxTokens,
         messages: messages.filter(m => m.role !== 'system'),
         system: messages.find(m => m.role === 'system')?.content || ''
       })
@@ -988,37 +1285,25 @@ async function callLLM(messages, maxTokens = 2000) {
 
   if (model === 'gemini') {
     const geminiMsgs = messages.filter(m => m.role !== 'system').map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
+      role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }]
     }));
-    const sysInstruction = messages.find(m => m.role === 'system')?.content || '';
+    const sysInst = messages.find(m => m.role === 'system')?.content || '';
     const resp = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: sysInstruction ? { parts: [{ text: sysInstruction }] } : undefined,
-          contents: geminiMsgs,
-          generationConfig: { maxOutputTokens: maxTokens }
-        })
-      }
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ system_instruction: sysInst ? {parts:[{text:sysInst}]} : undefined, contents: geminiMsgs, generationConfig:{maxOutputTokens:maxTokens} }) }
     );
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
-  // DeepSeek (proxy)
-  const resp = await fetch('https://gopang-proxy.tensor-city.workers.dev/chat/completions', {
+  // DeepSeek — 사용자 키 없으면 기본 공용 키 사용
+  const key  = apiKey || DEEPSEEK_DEFAULT_KEY;
+  const resp = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.2
-    })
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + key },
+    body: JSON.stringify({ model:'deepseek-chat', messages, max_tokens: maxTokens, temperature: 0.2 })
   });
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
@@ -1098,8 +1383,16 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 응답은 반드시 위 형식만 사용하세요.`;
 
 function buildKlawSimPrompt(caseNo, level) {
-  const methodSummary = klawMethodText ? klawMethodText.slice(0, 5000) : '';
+  // ── 토큰 절약: 이미 이 사용자가 이 버전을 전달한 적 있으면 본문 생략
+  const alreadySent = hasKlawBeenSent(klawVersion);
+  const methodSummary = (!alreadySent && klawMethodText)
+    ? klawMethodText.slice(0, 5000)
+    : '';
+  const tokenNote = alreadySent
+    ? `[K-Law ${klawVersion} 방법론은 이전 세션에서 이미 전달됨 — 토큰 절약 모드]`
+    : '';
   return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
+${tokenNote}
 ${methodSummary ? '[K-Law 방법론 원문(발췌)]\n' + methodSummary + '\n\n---\n\n' : ''}
 아래 형식을 준수하여 가상 판결문을 작성하세요.
 
@@ -1524,6 +1817,9 @@ async function runJudgementSim() {
 
   window._verdictParts = {};
   window._verdictCaseNo = caseNo;
+
+  // ── Supabase: K-Law 버전 사용 이력 기록 (버전별 최초 1회 본문 전달 기록)
+  await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek');
 
   // STEP별 순차 호출
   for (const stepDef of STEP_DEFS) {
