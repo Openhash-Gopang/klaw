@@ -563,18 +563,38 @@ a { text-decoration: none; color: inherit; }
         <div class="auth-field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="auth-submit" id="login-btn" onclick="doLogin()">로그인</button>
         <div class="auth-msg" id="login-msg"></div>
+        <div class="auth-divider">── 테스트 계정 ──</div>
+        <div style="background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--sub);line-height:1.8">
+          아이디: <strong style="color:var(--primary)">test@klaw.ai</strong><br>
+          비밀번호: <strong style="color:var(--primary)">test1234</strong><br>
+          <span style="font-size:11px;color:var(--hint)">누구나 사용 가능한 공용 테스트 계정입니다</span>
+        </div>
       </div>
 
       <!-- 회원가입 폼 -->
       <div id="form-signup" style="display:none">
-        <div class="auth-field"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
-        <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="signup-pw" placeholder="비밀번호 설정" onkeydown="if(event.key==='Enter')doSignup()"></div>
-        <div class="auth-field"><label>이름 (선택)</label><input type="text" id="signup-name" placeholder="홍길동" onkeydown="if(event.key==='Enter')doSignup()"></div>
-        <button class="auth-submit" id="signup-btn" onclick="doSignup()">회원가입</button>
-        <div class="auth-msg" id="signup-msg"></div>
+        <div id="signup-fields">
+          <div class="auth-field"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
+          <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="signup-pw" placeholder="비밀번호 설정" onkeydown="if(event.key==='Enter')doSignup()"></div>
+          <div class="auth-field"><label>이름 (선택)</label><input type="text" id="signup-name" placeholder="홍길동" onkeydown="if(event.key==='Enter')doSignup()"></div>
+          <button class="auth-submit" id="signup-btn" onclick="doSignup()">회원가입</button>
+          <div class="auth-msg" id="signup-msg"></div>
+        </div>
+        <!-- 가입 완료 메시지 (가입 후 표시) -->
+        <div id="signup-done" style="display:none;text-align:center;padding:12px 0">
+          <div style="font-size:36px;margin-bottom:12px">✅</div>
+          <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:8px">가입 완료!</div>
+          <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:16px">
+            이메일 인증 후 로그인하세요.<br>
+            <span style="font-size:12px;color:var(--hint)">인증 메일이 오지 않으면 스팸함을 확인하세요.</span>
+          </div>
+          <div style="background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:12px">
+            또는 테스트 계정으로 바로 시작:<br>
+            아이디: <strong style="color:var(--primary)">test@klaw.ai</strong> &nbsp;/&nbsp; 비밀번호: <strong style="color:var(--primary)">test1234</strong>
+          </div>
+          <button onclick="switchTab('login')" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">로그인 화면으로</button>
+        </div>
       </div>
-
-      <div class="auth-divider">테스트 계정으로 바로 시작할 수 있습니다</div>
     </div>
   </div>
 </div>
@@ -632,7 +652,7 @@ a { text-decoration: none; color: inherit; }
     <div class="hero-text">
       <div class="hero-tag"><span class="hero-tag-dot"></span> AI 분석 시스템 운영 중</div>
       <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
-      <p>사건의 개요를 입력하면, 수년 뒤의 대법원 판결을 정확히 예측할 뿐 아니라, 엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
+      <p>사건의 개요를 입력하면, 수년 뒤의 대법원 판결을 99.9% 정확도로 예측합니다(K-Law 논문 수치).<br>엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
       <div class="hero-btns">
         <a href="https://gopang.net/" target="_blank" class="hero-btn-primary">🚀 고팡 앱 실행</a>
         <a href="dashboard.html" class="hero-btn-outline">🖥 관리자 대시보드</a>
@@ -1040,8 +1060,13 @@ async function doSignup() {
   msg.textContent = '';
   const { error } = await supa.auth.signUp({ email, password: pw, options: { data: { name } } });
   btn.disabled = false; btn.textContent = '회원가입';
-  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; }
-  else { msg.className='auth-msg ok'; msg.textContent = '가입 완료! 이메일 인증 후 로그인하세요.'; }
+  if (error) {
+    msg.className='auth-msg err'; msg.textContent = error.message;
+  } else {
+    // 폼 숨기고 완료 메시지 표시
+    document.getElementById('signup-fields').style.display = 'none';
+    document.getElementById('signup-done').style.display = '';
+  }
 }
 
 async function doLogout() {
@@ -1059,9 +1084,18 @@ supa.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-// ── 초기 세션 확인 (새로고침 시 자동 로그인 유지)
+// ── 이메일 인증 후 URL 해시에서 토큰 자동 처리
 (async () => {
-  const { data: { session } } = await supa.auth.getSession();
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    // Supabase가 URL 해시를 자동 감지하여 세션 설정
+    const { data, error } = await supa.auth.getSession();
+    if (data?.session?.user) {
+      // 해시 제거 (깔끔한 URL 유지)
+      history.replaceState(null, '', window.location.pathname);
+    }
+  }
+})();
   if (session?.user) {
     currentUser = session.user;
     onLoginSuccess(session.user);
