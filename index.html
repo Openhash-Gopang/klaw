@@ -559,8 +559,8 @@ a { text-decoration: none; color: inherit; }
 
       <!-- 로그인 폼 -->
       <div id="form-login">
-        <div class="auth-field"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-        <div class="auth-field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="auth-field"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com" value="test@klaw.ai" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="auth-field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="비밀번호 입력" value="test1234" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="auth-submit" id="login-btn" onclick="doLogin()">로그인</button>
         <div class="auth-msg" id="login-msg"></div>
         <div class="auth-divider">── 테스트 계정 ──</div>
