@@ -5,16 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — AI 판결 시뮬레이션</title>
 <meta name="description" content="사건의 개요를 입력하면 AI가 즉시 판결을 예측합니다.">
-<script>
-// PC(768px 이상)이면 index.html로 리다이렉트
-(function(){
-  if(!/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-     && window.innerWidth >= 768
-     && !location.search.includes('force=webapp')) {
-    location.replace('index.html');
-  }
-})();
-</script>
+<!-- PC 리다이렉트 제거 — 모바일/PC 모두 webapp.html 직접 사용 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>

@@ -1115,6 +1115,9 @@ supa.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     currentUser = session.user;
     onLoginSuccess(session.user);
+  } else {
+    // 로그인 없이 바로 진입 (고팡 guid 기반 인증으로 대체)
+    document.getElementById('auth-overlay').style.display = 'none';
   }
 })();
 
