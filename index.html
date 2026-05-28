@@ -470,68 +470,9 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* ══ AUTH OVERLAY ══════════════════════════════════════════ */
-#auth-overlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: linear-gradient(150deg, #001845 0%, #002D72 60%, #003C82 100%);
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px;
-}
-.auth-box {
-  background: #fff; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.35);
-  width: 100%; max-width: 420px; overflow: hidden;
-}
-.auth-header {
-  background: linear-gradient(135deg, var(--gov-header) 0%, var(--primary) 100%);
-  padding: 28px 32px 24px; text-align: center; color: #fff;
-}
-.auth-logo { font-size: 36px; margin-bottom: 8px; }
-.auth-title { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
-.auth-subtitle { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 4px; }
-.auth-body { padding: 28px 32px; }
-.auth-tabs { display: flex; gap: 0; margin-bottom: 22px; border-bottom: 2px solid var(--border); }
-.auth-tab {
-  flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 700;
-  color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent;
-  margin-bottom: -2px; transition: color .15s, border-color .15s;
-}
-.auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-.auth-field { margin-bottom: 14px; }
-.auth-field label { display: block; font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 5px; letter-spacing: .3px; }
-.auth-field input {
-  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r);
-  font-family: var(--font); font-size: 13px; color: var(--text); background: var(--bg);
-  outline: none; transition: border-color .15s, box-shadow .15s;
-}
-.auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,87,168,.10); background: #fff; }
-.auth-submit {
-  width: 100%; padding: 12px 0; margin-top: 4px;
-  background: linear-gradient(135deg, var(--gov-header) 0%, var(--primary) 100%);
-  color: #fff; border: none; border-radius: var(--r);
-  font-family: var(--font); font-size: 14px; font-weight: 800; cursor: pointer;
-  transition: opacity .15s; letter-spacing: -.2px;
-}
-.auth-submit:hover { opacity: .9; }
-.auth-submit:disabled { opacity: .5; cursor: not-allowed; }
-.auth-msg { font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
-.auth-msg.err { color: var(--red); }
-.auth-msg.ok  { color: var(--green); }
-.auth-divider { text-align: center; font-size: 11px; color: var(--hint); margin: 12px 0; }
+/* auth overlay 제거됨 — 고팡 guid 기반 인증으로 대체 */
 
-/* 사용자 정보 바 (로그인 후 nav에 표시) */
-.user-info-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 3px 12px; background: rgba(255,255,255,.10);
-  border-radius: 20px; cursor: pointer; transition: background .15s;
-}
-.user-info-bar:hover { background: rgba(255,255,255,.18); }
-.user-avatar {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: var(--primary-lt); color: #fff;
-  font-size: 11px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-}
-.user-email { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.85); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-klaw-tag { font-size: 10px; color: rgba(255,255,255,.50); }
+/* 사용자 정보 바 — 고팡 guid 기반 */
 
 /* K-Law 버전 이력 드롭다운 */
 .klaw-history-panel {
@@ -553,61 +494,7 @@ a { text-decoration: none; color: inherit; }
 </head>
 <body>
 
-<!-- ══ AUTH OVERLAY ══════════════════════════════════════════ -->
-<div id="auth-overlay">
-  <div class="auth-box">
-    <div class="auth-header">
-      <div class="auth-logo">⚖</div>
-      <div class="auth-title">K-Law</div>
-      <div class="auth-subtitle">AI 판결 시뮬레이션 시스템 · 로그인</div>
-    </div>
-    <div class="auth-body">
-      <div class="auth-tabs">
-        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">로그인</div>
-        <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">회원가입</div>
-      </div>
-
-      <!-- 로그인 폼 -->
-      <div id="form-login">
-        <div class="auth-field"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com" value="test@klaw.ai" onkeydown="if(event.key==='Enter')doLogin()"></div>
-        <div class="auth-field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="비밀번호 입력" value="test1234" onkeydown="if(event.key==='Enter')doLogin()"></div>
-        <button class="auth-submit" id="login-btn" onclick="doLogin()">로그인</button>
-        <div class="auth-msg" id="login-msg"></div>
-        <div class="auth-divider">── 테스트 계정 ──</div>
-        <div style="background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--sub);line-height:1.8">
-          아이디: <strong style="color:var(--primary)">test@klaw.ai</strong><br>
-          비밀번호: <strong style="color:var(--primary)">test1234</strong><br>
-          <span style="font-size:11px;color:var(--hint)">누구나 사용 가능한 공용 테스트 계정입니다</span>
-        </div>
-      </div>
-
-      <!-- 회원가입 폼 -->
-      <div id="form-signup" style="display:none">
-        <div id="signup-fields">
-          <div class="auth-field"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
-          <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="signup-pw" placeholder="비밀번호 설정" onkeydown="if(event.key==='Enter')doSignup()"></div>
-          <div class="auth-field"><label>이름 (선택)</label><input type="text" id="signup-name" placeholder="홍길동" onkeydown="if(event.key==='Enter')doSignup()"></div>
-          <button class="auth-submit" id="signup-btn" onclick="doSignup()">회원가입</button>
-          <div class="auth-msg" id="signup-msg"></div>
-        </div>
-        <!-- 가입 완료 메시지 (가입 후 표시) -->
-        <div id="signup-done" style="display:none;text-align:center;padding:12px 0">
-          <div style="font-size:36px;margin-bottom:12px">✅</div>
-          <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:8px">가입 완료!</div>
-          <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:16px">
-            이메일 인증 후 로그인하세요.<br>
-            <span style="font-size:12px;color:var(--hint)">인증 메일이 오지 않으면 스팸함을 확인하세요.</span>
-          </div>
-          <div style="background:var(--primary-bg);border:1px solid var(--primary-bd);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:12px">
-            또는 테스트 계정으로 바로 시작:<br>
-            아이디: <strong style="color:var(--primary)">test@klaw.ai</strong> &nbsp;/&nbsp; 비밀번호: <strong style="color:var(--primary)">test1234</strong>
-          </div>
-          <button onclick="switchTab('login')" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">로그인 화면으로</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- auth overlay 제거 — 고팡 guid/기기지문 기반 자동 인증 -->
 
 <!-- K-Law 버전 이력 드롭다운 -->
 <div class="klaw-history-panel" id="klaw-history-panel">
@@ -642,15 +529,11 @@ a { text-decoration: none; color: inherit; }
       <div class="topnav-status"><div class="status-dot"></div>AI 분석 가동 중</div>
       <div class="topnav-badge" id="sim-counter">0건</div>
       <div class="topnav-badge" id="klaw-ver-badge" style="background:rgba(168,212,255,.18);color:#A8D4FF">K-Law 로딩중…</div>
-      <!-- 로그인 후 표시 -->
-      <div class="user-info-bar" id="user-info-bar" style="display:none" onclick="toggleHistoryPanel()">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div>
-          <div class="user-email" id="user-email-display">-</div>
-          <div class="user-klaw-tag" id="user-klaw-tag">K-Law 버전 이력 보기</div>
-        </div>
+      <!-- 고팡 guid 기반 사용자 식별 배지 -->
+      <div class="user-info-bar" id="user-info-bar" onclick="toggleHistoryPanel()" style="display:flex;align-items:center;gap:8px;padding:3px 12px;background:rgba(255,255,255,.10);border-radius:20px;cursor:pointer;transition:background .15s;">
+        <div class="user-avatar" id="user-avatar" style="width:24px;height:24px;border-radius:50%;background:var(--primary-lt);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;">?</div>
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.80);" id="user-email-display">연결 중…</div>
       </div>
-      <button id="logout-btn" onclick="doLogout()" style="display:none;padding:4px 12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.20);border-radius:20px;color:rgba(255,255,255,.75);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">로그아웃</button>
       <div class="topnav-clock" id="clock">--:--:--</div>
     </div>
   </div>
@@ -1035,141 +918,114 @@ const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 
 // 현재 사용자 상태
+// ══════════════════════════════════════════════════════════
+// 인증 시스템 — 고팡 guid / 기기지문 기반 (이메일 로그인 제거)
+// ══════════════════════════════════════════════════════════
+
+// currentUser: { guid, fp, source, phone? }
 let currentUser = null;
-// 사용자별 K-Law 버전 제공 이력 { userId → { [klawVer]: true } }
+// 사용자별 K-Law 버전 제공 이력 { guid → { [klawVer]: true } }
 let userKlawSentVersions = {};
 
-// ══ AUTH UI ════════════════════════════════════════════════
-function switchTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-  document.getElementById('form-login').style.display  = tab === 'login'  ? '' : 'none';
-  document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
+// ── 기기 지문 생성 ──────────────────────────────────────────
+async function _buildDeviceFingerprint() {
+  const raw = [
+    navigator.userAgent, navigator.language,
+    screen.width + 'x' + screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || '',
+  ].join('|');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const btn   = document.getElementById('login-btn');
-  const msg   = document.getElementById('login-msg');
-  if (!email || !pw) { msg.className='auth-msg err'; msg.textContent='이메일과 비밀번호를 입력하세요.'; return; }
-  btn.disabled = true; btn.textContent = '로그인 중…';
-  msg.className='auth-msg'; msg.textContent = '';
-  const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
-  btn.disabled = false; btn.textContent = '로그인';
-  if (error) {
-    let errMsg = error.message;
-    if (errMsg.includes('Invalid login')) errMsg = '이메일 또는 비밀번호가 올바르지 않습니다.';
-    else if (errMsg.includes('Email not confirmed')) errMsg = '이메일 인증이 필요합니다. 테스트 계정(test@klaw.ai)을 이용하세요.';
-    else if (errMsg.includes('User not found')) errMsg = '존재하지 않는 계정입니다.';
-    msg.className='auth-msg err'; msg.textContent = errMsg;
-  }
-}
+// ── 사용자 초기화 (자동 실행) ───────────────────────────────
+async function _initUser() {
+  const params   = new URLSearchParams(location.search);
+  const paramGuid = params.get('guid');
+  const paramFp   = params.get('fp');
+  const paramPhone= params.get('phone') || params.get('user') || '';
 
-async function doSignup() {
-  const email = document.getElementById('signup-email').value.trim();
-  const pw    = document.getElementById('signup-pw').value;
-  const name  = document.getElementById('signup-name').value.trim();
-  const btn   = document.getElementById('signup-btn');
-  const msg   = document.getElementById('signup-msg');
-  if (!email || pw.length < 6) { msg.className='auth-msg err'; msg.textContent='이메일과 6자 이상 비밀번호를 입력하세요.'; return; }
-  btn.disabled = true; btn.textContent = '가입 중…';
-  msg.textContent = '';
-  const { error } = await supa.auth.signUp({ email, password: pw, options: { data: { name } } });
-  btn.disabled = false; btn.textContent = '회원가입';
-  if (error) {
-    msg.className='auth-msg err'; msg.textContent = error.message;
-  } else {
-    // 폼 숨기고 완료 메시지 표시
-    document.getElementById('signup-fields').style.display = 'none';
-    document.getElementById('signup-done').style.display = '';
-  }
-}
-
-async function doLogout() {
-  await supa.auth.signOut();
-}
-
-// ══ 로그인 상태 변경 리스너 ══════════════════════════════════
-supa.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    onLoginSuccess(session.user);
-  } else {
-    currentUser = null;
-    onLogout();
-  }
-});
-
-// ── 이메일 인증 후 URL 해시에서 토큰 자동 처리 + 초기 세션 확인
-(async () => {
-  // URL 해시에 access_token 있으면 처리 (이메일 인증 리디렉션)
-  const hash = window.location.hash;
-  if (hash && hash.includes('access_token')) {
-    await supa.auth.getSession();
-    history.replaceState(null, '', window.location.pathname);
+  // 시나리오 1: 고팡이 guid를 URL 파라미터로 전달
+  if (paramGuid) {
+    currentUser = { guid: paramGuid, fp: paramFp || '', phone: paramPhone, source: 'gopang' };
+    _updateUserBadge(currentUser);
+    loadKlawHistory(currentUser.guid);
+    return;
   }
 
-  // 초기 세션 확인 (새로고침 시 자동 로그인 유지)
-  const { data: { session } } = await supa.auth.getSession();
-  if (session?.user) {
-    currentUser = session.user;
-    onLoginSuccess(session.user);
-  } else {
-    // 로그인 없이 바로 진입 (고팡 guid 기반 인증으로 대체)
-    document.getElementById('auth-overlay').style.display = 'none';
-  }
-})();
+  // 시나리오 2: 기기 지문으로 Supabase users 테이블 조회
+  const fp = await _buildDeviceFingerprint();
+  try {
+    const res = await fetch(
+      SUPA_URL + '/rest/v1/users?device_fp=eq.' + fp + '&select=guid,device_fp,phone&limit=1',
+      { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
+    );
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length) {
+      currentUser = { guid: rows[0].guid, fp, phone: rows[0].phone || '', source: 'device_fp' };
+      _updateUserBadge(currentUser);
+      loadKlawHistory(currentUser.guid);
+      return;
+    }
+  } catch(e) { console.warn('[K-Law Auth] Supabase 조회 실패:', e.message); }
 
-function onLoginSuccess(user) {
-  // overlay 숨기기
-  document.getElementById('auth-overlay').style.display = 'none';
-  // 사용자 정보 표시
-  const emailShort = user.email || '';
-  const initials   = emailShort.slice(0,2).toUpperCase();
-  document.getElementById('user-avatar').textContent       = initials;
-  document.getElementById('user-email-display').textContent = emailShort;
-  document.getElementById('user-info-bar').style.display   = '';
-  document.getElementById('logout-btn').style.display      = '';
-  // K-Law 버전 이력 로드
-  loadKlawHistory(user.id);
+  // 시나리오 3: 신규 기기 — guid 발급 후 Supabase 등록
+  const guid = crypto.randomUUID();
+  try {
+    await fetch(SUPA_URL + '/rest/v1/users', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ guid, device_fp: fp, registered_at: new Date().toISOString() })
+    });
+  } catch(e) { console.warn('[K-Law Auth] 신규 등록 실패:', e.message); }
+
+  currentUser = { guid, fp, source: 'new' };
+  _updateUserBadge(currentUser);
 }
 
-function onLogout() {
-  document.getElementById('auth-overlay').style.display = '';
-  document.getElementById('user-info-bar').style.display = 'none';
-  document.getElementById('logout-btn').style.display    = 'none';
-  document.getElementById('klaw-history-panel').classList.remove('open');
-  userKlawSentVersions = {};
+// ── nav 배지 업데이트 ────────────────────────────────────────
+function _updateUserBadge(user) {
+  const shortId  = user.phone
+    ? user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+    : (user.guid || '').slice(0, 8);
+  const initials = shortId.slice(0, 2).toUpperCase();
+  const el = document.getElementById('user-avatar');
+  const em = document.getElementById('user-email-display');
+  if (el) el.textContent = initials;
+  if (em) em.textContent = shortId || '연결됨';
 }
 
-// ══ SUPABASE: K-Law 버전 이력 DB ═══════════════════════════
-// 테이블: klaw_sessions (user_id, klaw_version, llm_model, used_at)
-async function ensureKlawTable() {
-  // 테이블이 없으면 자동 생성은 서버에서만 가능 → upsert 시 에러면 무시
-}
+// 페이지 로드 시 즉시 실행
+_initUser().catch(e => console.warn('[K-Law Auth]', e));
 
-async function loadKlawHistory(userId) {
+// ══ SUPABASE: K-Law 세션 이력 ══════════════════════════════
+// SUPA_URL / SUPA_ANON / supa 는 위(L.916~918)에서 이미 선언됨
+
+async function loadKlawHistory(guid) {
   try {
     const { data, error } = await supa
       .from('klaw_sessions')
       .select('klaw_version, llm_model, used_at')
-      .eq('user_id', userId)
+      .eq('user_id', guid)
       .order('used_at', { ascending: false })
       .limit(50);
     if (error) { console.warn('[Supa] 이력 로드 실패:', error.message); return; }
-    // 로컬 캐시: 이미 전달한 버전 목록
-    userKlawSentVersions[userId] = {};
-    (data || []).forEach(r => { userKlawSentVersions[userId][r.klaw_version] = true; });
+    userKlawSentVersions[guid] = {};
+    (data || []).forEach(r => { userKlawSentVersions[guid][r.klaw_version] = true; });
     renderKlawHistory(data || []);
   } catch(e) { console.warn('[Supa]', e.message); }
 }
 
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
-  if (!currentUser) return;
+  const guid = currentUser?.guid;
+  if (!guid) return;
   try {
     await supa.from('klaw_sessions').insert({
-      user_id:      currentUser.id,
+      user_id:      guid,
       klaw_version: klawVer,
       llm_model:    llmModel,
       used_at:      new Date().toISOString(),
@@ -1180,15 +1036,16 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
       confidence:   simData.confidence  || null,
       case_input:   simData.caseInput   || null
     });
-    if (!userKlawSentVersions[currentUser.id]) userKlawSentVersions[currentUser.id] = {};
-    userKlawSentVersions[currentUser.id][klawVer] = true;
-    loadKlawHistory(currentUser.id);
+    if (!userKlawSentVersions[guid]) userKlawSentVersions[guid] = {};
+    userKlawSentVersions[guid][klawVer] = true;
+    loadKlawHistory(guid);
   } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
 }
 
 function hasKlawBeenSent(klawVer) {
-  if (!currentUser) return false;
-  return !!(userKlawSentVersions[currentUser.id]?.[klawVer]);
+  const guid = currentUser?.guid;
+  if (!guid) return false;
+  return !!(userKlawSentVersions[guid]?.[klawVer]);
 }
 
 function renderKlawHistory(rows) {
@@ -2153,7 +2010,7 @@ function _sendCaseToKlaw(klawResult, caseInput, userText) {
       verdict_type:  klawResult?.verdictType || null,
       llm_model:     conversationState?.llmModel || 'deepseek',
       klaw_version:  klawVersion || 'v15.1',
-      reporter:      currentUser?.email || null,
+      reporter:      currentUser?.guid || null,
       status:        'completed'
     };
 
@@ -2181,14 +2038,11 @@ function _sendCaseToKlaw(klawResult, caseInput, userText) {
   }
 }
 
-// ── runJudgementSim 완료 시 자동 호출 (기존 recordKlawUsage 이후에 실행)
-// 기존 recordKlawUsage 함수가 Supabase에 klaw_sessions를 저장하는 것과 별개로,
-// klaw_cases 테이블에도 저장합니다.
-const _origRecordKlawUsage = recordKlawUsage;
+// ── recordKlawUsage 호출 시 klaw_cases에도 동시 저장 ─────────
+// (recordKlawUsage는 위에서 이미 정의됨 — 아래는 _sendCaseToKlaw 연동 확장)
+const _baseRecordKlawUsage = recordKlawUsage;
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
-  // 기존 klaw_sessions 저장 유지
-  await _origRecordKlawUsage(klawVer, llmModel, simData);
-  // klaw_cases에도 저장
+  await _baseRecordKlawUsage(klawVer, llmModel, simData);
   _sendCaseToKlaw({
     caseType:    simData.caseType,
     caseLevel:   simData.caseLevel,
@@ -2199,6 +2053,7 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
 }
 
 
+function showAnalysisPanel(show) {
   const p = document.getElementById('analysis-panel');
   if (show) {
     p.style.display = 'block';

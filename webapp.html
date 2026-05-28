@@ -397,6 +397,16 @@ async function buildDeviceFingerprint() {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+// ── 미리보기(iframe/artifacts) 환경 감지 ─────────────────────
+const _inPreview = (() => {
+  try {
+    return window.self !== window.top ||
+           location.hostname.includes('claude') ||
+           location.hostname.includes('artifact') ||
+           !window.isSecureContext;
+  } catch(e) { return true; }
+})();
+
 async function initKlawUser() {
   // 시나리오 1: 고팡이 guid를 URL로 전달
   const paramGuid = urlParams.get('guid');
@@ -404,6 +414,14 @@ async function initKlawUser() {
   if (paramGuid) {
     console.info('[K-Law Auth] 고팡 연동 사용자:', paramGuid.slice(0,8));
     return { guid: paramGuid, fp: paramFp || '', source: 'gopang' };
+  }
+
+  // 미리보기 환경 → Supabase 호출 생략, 임시 guid만 반환
+  if (_inPreview) {
+    const guid = sessionStorage.getItem('klaw_preview_guid') || crypto.randomUUID();
+    sessionStorage.setItem('klaw_preview_guid', guid);
+    console.info('[K-Law Auth] 미리보기 환경 — 임시 guid:', guid.slice(0,8));
+    return { guid, fp: '', source: 'preview' };
   }
 
   // 시나리오 2: 기기 지문 생성 후 Supabase 조회
@@ -509,70 +527,183 @@ function removeFile(i) {
   renderChips();
 }
 
-// ══ 음성 입력 (Web Speech API) ════════════════════════════════
+// ══ 음성 입력 (Web Speech API + getUserMedia 권한 선행 확보) ══
+
 let isRecording = false;
 let recognition = null;
 
-function toggleVoice() {
+// ── 버튼 상태 헬퍼 ────────────────────────────────────────────
+function _micSetIdle(btn) {
+  isRecording = false;
+  btn.classList.remove('recording');
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>`;
+  btn.title = '음성 입력';
+  recognition = null;
+}
+function _micSetActive(btn) {
+  isRecording = true;
+  btn.classList.add('recording');
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+  btn.title = '녹음 중지';
+}
+
+// ── 보안 컨텍스트 / iframe 환경 감지 ─────────────────────────
+function _detectMicEnv() {
+  const inIframe   = window.self !== window.top;
+  const isSecure   = window.isSecureContext;          // HTTPS or localhost
+  const isArtifact = location.hostname.includes('claude') ||
+                     location.hostname.includes('artifact');
+  return { inIframe, isSecure, isArtifact };
+}
+
+// ── 권한 상태 확인 ───────────────────────────────────────────
+async function _checkMicPermission() {
+  if (!navigator.permissions) return 'unknown';
+  try {
+    const r = await navigator.permissions.query({ name: 'microphone' });
+    return r.state; // 'granted' | 'denied' | 'prompt'
+  } catch(e) { return 'unknown'; }
+}
+
+// ── 인라인 안내 메시지 ────────────────────────────────────────
+function _micShowMsg(html, type = 'warn') {
+  document.getElementById('mic-msg')?.remove();
+  const colors = {
+    warn:  { bg:'#FFF3CD', bd:'#FDE68A', tx:'#78350F' },
+    error: { bg:'#FEE2E2', bd:'#FCA5A5', tx:'#7F1D1D' },
+    info:  { bg:'#EFF6FF', bd:'#BFDBFE', tx:'#1E3A5F' },
+  }[type] || {};
+  const div = document.createElement('div');
+  div.id = 'mic-msg';
+  div.style.cssText = `margin-top:8px;padding:10px 14px;background:${colors.bg};border:1px solid ${colors.bd};border-radius:6px;font-size:12px;color:${colors.tx};line-height:1.7;`;
+  div.innerHTML = html;
+  document.getElementById('case-input')?.closest('.inp-wrap')?.after(div)
+    || document.getElementById('case-input')?.parentElement?.after(div);
+  setTimeout(() => div.remove(), 14000);
+}
+
+// ── 메인 toggleVoice ─────────────────────────────────────────
+async function toggleVoice() {
   const btn = document.getElementById('mic-btn');
   const ta  = document.getElementById('case-input');
 
-  // SpeechRecognition 지원 여부 확인
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nChrome 또는 Safari를 사용해 주세요.');
-    return;
-  }
-
+  // 중지
   if (isRecording) {
-    // 녹음 중지
     recognition && recognition.stop();
     return;
   }
 
-  // 녹음 시작
+  // ── 환경 체크 ──
+  const env = _detectMicEnv();
+
+  // Claude Artifacts 미리보기 환경이면 즉시 안내
+  if (env.isArtifact || env.inIframe) {
+    _micShowMsg(
+      `<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong><br>
+       실제 배포 URL <code>klaw.openhash.kr/webapp.html</code> 또는 고팡 앱에서 사용하세요.<br>
+       <span style="font-size:11px">iframe 내부에서는 브라우저가 마이크 권한 팝업을 차단합니다.</span>`,
+      'info'
+    );
+    return;
+  }
+
+  // 비보안 컨텍스트(HTTP)
+  if (!env.isSecure) {
+    _micShowMsg(
+      `<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong><br>
+       브라우저는 HTTP 페이지에서 마이크 접근을 차단합니다.`,
+      'error'
+    );
+    return;
+  }
+
+  // Web Speech API 지원 여부
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    _micShowMsg(
+      '⚠️ 이 브라우저는 음성-텍스트 변환을 지원하지 않습니다.<br>Chrome 또는 Edge를 사용해 주세요.',
+      'warn'
+    );
+    return;
+  }
+
+  // 이미 denied 상태이면 팝업 없이 바로 안내
+  const perm = await _checkMicPermission();
+  if (perm === 'denied') {
+    _micShowMsg(
+      `<strong>🎙️ 마이크 권한이 차단되어 있습니다.</strong><br>
+       브라우저 주소창 왼쪽 🔒 → <strong>사이트 설정</strong> → 마이크 → <strong>허용</strong> 후 페이지를 새로고침하세요.`,
+      'error'
+    );
+    return;
+  }
+
+  // ── getUserMedia 선행 호출로 권한 팝업 강제 표시 ──
+  // SpeechRecognition.start()만 호출하면 Chrome이 팝업을 띄우지 않는 경우가 있음
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop()); // 즉시 해제, SpeechRecognition이 별도로 관리
+  } catch(err) {
+    console.warn('[K-Law Mic] getUserMedia:', err.name);
+    _micSetIdle(btn);
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      _micShowMsg(
+        `<strong>🎙️ 마이크 권한을 거부하셨습니다.</strong><br>
+         주소창 왼쪽 🔒 아이콘 → <strong>사이트 설정</strong> → 마이크 → <strong>허용</strong> 후 새로고침하세요.`,
+        'error'
+      );
+    } else if (err.name === 'NotFoundError') {
+      _micShowMsg('🎙️ 마이크를 찾을 수 없습니다. 마이크가 연결되어 있는지 확인하세요.', 'error');
+    } else {
+      _micShowMsg('🎙️ 마이크 오류: ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── SpeechRecognition 시작 ──
   recognition = new SR();
-  recognition.lang = 'ko-KR';
-  recognition.continuous = true;
-  recognition.interimResults = true;
+  recognition.lang            = 'ko-KR';
+  recognition.continuous      = true;
+  recognition.interimResults  = true;
+  recognition.maxAlternatives = 1;
 
   let finalText = ta.value;
-  let interim = '';
+  let interim   = '';
 
   recognition.onstart = () => {
-    isRecording = true;
-    btn.classList.add('recording');
-    btn.textContent = '■';
-    btn.title = '중지';
+    _micSetActive(btn);
+    document.getElementById('mic-msg')?.remove();
   };
 
   recognition.onresult = (e) => {
     interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        finalText += e.results[i][0].transcript;
-      } else {
-        interim += e.results[i][0].transcript;
-      }
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
     }
     ta.value = finalText + interim;
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
   };
 
   recognition.onend = () => {
-    isRecording = false;
-    btn.classList.remove('recording');
-    btn.textContent = 'MIC';
-    btn.title = '음성 입력';
+    _micSetIdle(btn);
     ta.value = finalText;
-    recognition = null;
   };
 
   recognition.onerror = (e) => {
-    isRecording = false;
-    btn.classList.remove('recording');
-    btn.textContent = 'MIC';
-    if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error);
-    recognition = null;
+    _micSetIdle(btn);
+    console.warn('[K-Law Mic] error:', e.error);
+    const msgs = {
+      'not-allowed':         ['마이크 권한이 거부되었습니다.<br>주소창 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'],
+      'service-not-allowed': ['음성 인식 서비스가 허용되지 않았습니다.<br>HTTPS 환경인지 확인하세요.', 'error'],
+      'network':             ['네트워크 오류로 음성 인식에 실패했습니다.', 'warn'],
+      'no-speech':           ['음성이 감지되지 않았습니다. 마이크에 가까이 대고 다시 시도하세요.', 'warn'],
+      'audio-capture':       ['마이크를 찾을 수 없습니다.', 'error'],
+    };
+    if (e.error !== 'aborted' && msgs[e.error]) {
+      _micShowMsg('🎙️ ' + msgs[e.error][0], msgs[e.error][1]);
+    }
   };
 
   recognition.start();
