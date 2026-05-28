@@ -2,6 +2,16 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script>
+// 스마트폰이면 webapp.html로 리다이렉트
+(function(){
+  if(/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+     || window.innerWidth < 768) {
+    location.replace('webapp.html');
+  }
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — AI 판결 시뮬레이션 시스템</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
