@@ -293,7 +293,8 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <script>
-// ── Supabase
+// ── Supabase — klaw 전용 프로젝트
+// ⚠ 새 Supabase 프로젝트 생성 후 아래 두 값을 교체하세요
 const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
 const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
@@ -358,10 +359,18 @@ let userMap = {};
 
 async function loadAllData() {
   try {
-    const { data } = await supa.from('klaw_sessions').select('*').order('used_at',{ascending:false}).limit(200);
-    allSessions = data || [];
+    const { data } = await supa
+      .from('klaw_cases')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    allSessions = (data || []).map(r => ({
+      ...r,
+      // dashboard 렌더 함수가 used_at을 참조하므로 별칭 부여
+      used_at: r.created_at
+    }));
     document.getElementById('sb-sim-count').textContent = allSessions.length;
-  } catch(e){ allSessions = []; }
+  } catch(e) { allSessions = []; }
 }
 
 // ── 패널 전환
@@ -395,158 +404,151 @@ function fmtDate(iso){ return iso?new Date(iso).toLocaleString('ko-KR',{month:'2
 const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude Sonnet', gemini:'Gemini 2.0' };
 
 // ── 종합 대시보드
-function renderDashboard() {
-  const today = new Date().toDateString();
-  const todaySims  = allSessions.filter(s=>new Date(s.used_at).toDateString()===today);
-  const totalUsers = new Set(allSessions.map(s=>s.user_id)).size;
-  const verSet     = new Set(allSessions.map(s=>s.klaw_version));
-  const latestVer  = klawVersion;
-
-  // 모델별 집계
-  const modelCount = {};
-  allSessions.forEach(s=>{ modelCount[s.llm_model]=(modelCount[s.llm_model]||0)+1; });
-  const topModel = Object.entries(modelCount).sort((a,b)=>b[1]-a[1])[0];
-
-  // 최근 활동
-  const recent = allSessions.slice(0, 8);
-
-  return `
-  <div class="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-icon">📋</div>
-      <div class="kpi-body">
-        <div class="kpi-val">${allSessions.length}</div>
-        <div class="kpi-label">누적 시뮬레이션</div>
-        <div class="kpi-sub">오늘 ${todaySims.length}건</div>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon">👥</div>
-      <div class="kpi-body">
-        <div class="kpi-val green">${totalUsers}</div>
-        <div class="kpi-label">등록 사용자</div>
-        <div class="kpi-sub">K-Law 이용자</div>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon">📄</div>
-      <div class="kpi-body">
-        <div class="kpi-val gold">${latestVer}</div>
-        <div class="kpi-label">현재 K-Law 버전</div>
-        <div class="kpi-sub">GitHub 자동 감지</div>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon">🤖</div>
-      <div class="kpi-body">
-        <div class="kpi-val orange">${topModel ? (modelLabel[topModel[0]]||topModel[0]) : '—'}</div>
-        <div class="kpi-label">최다 사용 LLM</div>
-        <div class="kpi-sub">${topModel ? topModel[1]+'건 사용' : '데이터 없음'}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-7-3">
-    <!-- 최근 시뮬레이션 -->
-    <div>
-      <div class="section-hd">최근 시뮬레이션 이력 <span class="section-hd-right" onclick="showPanel('simulations')" style="cursor:pointer">전체 보기 →</span></div>
-      <div class="card">
-        <table class="sim-table">
-          <thead><tr>
-            <th>#</th><th>K-Law 버전</th><th>LLM 모델</th><th>사용자</th><th>일시</th>
-          </tr></thead>
-          <tbody>
-            ${recent.length ? recent.map((s,i)=>`
-            <tr>
-              <td class="sim-no">${allSessions.length - i}</td>
-              <td><span class="badge badge-blue">${esc(s.klaw_version)}</span></td>
-              <td><span class="badge badge-gold">${esc(modelLabel[s.llm_model]||s.llm_model)}</span></td>
-              <td class="sim-summary">${esc(s.user_id?.slice(0,8)+'…')}</td>
-              <td class="sim-time">${fmtDate(s.used_at)}</td>
-            </tr>`).join('') : '<tr><td colspan="5" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 우측 패널 -->
-    <div>
-      <!-- LLM 사용 현황 -->
-      <div class="section-hd">LLM 사용 현황</div>
-      <div class="card">
-        <div class="card-body">
-          ${['deepseek','claude','gemini'].map(m=>{
-            const cnt = modelCount[m]||0;
-            const pct = allSessions.length ? Math.round(cnt/allSessions.length*100) : 0;
-            const colors = {deepseek:'#0057A8',claude:'#7B3FA0',gemini:'#1B6B3A'};
-            return `<div class="stat-bar-row">
-              <div class="stat-bar-label">${modelLabel[m]||m}</div>
-              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${pct}%;background:${colors[m]}"></div></div>
-              <div class="stat-bar-val">${cnt}</div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- K-Law 버전 현황 -->
-      <div class="section-hd">K-Law 버전 현황</div>
-      <div class="card">
-        <div class="card-body" style="padding:8px 16px">
-          ${Array.from(verSet).length ? Array.from(verSet).slice(0,5).map(v=>{
-            const cnt = allSessions.filter(s=>s.klaw_version===v).length;
-            return `<div class="ver-row">
-              <div class="ver-badge">${esc(v)}</div>
-              <div class="ver-model">${cnt}건 사용</div>
-              ${v===latestVer?'<span class="ver-sent">● 최신</span>':''}
-            </div>`;
-          }).join('') : '<div style="padding:12px 0;text-align:center;color:var(--hint);font-size:12px">데이터 없음</div>'}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 최근 활동 타임라인 -->
-  <div class="section-hd">최근 활동</div>
-  <div class="card">
-    <div class="card-body" style="padding:8px 16px">
-      <div class="timeline">
-        ${recent.slice(0,6).map(s=>`
-        <div class="tl-item">
-          <div class="tl-dot blue">⚖</div>
-          <div class="tl-body">
-            <div class="tl-title">판결 시뮬레이션 실행</div>
-            <div class="tl-sub">${esc(s.klaw_version)} · ${esc(modelLabel[s.llm_model]||s.llm_model)}</div>
-          </div>
-          <div class="tl-time">${fmtDate(s.used_at)}</div>
-        </div>`).join('')}
-        ${!recent.length?'<div style="text-align:center;color:var(--hint);padding:16px;font-size:12px">활동 없음</div>':''}
-      </div>
-    </div>
-  </div>`;
+function caseTypeBadge(type) {
+  const map = {'민사':'badge-blue','형사':'badge-red','행정':'badge-green','가사':'badge-orange','노동':'badge-gold','소액':'badge-orange','헌법':'badge-blue'};
+  for (const [k,v] of Object.entries(map)) { if(type&&type.includes(k)) return v; }
+  return 'badge-blue';
 }
 
-// ── 시뮬레이션 이력
-function renderSimulations() {
+function renderSimTable(rows) {
   return `
-  <div class="section-hd">전체 시뮬레이션 이력 <span class="section-hd-right">총 ${allSessions.length}건</span></div>
-  <div class="card">
+  <div class="card" style="overflow-x:auto">
     <table class="sim-table">
       <thead><tr>
-        <th>#</th><th>K-Law 버전</th><th>LLM 모델</th><th>사용자 ID</th><th>일시</th>
+        <th style="width:44px">#</th>
+        <th style="width:52px">출처</th>
+        <th style="width:72px">사건 유형</th>
+        <th style="width:52px">심급</th>
+        <th>사건 요지</th>
+        <th style="width:100px">판결 요약</th>
+        <th style="width:58px">확신도</th>
+        <th style="width:76px">LLM</th>
+        <th style="width:70px">K-Law</th>
+        <th style="width:100px">일시</th>
       </tr></thead>
       <tbody>
-        ${allSessions.length ? allSessions.map((s,i)=>`
-        <tr>
-          <td class="sim-no">${allSessions.length - i}</td>
-          <td><span class="badge badge-blue">${esc(s.klaw_version)}</span></td>
-          <td><span class="badge badge-gold">${esc(modelLabel[s.llm_model]||s.llm_model)}</span></td>
-          <td class="sim-summary" style="font-family:monospace;font-size:11px">${esc(s.user_id)}</td>
-          <td class="sim-time">${fmtDate(s.used_at)}</td>
-        </tr>`).join('') : '<tr><td colspan="5" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
+        ${rows.length ? rows.map((s,i) => {
+          const confNum = s.confidence ? parseFloat(s.confidence) : null;
+          const confColor = confNum>=7?'var(--green)':confNum>=5?'var(--primary)':'var(--orange)';
+          const idx = allSessions.indexOf(s) + 1;
+          const srcBadge = s.source==='gopang'
+            ? `<span class="badge badge-green" style="font-size:9px">고팡</span>`
+            : `<span class="badge badge-blue" style="font-size:9px">웹앱</span>`;
+          return `<tr>
+            <td class="sim-no">${idx}</td>
+            <td>${srcBadge}</td>
+            <td>${s.case_type?`<span class="badge ${caseTypeBadge(s.case_type)}" style="font-size:9px">${esc(s.case_type)}</span>`:'<span style="color:var(--hint);font-size:11px">—</span>'}</td>
+            <td style="font-size:11px;font-weight:600;color:var(--sub)">${esc(s.case_level||'—')}</td>
+            <td class="sim-summary" style="max-width:200px" title="${esc(s.case_input||'')}">
+              ${s.case_input?esc(s.case_input.slice(0,55))+'…':'<span style="color:var(--hint)">—</span>'}
+            </td>
+            <td style="font-size:11px;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(s.verdict||'')}">
+              ${s.verdict?esc(s.verdict.slice(0,28)):'<span style="color:var(--hint)">—</span>'}
+            </td>
+            <td style="font-weight:800;color:${confColor};font-size:12px;text-align:center">${s.confidence||'—'}</td>
+            <td><span class="badge badge-gold" style="font-size:9px">${esc(modelLabel[s.llm_model]||s.llm_model||'—')}</span></td>
+            <td><span class="badge badge-blue" style="font-size:9px">${esc(s.klaw_version||'—')}</span></td>
+            <td class="sim-time">${fmtDate(s.used_at)}</td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="10" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+        }).join('') : '<tr><td colspan="9" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
       </tbody>
     </table>
   </div>`;
 }
+
+function renderDashboard() {
+  const today = new Date().toDateString();
+  const todaySims  = allSessions.filter(s=>new Date(s.used_at).toDateString()===today);
+  const gopangCnt  = allSessions.filter(s=>s.source==='gopang').length;
+  const webappCnt  = allSessions.filter(s=>s.source!=='gopang').length;
+  const modelCount = {};
+  allSessions.forEach(s=>{ modelCount[s.llm_model]=(modelCount[s.llm_model]||0)+1; });
+  const topModel = Object.entries(modelCount).sort((a,b)=>b[1]-a[1])[0];
+  const recent = allSessions.slice(0, 6);
+
+  return `
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-icon">📋</div><div class="kpi-body">
+      <div class="kpi-val">${allSessions.length}</div>
+      <div class="kpi-label">누적 시뮬레이션</div>
+      <div class="kpi-sub">오늘 ${todaySims.length}건</div>
+    </div></div>
+    <div class="kpi-card"><div class="kpi-icon">📱</div><div class="kpi-body">
+      <div class="kpi-val green">${gopangCnt}</div>
+      <div class="kpi-label">고팡 앱 의뢰</div>
+      <div class="kpi-sub">웹앱 직접 ${webappCnt}건</div>
+    </div></div>
+    <div class="kpi-card"><div class="kpi-icon">📄</div><div class="kpi-body">
+      <div class="kpi-val gold">${klawVersion}</div>
+      <div class="kpi-label">현재 K-Law 버전</div>
+      <div class="kpi-sub">GitHub 자동 감지</div>
+    </div></div>
+    <div class="kpi-card"><div class="kpi-icon">🤖</div><div class="kpi-body">
+      <div class="kpi-val orange" style="font-size:15px;padding-top:5px">${topModel?(modelLabel[topModel[0]]||topModel[0]):'—'}</div>
+      <div class="kpi-label">최다 사용 LLM</div>
+      <div class="kpi-sub">${topModel?topModel[1]+'건 사용':'데이터 없음'}</div>
+    </div></div>
+  </div>
+
+  <div class="section-hd">📋 사건 이력 · 판결 현황 <span class="section-hd-right" onclick="showPanel('simulations')" style="cursor:pointer">전체 보기 →</span></div>
+  ${renderSimTable(recent)}
+
+  <div class="grid-2" style="margin-top:16px">
+    <div>
+      <div class="section-hd">LLM 사용 현황</div>
+      <div class="card"><div class="card-body">
+        ${['deepseek','claude','gemini'].map(m=>{
+          const cnt=modelCount[m]||0;
+          const pct=allSessions.length?Math.round(cnt/allSessions.length*100):0;
+          const colors={deepseek:'#0057A8',claude:'#7B3FA0',gemini:'#1B6B3A'};
+          return `<div class="stat-bar-row">
+            <div class="stat-bar-label">${modelLabel[m]||m}</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill" data-width="${pct}" style="width:0%;background:${colors[m]}"></div></div>
+            <div class="stat-bar-val">${cnt}</div>
+          </div>`;
+        }).join('')}
+      </div></div>
+    </div>
+    <div>
+      <div class="section-hd">최근 활동</div>
+      <div class="card"><div class="card-body" style="padding:8px 16px"><div class="timeline">
+        ${recent.slice(0,5).map(s=>`
+        <div class="tl-item">
+          <div class="tl-dot blue">⚖</div>
+          <div class="tl-body">
+            <div class="tl-title">${s.case_type?esc(s.case_type):'판결 시뮬레이션'}</div>
+            <div class="tl-sub">${esc(s.klaw_version)} · ${esc(modelLabel[s.llm_model]||s.llm_model)} · ${s.source==='gopang'?'<span style="color:var(--green)">고팡</span>':'웹앱'}</div>
+          </div>
+          <div class="tl-time">${fmtDate(s.used_at)}</div>
+        </div>`).join('')}
+        ${!recent.length?'<div style="text-align:center;color:var(--hint);padding:16px;font-size:12px">활동 없음</div>':''}
+      </div></div></div>
+    </div>
+  </div>
+
+  <div class="section-hd" style="margin-top:4px">⚡ 바로가기</div>
+  <div class="grid-2">
+    <a href="webapp.html" class="card" style="display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow=''">
+      <div style="font-size:28px">⚖</div>
+      <div><div style="font-size:13px;font-weight:800;color:var(--primary)">K-Law 법률 자문 웹앱</div><div style="font-size:11px;color:var(--hint);margin-top:2px">시민용 · klaw.openhash.kr/webapp.html</div></div>
+    </a>
+    <a href="https://gopang.net" target="_blank" class="card" style="display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow=''">
+      <div style="font-size:28px">📱</div>
+      <div><div style="font-size:13px;font-weight:800;color:var(--green)">고팡 앱</div><div style="font-size:11px;color:var(--hint);margin-top:2px">법률 자문 의뢰 · gopang.net</div></div>
+    </a>
+  </div>`;
+}
+
+function renderSimulations() {
+  return `
+  <div class="section-hd">전체 시뮬레이션 이력 <span class="section-hd-right">총 ${allSessions.length}건</span></div>
+  ${renderSimTable(allSessions)}`;
+}
+
 
 // ── 사용자 현황
 function renderUsers() {

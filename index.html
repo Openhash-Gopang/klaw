@@ -654,7 +654,8 @@ a { text-decoration: none; color: inherit; }
       <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
       <p>사건의 개요를 입력하면, 수년 뒤의 대법원 판결을 99.9% 정확도로 예측합니다(K-Law 논문 수치).<br>엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
       <div class="hero-btns">
-        <a href="https://gopang.net/" target="_blank" class="hero-btn-primary">🚀 고팡 앱 실행</a>
+        <a href="webapp.html" class="hero-btn-primary">⚖ 법률 자문 웹앱</a>
+        <a href="https://gopang.net/" target="_blank" class="hero-btn-outline">🚀 고팡 앱 실행</a>
         <a href="dashboard.html" class="hero-btn-outline">🖥 관리자 대시보드</a>
       </div>
     </div>
@@ -2097,7 +2098,94 @@ function downloadVerdict() {
   a.click();
 }
 
-function showAnalysisLoading(show) {
+// ══ K-Law × Supabase 연동 (_sendReportToFiil 의 법률 버전) ═════
+// 고팡 앱에서 K-Law 법률 자문 결과를 Supabase klaw_cases 테이블에 저장합니다.
+// 호출: _sendCaseToKlaw(klawResult, caseInput, userText)
+//   klawResult: runJudgementSim() 완료 후의 {verdict, confidence, type, level, summary 등}
+//   caseInput:  사용자가 입력한 원문 사건 텍스트
+//   userText:   추가 컨텍스트 (선택)
+
+const _KLAW_SUPABASE_URL = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
+const _KLAW_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+
+function _sendCaseToKlaw(klawResult, caseInput, userText) {
+  try {
+    const caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
+
+    // 타입 코드 변환
+    function _typeCode(type) {
+      if (!type) return null;
+      if (type.includes('민사')) return 'TYPE_01';
+      if (type.includes('형사')) return 'TYPE_02';
+      if (type.includes('행정')) return 'TYPE_03';
+      if (type.includes('가사')) return 'TYPE_04';
+      if (type.includes('소액')) return 'TYPE_05';
+      if (type.includes('노동')) return 'TYPE_06';
+      return null;
+    }
+
+    const record = {
+      id:            caseNo,
+      source:        'gopang',
+      case_type:     klawResult?.caseType    || null,
+      case_type_code:_typeCode(klawResult?.caseType),
+      case_level:    klawResult?.caseLevel   || null,
+      case_detail:   klawResult?.caseDetail  || null,
+      case_input:    (caseInput || userText || '').slice(0, 2000),
+      case_summary:  klawResult?.caseSummary?.slice(0, 500) || null,
+      verdict:       klawResult?.verdict?.slice(0, 80)      || null,
+      confidence:    klawResult?.confidence  || null,
+      complexity:    klawResult?.complexity  || null,
+      match_rate:    klawResult?.matchRate   || null,
+      verdict_type:  klawResult?.verdictType || null,
+      llm_model:     conversationState?.llmModel || 'deepseek',
+      klaw_version:  klawVersion || 'v15.1',
+      reporter:      currentUser?.email || null,
+      status:        'completed'
+    };
+
+    fetch(_KLAW_SUPABASE_URL + '/rest/v1/klaw_cases', {
+      method: 'POST',
+      headers: {
+        'apikey':        _KLAW_SUPABASE_KEY,
+        'Authorization': 'Bearer ' + _KLAW_SUPABASE_KEY,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal'
+      },
+      body: JSON.stringify(record)
+    })
+    .then(res => {
+      if (res.ok || res.status === 201) {
+        console.log('[K-Law] ✅ Supabase 저장 완료 →', caseNo, record.case_type, record.confidence);
+      } else {
+        res.text().then(t => console.warn('[K-Law] Supabase 오류:', res.status, t));
+      }
+    })
+    .catch(e => console.warn('[K-Law] 네트워크 오류:', e.message));
+
+  } catch(e) {
+    console.warn('[K-Law] _sendCaseToKlaw 오류:', e.message);
+  }
+}
+
+// ── runJudgementSim 완료 시 자동 호출 (기존 recordKlawUsage 이후에 실행)
+// 기존 recordKlawUsage 함수가 Supabase에 klaw_sessions를 저장하는 것과 별개로,
+// klaw_cases 테이블에도 저장합니다.
+const _origRecordKlawUsage = recordKlawUsage;
+async function recordKlawUsage(klawVer, llmModel, simData = {}) {
+  // 기존 klaw_sessions 저장 유지
+  await _origRecordKlawUsage(klawVer, llmModel, simData);
+  // klaw_cases에도 저장
+  _sendCaseToKlaw({
+    caseType:    simData.caseType,
+    caseLevel:   simData.caseLevel,
+    caseSummary: simData.caseSummary,
+    verdict:     simData.verdict,
+    confidence:  simData.confidence
+  }, simData.caseInput || '');
+}
+
+
   const p = document.getElementById('analysis-panel');
   if (show) {
     p.style.display = 'block';
