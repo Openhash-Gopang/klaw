@@ -183,7 +183,7 @@ a { text-decoration: none; color: inherit; }
 .user-meta { font-size: 10px; color: var(--hint); }
 .user-sim-count { font-size: 13px; font-weight: 800; color: var(--primary); }
 
-/* ── 로그인 오버레이 ── */
+/* ── 관리자 접근 차단 오버레이 ── */
 #dash-auth-overlay {
   position: fixed; inset: 0; z-index: 9999;
   background: linear-gradient(150deg, #001845 0%, #002D72 60%, #003C82 100%);
@@ -194,14 +194,8 @@ a { text-decoration: none; color: inherit; }
 .auth-logo { font-size: 32px; margin-bottom: 8px; }
 .auth-title { font-size: 20px; font-weight: 900; }
 .auth-subtitle { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 3px; }
-.auth-body { padding: 24px 28px; }
-.auth-field { margin-bottom: 12px; }
-.auth-field label { display: block; font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 4px; }
-.auth-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 4px; font-family: var(--font); font-size: 13px; color: var(--text); background: var(--bg); outline: none; transition: border-color .15s; }
-.auth-field input:focus { border-color: var(--primary); background: #fff; }
-.auth-submit { width: 100%; padding: 11px 0; background: linear-gradient(135deg, var(--gov-header) 0%, var(--primary) 100%); color: #fff; border: none; border-radius: 4px; font-family: var(--font); font-size: 14px; font-weight: 800; cursor: pointer; transition: opacity .15s; }
-.auth-submit:hover { opacity: .9; }
-.auth-msg { font-size: 12px; text-align: center; margin-top: 8px; min-height: 16px; color: var(--red); }
+.auth-body { padding: 24px 28px; text-align: center; }
+.auth-guid { font-size: 11px; font-family: monospace; background: #f4f4f4; border-radius: 4px; padding: 8px 10px; margin: 12px 0; word-break: break-all; color: #333; }
 
 /* ── 반응형 ── */
 @media(max-width: 1100px) { .kpi-row { grid-template-columns: repeat(2,1fr); } .grid-7-3 { grid-template-columns: 1fr; } }
@@ -210,21 +204,22 @@ a { text-decoration: none; color: inherit; }
 </head>
 <body>
 
-<!-- ── 로그인 오버레이 ── -->
-<div id="dash-auth-overlay">
+<!-- ── 접근 거부 오버레이 (관리자 아닌 경우만 표시) ── -->
+<div id="dash-auth-overlay" style="display:none">
   <div class="auth-box">
     <div class="auth-header">
-      <div class="auth-logo">⚖</div>
+      <div class="auth-logo">🔒</div>
       <div class="auth-title">K-Law 대시보드</div>
-      <div class="auth-subtitle">관리자 로그인</div>
+      <div class="auth-subtitle">관리자 전용</div>
     </div>
     <div class="auth-body">
-      <div class="auth-field"><label>이메일</label><input type="email" id="dash-email" value="test@klaw.ai" onkeydown="if(event.key==='Enter')dashLogin()"></div>
-      <div class="auth-field"><label>비밀번호</label><input type="password" id="dash-pw" value="test1234" onkeydown="if(event.key==='Enter')dashLogin()"></div>
-      <button class="auth-submit" onclick="dashLogin()">로그인</button>
-      <div class="auth-msg" id="dash-msg"></div>
-      <div style="margin-top:12px;font-size:11px;color:var(--hint);text-align:center">
-        테스트 계정: <strong>test@klaw.ai</strong> / <strong>test1234</strong>
+      <div style="font-size:13px;color:#333;margin-bottom:16px;line-height:1.6">
+        이 기기는 관리자로 등록되지 않았습니다.<br>
+        아래 GUID를 관리자에게 전달하여 권한을 요청하세요.
+      </div>
+      <div class="auth-guid" id="dash-deny-guid">확인 중…</div>
+      <div style="font-size:11px;color:#888;margin-top:8px">
+        고팡 앱에서 접속하면 자동으로 GUID가 전달됩니다.
       </div>
     </div>
   </div>
@@ -258,12 +253,11 @@ a { text-decoration: none; color: inherit; }
   <div class="sidebar-section">
     <div class="sidebar-section-title">시스템</div>
     <a class="sidebar-link" href="index.html"><span class="icon">🏠</span> 메인 화면</a>
-    <a class="sidebar-link" onclick="dashLogout()"><span class="icon">🚪</span> 로그아웃</a>
   </div>
 
   <div class="sidebar-user">
-    <div class="sidebar-user-name" id="sb-user-name">로그인 중…</div>
-    <div class="sidebar-user-time">최종 로그인: <span id="sb-login-time">—</span></div>
+    <div class="sidebar-user-name" id="sb-user-name">인증 중…</div>
+    <div class="sidebar-user-time">GUID: <span id="sb-login-time" style="font-family:monospace;font-size:10px">—</span></div>
   </div>
 </aside>
 
@@ -293,14 +287,21 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <script>
-// ── Supabase — klaw 전용 프로젝트
-// ⚠ 새 Supabase 프로젝트 생성 후 아래 두 값을 교체하세요
+// ══ SUPABASE 초기화 ════════════════════════════════════════
 const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
 const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 
 let currentUser = null;
 let klawVersion = 'v15.1';
+
+// ══ 관리자 GUID 화이트리스트 ═══════════════════════════════
+// 운영: Supabase users 테이블의 is_admin=true 컬럼으로 관리
+// 아래 ADMIN_GUIDS는 Supabase 조회 실패 시 폴백용 하드코딩 목록
+// 추가 방법: Supabase Dashboard → Table Editor → users → is_admin 컬럼을 true로 설정
+const ADMIN_GUIDS = new Set([
+  // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',  // 예시: 본인 GUID 추가
+]);
 
 // ── GitHub에서 K-Law 최신 버전 감지
 async function loadKlawVer() {
@@ -319,39 +320,97 @@ loadKlawVer();
 // ── 시계
 (function tick(){ const el=document.getElementById('dash-clock'); if(el) el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); setTimeout(tick,1000); })();
 
-// ── Auth
-async function dashLogin() {
-  const email = document.getElementById('dash-email').value.trim();
-  const pw    = document.getElementById('dash-pw').value;
-  const msg   = document.getElementById('dash-msg');
-  if (!email||!pw){ msg.textContent='이메일과 비밀번호를 입력하세요.'; return; }
-  const { error } = await supa.auth.signInWithPassword({ email, password: pw });
-  if (error) msg.textContent = error.message;
+// ══ 고팡 GUID / 기기지문 기반 인증 ════════════════════════
+async function _buildDeviceFingerprint() {
+  const raw = [
+    navigator.userAgent, navigator.language,
+    screen.width + 'x' + screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || '',
+  ].join('|');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function dashLogout() {
-  await supa.auth.signOut();
-  document.getElementById('dash-auth-overlay').style.display = '';
-}
+async function _initDashUser() {
+  const params    = new URLSearchParams(location.search);
+  const paramGuid = params.get('guid');
+  const paramFp   = params.get('fp');
+  const paramPhone= params.get('phone') || params.get('user') || '';
+  let guid, fp;
 
-supa.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('dash-auth-overlay').style.display = 'none';
-    document.getElementById('sb-user-name').textContent = session.user.email;
-    document.getElementById('sb-login-time').textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  // 시나리오 1: 고팡 앱이 guid를 URL 파라미터로 전달
+  if (paramGuid) {
+    guid = paramGuid; fp = paramFp || '';
+    currentUser = { guid, fp, phone: paramPhone, source: 'gopang' };
+  } else {
+    // 시나리오 2: 기기 지문으로 Supabase users 테이블 조회
+    fp = await _buildDeviceFingerprint();
+    try {
+      const res = await fetch(
+        SUPA_URL + '/rest/v1/users?device_fp=eq.' + fp + '&select=guid,device_fp,phone,is_admin&limit=1',
+        { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
+      );
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length) {
+        guid = rows[0].guid;
+        currentUser = { guid, fp, phone: rows[0].phone || '', source: 'device_fp', isAdmin: !!rows[0].is_admin };
+      }
+    } catch(e) { console.warn('[Dash Auth] Supabase 조회 실패:', e.message); }
+
+    // 시나리오 3: 미등록 기기 — guid 발급 후 등록
+    if (!guid) {
+      guid = crypto.randomUUID();
+      try {
+        await fetch(SUPA_URL + '/rest/v1/users', {
+          method: 'POST',
+          headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON,
+                     'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ guid, device_fp: fp, registered_at: new Date().toISOString() })
+        });
+      } catch(e) { console.warn('[Dash Auth] 신규 등록 실패:', e.message); }
+      currentUser = { guid, fp, source: 'new', isAdmin: false };
+    }
+  }
+
+  // ── 관리자 여부 확인 ──────────────────────────────────────
+  // 1순위: Supabase users.is_admin 컬럼
+  // 2순위: 하드코딩 ADMIN_GUIDS 폴백
+  let isAdmin = currentUser.isAdmin || ADMIN_GUIDS.has(currentUser.guid);
+
+  // Supabase에서 is_admin 재조회 (URL 파라미터로 접속한 경우 등)
+  if (!isAdmin && currentUser.guid) {
+    try {
+      const res = await fetch(
+        SUPA_URL + '/rest/v1/users?guid=eq.' + currentUser.guid + '&select=is_admin&limit=1',
+        { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
+      );
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length) isAdmin = !!rows[0].is_admin;
+    } catch(e) {}
+  }
+
+  // ── 결과에 따라 대시보드 표시 or 접근 거부 ────────────────
+  const overlay = document.getElementById('dash-auth-overlay');
+  if (isAdmin) {
+    overlay.style.display = 'none';
+    const shortGuid = currentUser.guid.slice(0,8);
+    document.getElementById('sb-user-name').textContent =
+      (currentUser.phone ? currentUser.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '관리자') +
+      ' · ' + currentUser.source;
+    document.getElementById('sb-login-time').textContent = currentUser.guid.slice(0,12) + '…';
+    console.info('[Dash Auth] 관리자 접근 허용:', shortGuid);
     await loadAllData();
     showPanel('dashboard');
   } else {
-    currentUser = null;
-    document.getElementById('dash-auth-overlay').style.display = '';
+    overlay.style.display = 'flex';
+    const denyEl = document.getElementById('dash-deny-guid');
+    if (denyEl) denyEl.textContent = currentUser.guid;
+    console.warn('[Dash Auth] 비관리자 접근 차단:', currentUser.guid.slice(0,8));
   }
-});
+}
 
-(async()=>{
-  const { data:{ session } } = await supa.auth.getSession();
-  if(session?.user){ currentUser=session.user; document.getElementById('dash-auth-overlay').style.display='none'; document.getElementById('sb-user-name').textContent=session.user.email; document.getElementById('sb-login-time').textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); await loadAllData(); showPanel('dashboard'); }
-})();
+_initDashUser().catch(e => console.warn('[Dash Auth]', e));
 
 // ── 데이터
 let allSessions = [];
@@ -451,10 +510,6 @@ function renderSimTable(rows) {
             <td class="sim-time">${fmtDate(s.used_at)}</td>
           </tr>`;
         }).join('') : '<tr><td colspan="10" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
-      </tbody>
-    </table>
-  </div>`;
-        }).join('') : '<tr><td colspan="9" class="sim-empty">시뮬레이션 이력이 없습니다</td></tr>'}
       </tbody>
     </table>
   </div>`;
