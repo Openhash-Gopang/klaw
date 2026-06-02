@@ -3,287 +3,405 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-Law — AI 판결 시뮬레이션 (데스크탑)</title>
+<title>K-Law — 판결 시뮬레이터</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
-
-<!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
 <script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
-  --gov-header: #002060;
-  --gov-nav:    #003C82;
-  --primary:    #0057A8;
-  --primary-lt: #006CC3;
-  --primary-bg: #EBF3FC;
-  --primary-bd: #B8D4F0;
-  --gold:       #B8952A;
-  --surface:    #FFFFFF;
-  --bg:         #F4F6F9;
-  --border:     #D1D9E6;
-  --text:       #1A202C;
-  --sub:        #4A5568;
-  --hint:       #718096;
-  --green:      #1B6B3A; --green-bg:#E6F4EC;
-  --orange:     #C05621; --orange-bg:#FEF3E2;
-  --red:        #C01C28; --red-bg:#FEE2E2;
-  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', sans-serif;
-  --shadow-1: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
-  --shadow-2: 0 4px 12px rgba(0,0,0,.10);
-  --r: 4px;
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --side-bg:#f9fafb; --side-sel:#f3f4f6; --side-w:220px; --side-col:52px; --head-h:48px;
+  --red:#ef4444; --red-bg:#fef2f2; --org:#f59e0b; --org-bg:#fffbeb;
+  --blue:#3b82f6; --blue-bg:#eff6ff;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
+  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:6px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; line-height: 1.5; }
-a { text-decoration: none; color: inherit; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:13px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer}
 
-/* GOV BAR */
-.gov-bar { background: var(--gov-header); color: rgba(255,255,255,.75); font-size: 11px; padding: 5px 0; text-align: center; letter-spacing: .3px; font-weight: 500; }
+.topbar{height:var(--head-h);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0;z-index:100;position:relative}
+.topbar-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--txt);padding-right:16px;border-right:1px solid var(--bdr);margin-right:12px;flex-shrink:0}
+.topbar-brand svg{color:var(--pri)}
+.topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);flex:1}
+.topbar-breadcrumb .sep{color:var(--bdr2)}
+.topbar-breadcrumb .cur{color:var(--txt);font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:var(--pri-bg);color:var(--pri-dk);border:1px solid var(--pri-bd)}
+.badge-free{background:#f3f4f6;color:var(--txt3);border:1px solid var(--bdr)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--pri);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-clock{font-size:12px;color:var(--txt3);font-variant-numeric:tabular-nums;padding:0 8px}
+.tsep{width:1px;height:20px;background:var(--bdr)}
+.user-btn{display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);font-size:12px;color:var(--txt2);transition:background .12s}
+.user-btn:hover{background:var(--bg)}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri-dk);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 
-/* TOP NAV */
-.topnav { background: var(--gov-nav); position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
-.topnav-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: stretch; height: 52px; }
-.topnav-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.4px; padding-right: 20px; border-right: 1px solid rgba(255,255,255,.15); flex-shrink: 0; margin-right: 4px; }
-.topnav-logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,.12); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
-.topnav-links { display: flex; flex: 1; }
-.topnav-links a { display: flex; align-items: center; padding: 0 15px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.72); transition: background .15s, color .15s; border-bottom: 3px solid transparent; white-space: nowrap; }
-.topnav-links a:hover { background: rgba(255,255,255,.08); color: #fff; }
-.topnav-links a.active { color: #fff; border-bottom-color: #A8D4FF; background: rgba(255,255,255,.06); }
-.topnav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; padding-left: 20px; border-left: 1px solid rgba(255,255,255,.12); flex-shrink: 0; }
-.topnav-clock { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.65); font-variant-numeric: tabular-nums; }
-.topnav-badge { background: rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.80); }
-.topnav-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.60); }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.user-info-bar { display:flex; align-items:center; gap:8px; padding:3px 12px; background:rgba(255,255,255,.10); border-radius:20px; cursor:pointer; transition:background .15s; }
-.user-avatar { width:24px; height:24px; border-radius:50%; background:var(--primary-lt); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.app-body{display:flex;flex:1;overflow:hidden}
 
-/* K-Law 버전 이력 드롭다운 */
-.klaw-history-panel { position:fixed; top:56px; right:16px; z-index:500; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow-2); width:360px; max-height:420px; overflow-y:auto; display:none; }
-.klaw-history-panel.open { display:block; }
-.klaw-hp-header { padding:12px 16px; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color:var(--text); display:flex; justify-content:space-between; align-items:center; }
-.klaw-hp-row { padding:10px 16px; border-bottom:1px solid var(--border); font-size:12px; display:flex; gap:10px; align-items:flex-start; }
-.klaw-hp-row:last-child { border-bottom:none; }
-.klaw-hp-ver { font-weight:800; color:var(--primary); min-width:60px; }
-.klaw-hp-model { color:var(--sub); }
-.klaw-hp-time { font-size:10px; color:var(--hint); margin-left:auto; white-space:nowrap; }
-.klaw-hp-empty { padding:20px 16px; text-align:center; color:var(--hint); font-size:12px; }
+.sidebar{
+  width:var(--side-col);
+  background:var(--side-bg);
+  border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow:hidden;flex-shrink:0;
+  transition:width .2s ease;
+  position:relative;z-index:50;
+}
+.sidebar:hover{width:var(--side-w)}
+.sidebar-section{padding:8px 0;overflow:hidden}
+.sidebar-section+.sidebar-section{border-top:1px solid var(--bdr)}
+.sidebar-label{
+  padding:6px 16px 3px;font-size:10px;font-weight:600;
+  color:var(--txt4);text-transform:uppercase;letter-spacing:.6px;
+  white-space:nowrap;overflow:hidden;
+  opacity:0;transition:opacity .15s .05s;
+}
+.sidebar:hover .sidebar-label{opacity:1}
+.nav-item{
+  display:flex;align-items:center;gap:0;
+  padding:8px 0 8px 14px;
+  font-size:13px;color:var(--txt3);
+  transition:background .1s,color .1s;
+  border:none;background:none;width:100%;text-align:left;
+  white-space:nowrap;overflow:hidden;
+  cursor:pointer;
+}
+.nav-item:hover{background:var(--side-sel);color:var(--txt)}
+.nav-item.active{background:var(--side-sel);color:var(--txt);font-weight:500}
+.nav-item svg{flex-shrink:0;color:var(--txt4);width:20px;height:20px;min-width:20px;margin-right:0;transition:color .1s}
+.nav-item.active svg,.nav-item:hover svg{color:var(--txt2)}
+.nav-item-label{
+  padding-left:10px;opacity:0;
+  transition:opacity .12s .03s;
+  font-size:13px;
+}
+.sidebar:hover .nav-item-label{opacity:1}
+.nav-badge{margin-left:auto;margin-right:8px;background:#f3f4f6;color:var(--txt3);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;border:1px solid var(--bdr);opacity:0;transition:opacity .12s .03s;flex-shrink:0}.sidebar:hover .nav-badge{opacity:1}
+.sidebar-footer{margin-top:auto;padding:10px 0 10px 14px;border-top:1px solid var(--bdr);overflow:hidden}
+.klaw-ver-chip{display:flex;align-items:center;gap:0;padding:6px 0;font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden}.klaw-ver-chip svg{flex-shrink:0;min-width:20px;width:20px;height:20px}.klaw-ver-chip span{padding-left:10px;opacity:0;transition:opacity .12s .03s}.sidebar:hover .klaw-ver-chip span{opacity:1}
+.klaw-ver-chip strong{color:var(--txt);font-weight:600}
 
-/* INPUT BAND */
-.input-band { background: var(--bg); border-bottom: 2px solid var(--border); }
-.input-band-inner { max-width: 1160px; margin: 0 auto; padding: 20px 24px; }
-.input-band-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-.input-band-textarea { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:var(--r); font-family:var(--font); font-size:13px; color:var(--text); background:#fff; outline:none; resize:none; height:168px; line-height:1.65; overflow:hidden; transition:height .4s cubic-bezier(.4,0,.2,1),border-color .15s,box-shadow .15s; display:block; }
-.input-band-textarea.expanded { height:480px; overflow-y:auto; }
-.input-band-textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,87,168,.10); }
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 
-/* 입력 하단 툴바 */
-.input-toolbar { display:flex; align-items:center; justify-content:space-between; margin-top:8px; max-height:0; overflow:hidden; opacity:0; pointer-events:none; transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s ease; }
-.input-toolbar.visible { max-height:80px; opacity:1; pointer-events:auto; }
-.input-toolbar-left { display:flex; align-items:center; gap:6px; }
-.toolbar-icon-btn { width:36px; height:36px; border-radius:var(--r); border:1.5px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:17px; transition:border-color .15s,background .15s; color:var(--sub); }
-.toolbar-icon-btn:hover { border-color:var(--primary); background:var(--primary-bg); color:var(--primary); }
-.toolbar-icon-btn.recording { border-color:var(--red); background:var(--red-bg); color:var(--red); animation:pulse 1s infinite; }
-.toolbar-file-label { width:36px; height:36px; border-radius:var(--r); border:1.5px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:17px; transition:border-color .15s,background .15s; color:var(--sub); }
-.toolbar-file-label:hover { border-color:var(--primary); background:var(--primary-bg); color:var(--primary); }
-.file-chip { display:inline-flex; align-items:center; gap:5px; background:var(--primary-bg); border:1px solid var(--primary-bd); border-radius:20px; padding:3px 10px; font-size:11px; font-weight:600; color:var(--primary); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.file-chip-remove { cursor:pointer; opacity:.6; font-size:13px; }
-.file-chip-remove:hover { opacity:1; }
-.run-btn { padding:10px 28px; background:var(--primary); color:#fff; border:none; border-radius:var(--r); font-family:var(--font); font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; white-space:nowrap; letter-spacing:-.2px; }
-.run-btn:hover { background:var(--gov-nav); }
-.run-btn:disabled { background:#9AA5B4; cursor:not-allowed; }
+.page-header{padding:20px 28px 0;border-bottom:1px solid var(--bdr);background:var(--sur);flex-shrink:0}
+.page-header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.page-title{font-size:18px;font-weight:600;color:var(--txt)}
+.page-subtitle{font-size:13px;color:var(--txt3);margin-top:2px}
+.page-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s,border-color .12s}
+.btn:hover{background:var(--bg);border-color:var(--bdr2)}
+.btn-primary{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
+.btn-primary:hover{background:var(--pri-dk)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.page-tabs{display:flex;gap:0;margin-top:0}
+.page-tab{padding:10px 16px;font-size:13px;color:var(--txt3);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .12s,border-color .12s;font-family:var(--font)}
+.page-tab:hover{color:var(--txt)}
+.page-tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:500}
 
-/* LLM 카드 */
-.llm-section { max-width:1160px; margin:0 auto; padding:0 24px; max-height:0; overflow:hidden; opacity:0; pointer-events:none; transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .4s ease; }
-.llm-section.visible { max-height:500px; opacity:1; pointer-events:auto; }
-.llm-section-inner { padding:20px 0 16px; }
-.llm-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--primary); margin-bottom:12px; }
-.llm-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.llm-card { background:#fff; border:2px solid var(--border); border-radius:8px; padding:16px 18px; cursor:pointer; transition:border-color .15s,box-shadow .15s; position:relative; overflow:hidden; }
-.llm-card:hover { border-color:var(--primary-bd); box-shadow:var(--shadow-2); }
-.llm-card.selected { border-color:var(--primary); background:var(--primary-bg); box-shadow:0 0 0 3px rgba(0,87,168,.12); }
-.llm-card-badge { position:absolute; top:10px; right:10px; background:var(--primary); color:#fff; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; display:none; }
-.llm-card.selected .llm-card-badge { display:block; }
-.llm-card-logo { font-size:28px; margin-bottom:8px; }
-.llm-card-name { font-size:14px; font-weight:800; color:var(--text); margin-bottom:3px; }
-.llm-card-model { font-size:11px; color:var(--hint); margin-bottom:8px; }
-.llm-card-desc { font-size:11px; color:var(--sub); line-height:1.5; }
-.llm-card-free { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; color:var(--green); background:var(--green-bg); border-radius:10px; padding:2px 8px; margin-top:6px; }
-.api-key-section { max-height:0; overflow:hidden; opacity:0; pointer-events:none; transition:max-height .4s ease,opacity .3s ease; margin-top:0; }
-.api-key-section.visible { max-height:80px; opacity:1; pointer-events:auto; margin-top:12px; }
-.api-key-inner { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fff; border:1.5px solid var(--border); border-radius:var(--r); }
-.api-key-inner label { font-size:12px; font-weight:700; color:var(--sub); white-space:nowrap; }
-.api-key-input { flex:1; padding:8px 10px; border:1.5px solid var(--border); border-radius:var(--r); font-family:var(--font); font-size:12px; color:var(--text); background:var(--bg); outline:none; transition:border-color .15s; }
-.api-key-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,87,168,.10); background:#fff; }
+.content{padding:24px 28px;flex:1}
 
-/* SIM RUN */
-.sim-run-section { max-width:1160px; margin:0 auto; padding:0 24px; max-height:0; overflow:hidden; opacity:0; pointer-events:none; transition:max-height .4s ease,opacity .3s ease; }
-.sim-run-section.visible { max-height:100px; opacity:1; pointer-events:auto; padding-bottom:20px; }
-.sim-run-btn { width:100%; padding:15px 0; background:linear-gradient(135deg,var(--gov-header) 0%,var(--primary) 100%); color:#fff; border:none; border-radius:var(--r); font-family:var(--font); font-size:15px; font-weight:800; cursor:pointer; letter-spacing:-.3px; transition:opacity .15s,transform .1s; display:flex; align-items:center; justify-content:center; gap:10px; }
-.sim-run-btn:hover { opacity:.92; transform:translateY(-1px); }
-.sim-run-btn:disabled { background:#9AA5B4; cursor:not-allowed; transform:none; }
+.panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.panel-hd{padding:11px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.panel-title{font-size:11px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
+.panel-title svg{color:var(--txt3)}
+.panel-bd{padding:16px}
 
-/* PAGE BODY */
-.page-body { max-width:1160px; margin:0 auto; padding:24px 24px 0; }
-.section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--primary); padding-bottom:8px; border-bottom:2px solid var(--primary); margin-bottom:14px; }
+.case-textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:100px;line-height:1.65;transition:height .3s ease,border-color .15s,box-shadow .15s}
+.case-textarea.expanded{height:200px;overflow-y:auto}
+.case-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.15)}
+.case-textarea::placeholder{color:var(--txt4)}
+.input-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .2s ease;pointer-events:none}
+.input-toolbar.visible{max-height:60px;opacity:1;pointer-events:auto}
+.toolbar-left{display:flex;align-items:center;gap:6px}
+.icon-btn{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);transition:border-color .12s,background .12s}
+.icon-btn:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
+.icon-btn.recording{border-color:var(--red);background:var(--red-bg);color:var(--red);animation:pulse 1s infinite}
+.file-label{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);cursor:pointer;transition:border-color .12s,background .12s}
+.file-label:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
+.file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--txt2)}
+.chip-remove{cursor:pointer;color:var(--txt4)}
+.chip-remove:hover{color:var(--txt2)}
 
-/* CARD */
-.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow-1); margin-bottom:16px; }
-.card-header { padding:11px 16px; border-bottom:1px solid var(--border); background:#FAFBFD; border-radius:var(--r) var(--r) 0 0; }
-.card-header-title { font-size:13px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:7px; }
-.card-body { padding:16px; }
+.llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
+.llm-panel.visible{max-height:300px;opacity:1}
+.llm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.llm-card{padding:14px 16px;border-right:1px solid var(--bdr);cursor:pointer;transition:background .12s;position:relative;background:var(--sur)}
+.llm-card:last-child{border-right:none}
+.llm-card:hover{background:var(--bg)}
+.llm-card.selected{background:var(--pri-bg)}
+.llm-sel-dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--sur)}
+.llm-card.selected .llm-sel-dot{background:var(--pri);border-color:var(--pri)}
+.llm-icon{margin-bottom:8px;color:var(--txt3)}
+.llm-card.selected .llm-icon{color:var(--pri-dk)}
+.llm-name{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:2px}
+.llm-model{font-size:11px;color:var(--txt4);margin-bottom:6px;font-family:var(--mono)}
+.llm-desc{font-size:11px;color:var(--txt3);line-height:1.5}
+.llm-free{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 6px;margin-top:4px}
+.api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
+.api-key-row.visible{max-height:60px}
+.api-key-label{font-size:12px;font-weight:500;color:var(--txt3);white-space:nowrap}
+.api-key-input{flex:1;padding:6px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--txt);background:var(--bg);outline:none}
+.api-key-input:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12);background:var(--sur)}
 
-/* 채팅 */
-.klaw-msg { background:var(--primary-bg); border:1px solid var(--primary-bd); border-radius:var(--r); padding:11px 14px; margin-bottom:8px; font-size:13px; line-height:1.75; color:var(--primary); }
-.klaw-msg::before { content:'⚖ K-Law  '; font-weight:700; }
-.user-msg { background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:9px 14px; margin-bottom:8px; font-size:13px; color:var(--text); line-height:1.6; }
+.analysis-panel{margin-bottom:16px;display:none}
+.case-type-bar{border-radius:var(--r) var(--r) 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.case-type-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.case-type-detail{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px}
+.case-level-tag{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+.case-ver-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.9)}
+.analysis-table{background:var(--sur);border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.analysis-row{display:flex;gap:0;border-bottom:1px solid var(--bdr);align-items:flex-start}
+.analysis-row:last-child{border-bottom:none}
+.analysis-key{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;min-width:120px;flex-shrink:0;padding:10px 14px;background:var(--bg);border-right:1px solid var(--bdr)}
+.analysis-val{font-size:13px;color:var(--txt);line-height:1.7;white-space:pre-wrap;flex:1;padding:10px 14px}
 
-/* 판결 결과 */
-.verdict-doc { background:#fff; border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow-2); margin-bottom:20px; overflow:hidden; }
-.verdict-doc-header { background:linear-gradient(135deg,var(--gov-header) 0%,var(--primary) 100%); color:#fff; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
-.verdict-doc-title { font-size:16px; font-weight:800; letter-spacing:-.3px; }
-.verdict-doc-meta { font-size:11px; color:rgba(255,255,255,.7); margin-top:4px; }
-.verdict-doc-body { padding:20px 24px; }
-.verdict-step { margin-bottom:20px; padding-bottom:20px; border-bottom:1px dashed var(--border); }
-.verdict-step:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
-.verdict-step-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.verdict-step-tag { background:var(--primary); color:#fff; font-size:10px; font-weight:800; padding:3px 10px; border-radius:3px; letter-spacing:.5px; white-space:nowrap; }
-.verdict-step-title { font-size:13px; font-weight:700; color:var(--text); }
-.verdict-step-body { font-size:13px; color:var(--text); line-height:1.8; white-space:pre-wrap; }
-.verdict-complete-tag { display:inline-block; font-size:10px; font-weight:700; color:var(--green); background:var(--green-bg); border:1px solid #A3D9B8; border-radius:3px; padding:2px 8px; margin-top:8px; font-family:monospace; }
-.verdict-confidence { background:var(--primary-bg); border:1px solid var(--primary-bd); border-radius:var(--r); padding:14px 18px; margin:16px 0; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
-.verdict-conf-item { display:flex; flex-direction:column; gap:3px; }
-.verdict-conf-label { font-size:10px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:.5px; }
-.verdict-conf-val { font-size:20px; font-weight:800; color:var(--primary); }
-.download-verdict-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r); font-family:var(--font); font-size:12px; font-weight:700; color:var(--sub); cursor:pointer; transition:border-color .15s,color .15s; }
-.download-verdict-btn:hover { border-color:var(--primary); color:var(--primary); }
+.chat-panel{margin-bottom:16px;display:none}
+.chat-panel-inner{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.klaw-msg{background:var(--bg);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.klaw-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.user-msg{background:var(--sur);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;color:var(--txt);line-height:1.6}
+.user-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.chat-input-row{padding:12px 14px;border-top:1px solid var(--bdr);background:var(--bg);display:flex;gap:8px;align-items:flex-end}
+.chat-textarea{flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:72px;line-height:1.6}
+.chat-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12)}
+.chat-actions{display:flex;flex-direction:column;gap:5px}
+.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r);font-size:12px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s}
+.btn-sm:hover{background:var(--bg)}
+.btn-sm-pri{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
+.btn-sm-pri:hover{background:var(--pri-dk)}
 
-/* 분석 결과 */
-.result-caution { background:var(--orange-bg); border-left:3px solid var(--orange); padding:10px 12px; border-radius:0 var(--r) var(--r) 0; font-size:12px; color:var(--orange); margin-bottom:12px; line-height:1.6; }
-.result-error { padding:16px; }
-.result-error p { font-size:13px; color:var(--red); }
+.sim-panel{margin-bottom:32px;display:none}
+.verdict-doc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.verdict-hd{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.verdict-title-row{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:8px}
+.verdict-meta{font-size:11px;color:var(--txt4);margin-top:3px;font-family:var(--mono)}
+.verdict-body{padding:20px 24px}
+.verdict-step{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
+.verdict-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.verdict-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.step-tag{background:var(--bg);border:1px solid var(--bdr);color:var(--txt2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-family:var(--mono)}
+.step-title{font-size:12px;font-weight:600;color:var(--txt3)}
+.step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}
+.step-complete{display:inline-block;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:2px 7px;margin-top:7px;font-family:var(--mono)}
+.conf-block{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.conf-item{display:flex;flex-direction:column;gap:4px;padding:0 20px 0 0;margin-right:20px;border-right:1px solid var(--bdr)}
+.conf-item:last-child{border-right:none;margin-right:0;padding-right:0}
+.conf-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px}
+.conf-val{font-size:22px;font-weight:700;color:var(--txt);line-height:1}
+.verdict-summary{background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
+.verdict-summary-label{font-size:10px;font-weight:700;color:var(--pri-dk);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.verdict-summary-text{font-size:13px;color:var(--txt);line-height:1.75;font-weight:500}
+.caution-bar{background:var(--org-bg);border:1px solid #fed7aa;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#92400e;line-height:1.6}
 
-/* spinner */
-.spinner { width:28px; height:28px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
+.spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.history-panel{position:fixed;top:52px;right:16px;z-index:500;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.1);width:340px;max-height:380px;overflow-y:auto;display:none}
+.history-panel.open{display:block}
+.history-hd{padding:11px 14px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:var(--txt);display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
+.hp-row{padding:9px 14px;border-bottom:1px solid var(--bdr);font-size:12px;display:flex;gap:10px;align-items:center}
+.hp-row:last-child{border-bottom:none}
+.hp-ver{font-weight:600;color:var(--txt);min-width:55px;font-family:var(--mono);font-size:11px}
+.hp-model{color:var(--txt3)}
+.hp-time{font-size:11px;color:var(--txt4);margin-left:auto;white-space:nowrap}
+.hp-empty{padding:20px 14px;text-align:center;color:var(--txt4);font-size:12px}
 </style>
 </head>
 <body>
 
-<!-- K-Law 버전 이력 드롭다운 -->
-<div class="klaw-history-panel" id="klaw-history-panel">
-  <div class="klaw-hp-header">
-    📋 K-Law 버전 사용 이력
-    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--hint)">✕</button>
+<div class="history-panel" id="klaw-history-panel">
+  <div class="history-hd">
+    <span style="display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      사용 이력
+    </span>
+    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
-  <div id="klaw-hp-body"><div class="klaw-hp-empty">이력이 없습니다</div></div>
+  <div id="klaw-hp-body"><div class="hp-empty">이력이 없습니다</div></div>
 </div>
 
-<!-- GOV BAR -->
-<div class="gov-bar">
-  <strong>K-Law</strong> 공식 AI 판결 시뮬레이션 시스템 &nbsp;|&nbsp; 법률 정보 제공 목적 &nbsp;·&nbsp; 법률 자문 아님
-</div>
-
-<!-- TOP NAV -->
-<nav class="topnav">
-  <div class="topnav-inner">
-    <div class="topnav-logo">
-      <div class="topnav-logo-icon">⚖</div>
-      K-Law
-    </div>
-    <div class="topnav-links">
-      <a href="index.html">홈</a>
-      <a href="#" class="active">판결 시뮬레이터</a>
-      <a href="dashboard.html">📊 대시보드</a>
-      <a href="webapp.html">📱 모바일</a>
-    </div>
-    <div class="topnav-right">
-      <div class="topnav-status"><div class="status-dot"></div>AI 분석 가동 중</div>
-      <div class="topnav-badge" id="sim-counter">0건</div>
-      <div class="topnav-badge" id="klaw-ver-badge" style="background:rgba(168,212,255,.18);color:#A8D4FF">K-Law 로딩중…</div>
-      <div class="user-info-bar" id="user-info-bar" onclick="toggleHistoryPanel()">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.80);" id="user-email-display">연결 중…</div>
-      </div>
-      <div class="topnav-clock" id="clock">--:--:--</div>
-    </div>
+<header class="topbar">
+  <div class="topbar-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+    K-Law
   </div>
-</nav>
-
-<!-- INPUT BAND -->
-<div class="input-band">
-  <div class="input-band-inner">
-    <div class="input-band-label">⚖ 사건의 개요</div>
-    <textarea class="input-band-textarea" id="case-input"
-      placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요. 예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
-
-    <div class="input-toolbar" id="input-toolbar">
-      <div class="input-toolbar-left">
-        <label class="toolbar-file-label" title="파일 첨부">
-          📎
-          <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
-        </label>
-        <button class="toolbar-icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">🎙️</button>
-        <div id="file-chips"></div>
-        <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none">● 녹음 중...</span>
-      </div>
-      <button class="run-btn" id="run-btn" onclick="runSimulation()">입력 완료</button>
-    </div>
+  <div class="topbar-breadcrumb">
+    <span>고팡</span><span class="sep">/</span><span>K-Law</span><span class="sep">/</span><span class="cur">판결 시뮬레이터</span>
   </div>
-</div>
-
-<!-- LLM 모델 선택 -->
-<div class="llm-section" id="llm-section">
-  <div class="llm-section-inner">
-    <div class="llm-section-title">⚙ AI 모델 선택 (LLM)</div>
-    <div class="llm-cards">
-      <div class="llm-card" id="card-deepseek" onclick="selectLLM('deepseek')">
-        <span class="llm-card-badge">선택됨</span>
-        <div class="llm-card-logo">🤖</div>
-        <div class="llm-card-name">DeepSeek</div>
-        <div class="llm-card-model">DeepSeek v4 Pro</div>
-        <div class="llm-card-desc">대용량 컨텍스트 · 법리 분석 최적화 · 빠른 추론 속도</div>
-        <div class="llm-card-free">✓ 무료 (내장 프록시)</div>
-      </div>
-      <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
-        <span class="llm-card-badge">선택됨</span>
-        <div class="llm-card-logo">🔮</div>
-        <div class="llm-card-name">Claude</div>
-        <div class="llm-card-model">claude-sonnet-4-20250514</div>
-        <div class="llm-card-desc">정밀한 법률 언어 해석 · 장문 판결문 생성 · 높은 일관성</div>
-      </div>
-      <div class="llm-card" id="card-gemini" onclick="selectLLM('gemini')">
-        <span class="llm-card-badge">선택됨</span>
-        <div class="llm-card-logo">✨</div>
-        <div class="llm-card-name">Gemini</div>
-        <div class="llm-card-model">gemini-2.0-flash</div>
-        <div class="llm-card-desc">Google 최신 모델 · 멀티모달 · 긴 문서 처리 특화</div>
-      </div>
-    </div>
-    <div class="api-key-section" id="api-key-section">
-      <div class="api-key-inner">
-        <label id="api-key-label">API Key</label>
-        <input class="api-key-input" type="password" id="api-key" placeholder="API Key를 입력하세요">
-      </div>
-    </div>
+  <div class="topbar-right">
+    <span class="badge badge-free">FREE</span>
+    <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
+    <div class="tsep"></div>
+    <span class="topbar-clock" id="clock">--:--:--</span>
+    <div class="tsep"></div>
+    <span class="badge badge-free" id="sim-counter" style="font-family:var(--mono)">0건</span>
+    <button class="user-btn" id="user-info-bar" onclick="toggleHistoryPanel()">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span id="user-email-display" style="color:var(--txt3)">연결 중</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </div>
-</div>
+</header>
 
-<!-- 대법원 판결 시뮬레이션 실행 버튼 -->
-<div class="sim-run-section" id="sim-run-section">
-  <button class="sim-run-btn" id="sim-run-btn" onclick="runJudgementSim()">
-    ⚖ 대법원 판결 시뮬레이션 실행
-  </button>
-</div>
+<div class="app-body">
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">판결 도구</div>
+      <button class="nav-item active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+        <span class="nav-item-label">판결 시뮬레이터</span>
+      </button>
+      <a class="nav-item" href="dashboard.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span class="nav-item-label">대시보드</span>
+      </a>
+      <a class="nav-item" href="webapp.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
+        <span class="nav-item-label">모바일 앱</span>
+      </a>
+      <a class="nav-item" href="index.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-label">홈</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">이력</div>
+      <button class="nav-item" onclick="toggleHistoryPanel()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        <span class="nav-item-label">판결 이력</span>
+        <span class="nav-badge" id="sidebar-counter">0</span>
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">모델</div>
+      <button class="nav-item active" id="llm-nav-deepseek" onclick="selectLLM('deepseek')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+        <span class="nav-item-label">DeepSeek</span>
+        <span class="nav-badge" style="background:var(--pri-bg);color:var(--pri-dk);border-color:var(--pri-bd)">기본</span>
+      </button>
+      <button class="nav-item" id="llm-nav-claude" onclick="selectLLM('claude')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span class="nav-item-label">Claude</span>
+      </button>
+      <button class="nav-item" id="llm-nav-gemini" onclick="selectLLM('gemini')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        <span class="nav-item-label">Gemini</span>
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="klaw-ver-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+        <span>K-Law <strong id="klaw-ver-badge">로딩 중</strong></span>
+      </div>
+    </div>
+  </nav>
 
-<!-- PAGE BODY -->
-<div class="page-body">
-  <div id="analysis-panel" style="display:none; margin-bottom:16px;"></div>
-  <div id="chat-panel" style="display:none; margin-bottom:16px;"></div>
-  <div id="sim-panel" style="display:none; margin-bottom:32px;"></div>
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">판결 시뮬레이터</div>
+          <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 AI가 대법원 판결을 예측합니다</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            판결문 저장
+          </button>
+        </div>
+      </div>
+      <div class="page-tabs">
+        <button class="page-tab active">입력 및 분석</button>
+        <button class="page-tab" onclick="toggleHistoryPanel()">이력</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            사건의 개요
+          </div>
+          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
+            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
+          </span>
+        </div>
+        <div class="panel-bd">
+          <textarea class="case-textarea" id="case-input"
+            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
+          <div class="input-toolbar" id="input-toolbar">
+            <div class="toolbar-left">
+              <label class="file-label" title="파일 첨부">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
+              </label>
+              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+            </div>
+            <button class="btn btn-primary" onclick="runSimulation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              분석 시작
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="llm-panel" id="llm-section">
+        <div class="panel-hd" style="border-bottom:1px solid var(--bdr)">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0112 2a10 10 0 00-7.07 2.93M4.93 19.07A10 10 0 0012 22a10 10 0 007.07-2.93M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
+            AI 모델
+          </div>
+        </div>
+        <div class="llm-grid">
+          <div class="llm-card selected" id="card-deepseek" onclick="selectLLM('deepseek')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><path d="M9 18h6"/></svg></div>
+            <div class="llm-name">DeepSeek</div>
+            <div class="llm-model">deepseek-chat</div>
+            <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
+            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
+          </div>
+          <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="llm-name">Claude</div>
+            <div class="llm-model">claude-sonnet-4-20250514</div>
+            <div class="llm-desc">정밀한 법률 언어 해석 · 높은 일관성</div>
+          </div>
+          <div class="llm-card" id="card-gemini" onclick="selectLLM('gemini')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></div>
+            <div class="llm-name">Gemini</div>
+            <div class="llm-model">gemini-2.0-flash</div>
+            <div class="llm-desc">멀티모달 · 긴 문서 처리 특화</div>
+          </div>
+        </div>
+        <div class="api-key-row" id="api-key-section">
+          <label class="api-key-label" id="api-key-label">API Key</label>
+          <input class="api-key-input" type="password" id="api-key" placeholder="API Key를 입력하세요">
+        </div>
+      </div>
+
+      <div class="analysis-panel" id="analysis-panel"></div>
+      <div class="chat-panel" id="chat-panel"></div>
+      <div class="sim-panel" id="sim-panel"></div>
+
+    </div>
+  </main>
 </div>
 
 <script>
@@ -305,7 +423,7 @@ async function _sendPdvReport(user, action) {
           type: 'action',
           who:  { ipv6: user.ipv6, role: 'user' },
           when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
-          where:{ svc_url: location.href },
+          where:{ svc_url: location.origin + location.pathname },
           what: { summary: action.summary },
           how:  { method: 'subsystem-auth', auth_level: user?.level || 1 },
           why:  { goal: action.goal },
@@ -382,13 +500,15 @@ function hasKlawBeenSent(klawVer) {
 
 function _renderKlawHistory(rows) {
   const body = document.getElementById('klaw-hp-body');
-  if (!rows.length) { body.innerHTML = '<div class="klaw-hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
+  const sc = document.getElementById('sidebar-counter');
+  if (sc) sc.textContent = rows.length;
+  if (!rows.length) { body.innerHTML = '<div class="hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
   const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude', gemini:'Gemini' };
   body.innerHTML = rows.map(r => `
-    <div class="klaw-hp-row">
-      <div class="klaw-hp-ver">${escHtml(r.klaw_version)}</div>
-      <div class="klaw-hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
-      <div class="klaw-hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    <div class="hp-row">
+      <div class="hp-ver">${escHtml(r.klaw_version)}</div>
+      <div class="hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
+      <div class="hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
     </div>`).join('');
 }
 
@@ -478,6 +598,10 @@ function selectLLM(model) {
   conversationState.llmModel = model;
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('card-' + model).classList.add('selected');
+  ['deepseek','claude','gemini'].forEach(m => {
+    const n = document.getElementById('llm-nav-' + m);
+    if (n) n.classList.toggle('active', m === model);
+  });
   const apiSec = document.getElementById('api-key-section');
   const apiLabel = document.getElementById('api-key-label');
   const apiInput = document.getElementById('api-key');
@@ -502,9 +626,7 @@ function handleFileAttach(input) {
 function renderFileChips() {
   const wrap = document.getElementById('file-chips');
   wrap.innerHTML = attachedFiles.map((f, i) =>
-    `<span class="file-chip">📎 ${f.name.slice(0,20)}${f.name.length>20?'…':''}
-      <span class="file-chip-remove" onclick="removeFile(${i})">✕</span>
-    </span>`
+`<span class="file-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>${f.name.slice(0,18)}${f.name.length>18?"…":""}<span class="chip-remove" onclick="removeFile(${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>`
   ).join('');
 }
 function removeFile(idx) { attachedFiles.splice(idx, 1); renderFileChips(); }
@@ -514,7 +636,7 @@ async function toggleVoice() {
   if (isRecording) {
     mediaRecorder && mediaRecorder.stop(); isRecording = false;
     const btn = document.getElementById('voice-btn');
-    btn.classList.remove('recording'); btn.textContent = '🎙️';
+    btn.classList.remove('recording'); btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z'/><path d='M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8'/></svg>`;
     document.getElementById('voice-status').style.display = 'none';
     return;
   }
@@ -529,7 +651,7 @@ async function toggleVoice() {
     };
     mediaRecorder.start(); isRecording = true;
     const btn = document.getElementById('voice-btn');
-    btn.classList.add('recording'); btn.textContent = '⏹️';
+    btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='4' width='4' height='16'/><rect x='14' y='4' width='4' height='16'/></svg>`; btn.classList.add('recording');
     document.getElementById('voice-status').style.display = 'inline';
   } catch(e) { alert('마이크 접근 권한이 필요합니다.'); }
 }
@@ -598,7 +720,7 @@ async function loadKlawVersion() {
     klawVersion = 'v15.1'; klawMethodText = '';
   }
   const badge = document.getElementById('klaw-ver-badge');
-  if (badge) badge.textContent = 'K-Law ' + klawVersion;
+  if (badge) badge.textContent = klawVersion;
 }
 loadKlawVersion();
 
@@ -645,13 +767,13 @@ ${methodSummary ? '[K-Law 방법론 원문(발췌)]\n' + methodSummary + '\n\n--
 
 // ══ STEP 정의 ════════════════════════════════════════════
 const STEP_DEFS = [
-  { id:'step0', tag:'STEP 0', icon:'🔍', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
+  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
     prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
-  { id:'stepA', tag:'STEP A', icon:'⚖', title:'STEP A — 판례 법리·법률관계 분석',
+  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석',
     prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
-  { id:'stepB', tag:'STEP B', icon:'📋', title:'STEP B — 법률관계 확정 · 최종 판결문',
+  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
     prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
-  { id:'stepC', tag:'STEP C', icon:'✅', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
     prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
 ];
 
@@ -687,10 +809,7 @@ async function runSimulation() {
       conversationState.phase = 'chatting';
       renderChatPanel(addQ);
     } else {
-      const panel = document.getElementById('chat-panel');
-      panel.style.display = 'block';
-      panel.innerHTML = `<div class="section-title" style="margin-bottom:12px">⚖ K-Law 추가 정보 요청</div><div class="card"><div class="card-body"><div id="chat-messages"></div></div></div>`;
-      showReadyMessage();
+      autoRunSim();
     }
   } catch(e) {
     showAnalysisPanel(false);
@@ -698,6 +817,13 @@ async function runSimulation() {
   } finally {
     btn.disabled = false; btn.textContent = '입력 완료';
   }
+}
+
+function autoRunSim() {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="chat-panel-inner"><div class="klaw-msg"><div class="klaw-msg-label">K-Law AI</div>추가 정보 없이 판결 시뮬레이션을 시작합니다.</div></div>`;
+  setTimeout(() => runJudgementSim(), 400);
 }
 
 function parseAnalysis(text) {
@@ -720,69 +846,61 @@ function renderAnalysis(d) {
   const typeColor = caseTypeColor(d.type);
   panel.style.display = 'block';
   panel.innerHTML = `
-    <div style="background:linear-gradient(135deg,${typeColor} 0%,${typeColor}CC 100%);border-radius:var(--r);padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">사건 분류</div>
-          <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px">${escHtml(d.type||'—')}</div>
-          ${d.typeDetail?`<div style="font-size:12px;color:rgba(255,255,255,.80);margin-top:3px;font-weight:600">${escHtml(d.typeDetail)}</div>`:''}
-        </div>
-        <div style="width:1px;height:40px;background:rgba(255,255,255,.2)"></div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">심급</div>
-          <div style="font-size:18px;font-weight:800;color:#fff">${escHtml(d.level||'—')}</div>
-        </div>
+    <div class="case-type-bar" style="background:${typeColor}">
+      <div>
+        <div class="case-type-name">${escHtml(d.type||'—')}</div>
+        ${d.typeDetail?`<div class="case-type-detail">${escHtml(d.typeDetail)}</div>`:''}
+        <div class="case-level-tag">${escHtml(d.level||'—')}</div>
       </div>
-      <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:rgba(255,255,255,.90)">
-        K-Law <span id="analysis-klaw-ver">${escHtml(klawVersion)}</span> 적용 예정
-      </div>
+      <div class="case-ver-badge">K-Law <span id="analysis-klaw-ver">${escHtml(klawVersion)}</span></div>
     </div>
-    <div class="section-title" style="margin-bottom:10px">사건 분석 결과</div>
-    <div class="card">
-      <div class="card-body" style="padding:0">
-        ${analysisRow('사건의 개요',d.overview)}
-        ${analysisRow('원고의 주장',d.plaintiff)}
-        ${analysisRow('피고의 주장',d.defendant)}
-        ${analysisRow('다툼이 없는 사실',d.agreed)}
-        ${analysisRow('다툼의 요지',d.dispute)}
-      </div>
+    <div class="analysis-table">
+      ${analysisRow('사건의 개요',d.overview)}
+      ${analysisRow('원고의 주장',d.plaintiff)}
+      ${analysisRow('피고의 주장',d.defendant)}
+      ${analysisRow('다툼이 없는 사실',d.agreed)}
+      ${analysisRow('다툼의 요지',d.dispute)}
     </div>`;
   panel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function analysisRow(label, value) {
-  return `<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:11px 16px;align-items:flex-start;">
-    <div style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;min-width:130px;flex-shrink:0;padding-top:1px">${label}</div>
-    <div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;flex:1">${value||'—'}</div>
-  </div>`;
+  return `<div class="analysis-row"><div class="analysis-key">${label}</div><div class="analysis-val">${value||'—'}</div></div>`;
 }
 
 function renderChatPanel(question) {
   const panel = document.getElementById('chat-panel');
   panel.style.display = 'block';
   panel.innerHTML = `
-    <div class="section-title" style="margin-bottom:12px">⚖ K-Law 추가 정보 요청</div>
-    <div class="card"><div class="card-body">
-      <div id="chat-messages"><div class="klaw-msg">${question.replace(/\n/g,'<br>')}</div></div>
-      <div id="chat-input-area" style="display:flex;gap:8px;align-items:flex-end;margin-top:10px">
-        <textarea id="chat-reply" class="input-band-textarea" style="height:90px;flex:1;resize:vertical;overflow-y:auto" placeholder="추가 정보를 입력하세요..."></textarea>
-        <div style="display:flex;flex-direction:column;gap:6px;align-self:flex-end">
-          <button onclick="sendChatReply()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">전송</button>
-          <button onclick="requestReadyCheck()" style="padding:7px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;color:var(--sub)">생략하고 진행</button>
+    <div class="chat-panel-inner">
+      <div class="klaw-msg">
+        <div class="klaw-msg-label">K-Law AI</div>
+        ${question.replace(/\n/g,'<br>')}
+      </div>
+      <div id="chat-messages"></div>
+      <div class="chat-input-row" id="chat-input-area">
+        <textarea class="chat-textarea" id="chat-reply" placeholder="추가 정보를 입력하세요…"></textarea>
+        <div class="chat-actions">
+          <button class="btn-sm btn-sm-pri" onclick="sendChatReply()">전송</button>
+          <button class="btn-sm" onclick="requestReadyCheck()">생략</button>
         </div>
       </div>
-    </div></div>`;
+    </div>`;
   panel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function appendKlawMsg(html) {
   const chatMsgs = document.getElementById('chat-messages');
-  const div = document.createElement('div'); div.className = 'klaw-msg'; div.innerHTML = html;
+  if (!chatMsgs) return;
+  const div = document.createElement('div'); div.className = 'klaw-msg';
+  div.innerHTML = `<div class="klaw-msg-label">K-Law AI</div>${html}`;
   chatMsgs.appendChild(div);
 }
 function appendUserMsg(text) {
   const chatMsgs = document.getElementById('chat-messages');
-  const div = document.createElement('div'); div.className = 'user-msg'; div.innerHTML = `<strong>사용자:</strong> ${escHtml(text)}`;
+  if (!chatMsgs) return;
+  const div = document.createElement('div'); div.className = 'user-msg';
+  div.innerHTML = `<div class="user-msg-label">입력</div>${escHtml(text)}`;
   chatMsgs.appendChild(div);
 }
 
@@ -794,7 +912,7 @@ async function sendChatReply() {
   conversationState.messages.push({ role:'user', content: reply });
   const checkPrompt = [...conversationState.messages, { role:'user', content:'위 추가 답변을 반영하여, 판결 시뮬레이션에 충분한 정보가 갖춰졌는지 판단하세요. 추가 질문이 필요하면 【추가질문】 형식으로, 충분하면 "시뮬레이션_진행"이라고만 답하세요.' }];
   const loadId = 'chat-loading-' + Date.now();
-  appendKlawMsg(`<span id="${loadId}" style="opacity:.5">⏳ 검토 중…</span>`);
+  appendKlawMsg(`<span id="${loadId}" style="opacity:.5;display:flex;align-items:center;gap:6px"><div class="spinner"></div> 검토 중…</span>`);
   try {
     const resp = await callLLM(checkPrompt, 500);
     document.getElementById(loadId)?.parentElement?.remove();
@@ -813,19 +931,18 @@ async function sendChatReply() {
 
 function requestReadyCheck() {
   conversationState.messages.push({ role:'user', content:'(추가 정보 없이 진행)' });
-  showReadyMessage();
+  readyAndAutoRun();
 }
 
 function showReadyMessage() {
+  readyAndAutoRun();
+}
+
+function readyAndAutoRun() {
   const inputArea = document.getElementById('chat-input-area');
   if (inputArea) inputArea.style.display = 'none';
-  appendKlawMsg(`<div style="margin-top:4px">판결문 작성 준비가 완료되었습니다.</div>`);
-  const chatMsgs = document.getElementById('chat-messages');
-  const btnDiv = document.createElement('div');
-  btnDiv.style.cssText = 'margin-top:16px;';
-  btnDiv.innerHTML = `<button onclick="runJudgementSim()" style="width:100%;padding:15px 0;background:linear-gradient(135deg,var(--gov-header) 0%,var(--primary) 100%);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:-.3px;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">⚖ 대법원 판결 시뮬레이션 실행</button>`;
-  chatMsgs.appendChild(btnDiv);
-  document.getElementById('chat-panel').scrollIntoView({behavior:'smooth', block:'end'});
+  appendKlawMsg('판결문 작성을 시작합니다.');
+  setTimeout(() => runJudgementSim(), 300);
 }
 
 // ══ STEP별 순차 출력 ════════════════════════════════════
@@ -842,14 +959,16 @@ async function runJudgementSim() {
   simPanel.style.display = 'block';
   simPanel.innerHTML = `
     <div class="verdict-doc" id="verdict-container">
-      <div class="verdict-doc-header">
+      <div class="verdict-hd">
         <div>
-          <div class="verdict-doc-title">⚖ K-Law 가상 판결문</div>
-          <div class="verdict-doc-meta">사건번호: ${escHtml(caseNo)} · ${escHtml(level)} · <strong>K-Law ${escHtml(klawVersion)}</strong> · ${new Date().toLocaleString('ko-KR')}</div>
+          <div class="verdict-title-row">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+            K-Law 가상 판결문
+          </div>
+          <div class="verdict-meta">${escHtml(caseNo)} · ${escHtml(level)} · K-Law ${escHtml(klawVersion)} · ${new Date().toLocaleString('ko-KR')}</div>
         </div>
-        <button class="download-verdict-btn" id="dl-btn" onclick="downloadVerdict()" style="display:none">💾 판결문 저장</button>
       </div>
-      <div class="verdict-doc-body" id="verdict-body">
+      <div class="verdict-body" id="verdict-body">
         <div id="verdict-steps"></div>
       </div>
     </div>`;
@@ -908,14 +1027,14 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
   const card = document.createElement('div');
   card.className = 'verdict-step'; card.id = 'vs-' + stepDef.id;
   card.innerHTML = `
-    <div class="verdict-step-header">
-      <span class="verdict-step-tag">${stepDef.icon} ${stepDef.tag}</span>
-      <span class="verdict-step-title">${stepDef.title}</span>
+    <div class="verdict-step-hd">
+      <span class="step-tag">${stepDef.tag}</span>
+      <span class="step-title">${stepDef.title}</span>
     </div>
-    <div class="verdict-step-body" id="vsb-${stepDef.id}">
-      <div style="display:flex;align-items:center;gap:10px;padding:16px 0;color:var(--hint)">
+    <div id="vsb-${stepDef.id}">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 0;color:var(--txt4)">
         <div class="spinner"></div>
-        <span style="font-size:12px;font-weight:600">${stepDef.tag} 작성 중…</span>
+        <span style="font-size:12px">${stepDef.tag} 작성 중…</span>
       </div>
     </div>`;
   stepsEl.appendChild(card);
@@ -930,11 +1049,11 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
     const result = await callLLM(msgs, 3000);
     window._verdictParts[stepDef.id] = result;
     const bodyEl = document.getElementById('vsb-' + stepDef.id);
-    if (bodyEl) bodyEl.innerHTML = `<div class="verdict-step-body">${escHtml(result)}</div>`;
+    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
     const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
     if (completeMatch) {
       const badge = document.createElement('div'); badge.style.cssText = 'margin-top:8px;';
-      badge.innerHTML = completeMatch.map(t => `<span class="verdict-complete-tag">${escHtml(t)}</span>`).join(' ');
+      badge.innerHTML = completeMatch.map(t => `<span class="step-complete">${escHtml(t)}</span>`).join(' ');
       document.getElementById('vs-' + stepDef.id).appendChild(badge);
     }
   } catch(e) {
@@ -965,22 +1084,29 @@ function appendConfidenceBlock(fullText) {
 
   const body = document.getElementById('verdict-body');
   const div = document.createElement('div');
+  const tc = parseFloat(totalConf);
+  const confColor = tc>=7?'var(--pri-dk)':tc>=5?'#2563eb':'var(--org)';
+  const cx2 = parseFloat(complexity);
+  const cxColor2 = cx2<=3?'var(--pri-dk)':cx2<=6?'var(--org)':'var(--red)';
   div.innerHTML = `
-    ${summary?`<div style="background:var(--primary-bg);border:2px solid var(--primary-bd);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;margin-top:8px"><div style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📌 판결 요약</div><div style="font-size:14px;color:var(--text);line-height:1.8;font-weight:600">${escHtml(summary)}</div></div>`:''}
-    <div class="verdict-confidence">
-      <div class="verdict-conf-item"><span class="verdict-conf-label">법리 확신도</span><span class="verdict-conf-val" style="color:${cc}">${lawConf}/10</span></div>
-      <div class="verdict-conf-item"><span class="verdict-conf-label">사실 확신도</span><span class="verdict-conf-val" style="color:${cc}">${factConf}/10</span></div>
-      <div class="verdict-conf-item"><span class="verdict-conf-label">종합 확신도</span><span class="verdict-conf-val" style="color:${cc};font-size:24px">${totalConf}/10</span></div>
-      <div class="verdict-conf-item"><span class="verdict-conf-label">사건 복잡도</span><span class="verdict-conf-val" style="color:${cxColor};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
-      <div class="verdict-conf-item" style="border-left:2px solid var(--primary-bd);padding-left:14px;margin-left:4px">
-        <span class="verdict-conf-label" style="color:var(--primary);font-weight:800">대법원 판결 일치도 예상</span>
-        <span class="verdict-conf-val" style="color:var(--primary);font-size:22px;font-weight:900">${escHtml(matchRate)}</span>
-        <span style="font-size:9px;color:var(--hint);margin-top:2px;display:block">K-Law v15.1 논문 기준 · 복잡도 역산</span>
+    ${summary?`<div class="verdict-summary"><div class="verdict-summary-label">판결 요약</div><div class="verdict-summary-text">${escHtml(summary)}</div></div>`:''}
+    <div class="conf-block">
+      <div class="conf-item"><span class="conf-label">법리 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${lawConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
+      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
+        <span class="conf-label">대법원 판결 일치도 예상</span>
+        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
+        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
       </div>
-      <div class="verdict-conf-item"><span class="verdict-conf-label">결론 유형</span><span style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(vType)}</span></div>
+      <div class="conf-item" style="border-right:none">
+        <span class="conf-label">결론 유형</span>
+        <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
+      </div>
     </div>
-    <div class="result-caution" style="margin-top:4px">
-      ⚠ 본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: <strong>K-Law ${escHtml(klawVersion)}</strong>).
+    <div class="caution-bar">
+      본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: K-Law ${escHtml(klawVersion)}).
       법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
     </div>`;
   body.insertBefore(div, body.firstChild);
@@ -1004,18 +1130,19 @@ function showAnalysisPanel(show) {
   const p = document.getElementById('analysis-panel');
   if (show) {
     p.style.display = 'block';
-    p.innerHTML = `<div class="card"><div class="card-body"><div style="display:flex;align-items:center;gap:12px;padding:20px 0;justify-content:center"><div class="spinner"></div><span style="font-size:12px;font-weight:600;color:var(--sub)">사건 분석 중 — 심급·분류·쟁점 추출</span></div></div></div>`;
+    p.innerHTML = `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:10px"><div class="spinner"></div><span style="font-size:13px;color:var(--txt3)">사건 분석 중 — 심급 · 분류 · 쟁점 추출</span></div>`;
   }
 }
 
 function showError(msg) {
   const p = document.getElementById('analysis-panel');
   p.style.display = 'block';
-  p.innerHTML = `<div class="card"><div class="card-body result-error"><p>⚠️ ${msg}</p></div></div>`;
+  p.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">${msg}</div>`;
 }
 
 // ── textarea 확장 + 툴바 표시
 document.addEventListener('DOMContentLoaded', function(){
+  selectLLM('deepseek');
   const ta      = document.getElementById('case-input');
   const toolbar = document.getElementById('input-toolbar');
   if (!ta || !toolbar) return;
