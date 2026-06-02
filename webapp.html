@@ -6,6 +6,10 @@
 <title>K-Law — AI 판결 시뮬레이션</title>
 <meta name="description" content="사건의 개요를 입력하면 AI가 즉시 판결을 예측합니다.">
 <!-- PC 리다이렉트 제거 — 모바일/PC 모두 webapp.html 직접 사용 -->
+
+<!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
+<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -380,83 +384,38 @@ const initCase   = urlParams.get('case') || urlParams.get('q') || '';
 if (initCase) document.getElementById('case-input').value = decodeURIComponent(initCase);
 
 const fromGopang = urlParams.get('from') === 'gopang';
-const gopangUser = urlParams.get('user') || '';
 
-// ══ 사용자 인증 (고팡 연동 + 기기 지문 폴백) ═════════════════
-// 시나리오 1: 고팡에서 guid/fp URL 파라미터로 전달
-// 시나리오 2: 직접 접속 → 기기 지문으로 Supabase 조회
+// ══ 고팡 공통 인증 콜백 ══════════════════════════════════════
+// subsystem-auth.js가 인증 완료 후 window._onGopangAuth(user) 호출
+// user = { ipv6, level, exp, via }
+let klawUser = null;   // 인증 완료 후 채워짐
 
-async function buildDeviceFingerprint() {
-  const raw = [
-    navigator.userAgent, navigator.language,
-    screen.width + 'x' + screen.height,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    navigator.hardwareConcurrency || '',
-  ].join('|');
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+window._onGopangAuth = function(user) {
+  klawUser = user;
+  console.info('[K-Law Auth] 고팡 인증 완료 — Lv.' + user.level + ' / ' + user.via);
+};
 
-// ── 미리보기(iframe/artifacts) 환경 감지 ─────────────────────
-const _inPreview = (() => {
+// ══ PDV 보고 ════════════════════════════════════════════════
+async function _sendPdvReport(action) {
   try {
-    return window.self !== window.top ||
-           location.hostname.includes('claude') ||
-           location.hostname.includes('artifact') ||
-           !window.isSecureContext;
-  } catch(e) { return true; }
-})();
-
-async function initKlawUser() {
-  // 시나리오 1: 고팡이 guid를 URL로 전달
-  const paramGuid = urlParams.get('guid');
-  const paramFp   = urlParams.get('fp');
-  if (paramGuid) {
-    console.info('[K-Law Auth] 고팡 연동 사용자:', paramGuid.slice(0,8));
-    return { guid: paramGuid, fp: paramFp || '', source: 'gopang' };
-  }
-
-  // 미리보기 환경 → Supabase 호출 생략, 임시 guid만 반환
-  if (_inPreview) {
-    const guid = sessionStorage.getItem('klaw_preview_guid') || crypto.randomUUID();
-    sessionStorage.setItem('klaw_preview_guid', guid);
-    console.info('[K-Law Auth] 미리보기 환경 — 임시 guid:', guid.slice(0,8));
-    return { guid, fp: '', source: 'preview' };
-  }
-
-  // 시나리오 2: 기기 지문 생성 후 Supabase 조회
-  const fp = await buildDeviceFingerprint();
-  try {
-    const res = await fetch(
-      _KLAW_SB_URL + '/rest/v1/users?device_fp=eq.' + fp + '&select=guid,device_fp&limit=1',
-      { headers: { 'apikey': _KLAW_SB_KEY, 'Authorization': 'Bearer ' + _KLAW_SB_KEY } }
-    );
-    const rows = await res.json();
-    if (rows?.length) {
-      console.info('[K-Law Auth] 기기 지문 일치 사용자:', rows[0].guid.slice(0,8));
-      return { guid: rows[0].guid, fp, source: 'device_fp' };
-    }
-  } catch(e) { console.warn('[K-Law Auth] Supabase 조회 실패:', e.message); }
-
-  // 신규: guid 발급 후 Supabase 등록
-  const guid = crypto.randomUUID();
-  try {
-    await fetch(_KLAW_SB_URL + '/rest/v1/users', {
+    await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
       method: 'POST',
-      headers: {
-        'apikey': _KLAW_SB_KEY, 'Authorization': 'Bearer ' + _KLAW_SB_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal',
-      },
-      body: JSON.stringify({ guid, device_fp: fp, registered_at: new Date().toISOString(), last_seen_at: new Date().toISOString() }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report: {
+          svc:  'klaw',
+          type: 'action',
+          who:  { ipv6: klawUser?.ipv6 || 'unknown', role: 'user' },
+          when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
+          where:{ svc_url: location.href },
+          what: { summary: action.summary },
+          how:  { method: 'subsystem-auth', auth_level: klawUser?.level || 1 },
+          why:  { goal: action.goal },
+        }
+      })
     });
-  } catch(e) { console.warn('[K-Law Auth] 신규 등록 실패:', e.message); }
-  console.info('[K-Law Auth] 신규 사용자 등록:', guid.slice(0,8));
-  return { guid, fp, source: 'new' };
+  } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
 }
-
-let klawUser = null;   // initKlawUser() 결과 저장
-initKlawUser().then(u => { klawUser = u; });
 
 // ══ 상태 ══════════════════════════════════════════════════════
 let state = {
@@ -1069,7 +1028,7 @@ async function saveAndReport(full) {
     verdict_type: state.verdictType|| null,
     llm_model:    state.llm,
     klaw_version: state.klawVersion,
-    reporter:     klawUser?.guid || gopangUser || null,
+    reporter:     klawUser?.ipv6 || null,
     status:       'completed'
   };
 
@@ -1115,6 +1074,12 @@ async function saveAndReport(full) {
       console.log('[K-Law] 고팡에 결과 전송 완료');
     } catch(e) { console.warn('[K-Law] 고팡 전송 실패:', e.message); }
   }
+
+  // PDV 보고 — 판결 시뮬레이션 완료
+  await _sendPdvReport({
+    summary: `K-Law 판결 시뮬레이션 완료: ${state.caseData?.type || '미분류'} / ${state.caseNo}`,
+    goal:    '판결 예측 시뮬레이션'
+  });
 
   // 완료 UI
   gpEl.innerHTML = `
