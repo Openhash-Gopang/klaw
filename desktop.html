@@ -294,15 +294,16 @@ const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 
 // ══ PDV 보고 ═══════════════════════════════════════════════
 async function _sendPdvReport(user, action) {
+  if (!user?.ipv6) { console.warn('[K-Law] PDV 전송 건너뜀: ipv6 없음'); return; }
   try {
-    await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         report: {
           svc:  'klaw',
           type: 'action',
-          who:  { ipv6: user?.ipv6 || 'unknown', role: 'user' },
+          who:  { ipv6: user.ipv6, role: 'user' },
           when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
           where:{ svc_url: location.href },
           what: { summary: action.summary },
@@ -311,6 +312,8 @@ async function _sendPdvReport(user, action) {
         }
       })
     });
+    if (res.ok) console.log('[K-Law] ✅ PDV 전송 완료');
+    else { const t = await res.text(); console.warn('[K-Law] PDV 전송 실패:', res.status, t); }
   } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
 }
 
@@ -351,7 +354,7 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
   const uid = currentUser?.ipv6;
   if (!uid) return;
   try {
-    await supa.from('klaw_sessions').insert({
+    const { error } = await supa.from('klaw_sessions').insert({
       user_id:      uid,
       klaw_version: klawVer,
       llm_model:    llmModel,
@@ -363,8 +366,10 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
       confidence:   simData.confidence  || null,
       case_input:   simData.caseInput   || null
     });
+    if (error) { console.error('[Supa] klaw_sessions 저장 실패:', JSON.stringify(error)); return; }
     if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
     userKlawSentVersions[uid][klawVer] = true;
+    console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
     _loadKlawHistory();
   } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
 }
