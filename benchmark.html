@@ -338,7 +338,7 @@ button{font-family:var(--font);cursor:pointer}
         </button>
       </div>
     </div>
-    <div style="margin:16px 28px 4px;padding:14px 18px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;line-height:1.8">
+    <div id="bench-input-guide" style="margin:16px 28px 4px;padding:14px 18px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;line-height:1.8">
       <a href="https://portal.scourt.go.kr/pgp/index.on?c=900&l=N&m=PGP1011M01" target="_blank" style="color:#1e40af;font-weight:600;text-decoration:underline;text-underline-offset:2px">대법원이 공개한 최신 판례</a>에서 판결 내용을 제거하고, 사건 개요만 입력한 뒤, 가상 판결을 생성합니다.
       생성된 가상 판결을 실제 판결과 비교하여, 그 일치도를 누적 평가하는 목적입니다.
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0">
@@ -365,7 +365,7 @@ button{font-family:var(--font);cursor:pointer}
         <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">
           K-Law 버전별 일치도 추세
         </div>
-        <canvas id="bh-trend-chart" height="80"></canvas>
+        <canvas id="bh-trend-chart" height="90"></canvas>
         <div id="bh-no-trend" style="display:none;text-align:center;color:var(--txt4);font-size:13px;padding:24px 0">
           데이터 2건 이상 시 추세선이 표시됩니다
         </div>
@@ -381,29 +381,49 @@ button{font-family:var(--font);cursor:pointer}
 
       <!-- 사건별 이력 테이블 -->
       <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;overflow:hidden">
-        <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center">
-          <div style="font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px">
-            사건별 평가 이력
+        <!-- 테이블 헤더: 검색·필터·초기화 -->
+        <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input id="bh-search" type="text" placeholder="사건번호·요약 검색…"
+            oninput="_bhApplyFilter()"
+            style="flex:1;min-width:160px;padding:6px 10px;border:1px solid var(--bdr);
+              border-radius:6px;font-size:12px;font-family:var(--font);outline:none">
+          <select id="bh-filter-ver" onchange="_bhApplyFilter()"
+            style="padding:6px 8px;border:1px solid var(--bdr);border-radius:6px;
+              font-size:12px;font-family:var(--font);background:#fff;outline:none">
+            <option value="">전체 버전</option>
+          </select>
+          <select id="bh-filter-grade" onchange="_bhApplyFilter()"
+            style="padding:6px 8px;border:1px solid var(--bdr);border-radius:6px;
+              font-size:12px;font-family:var(--font);background:#fff;outline:none">
+            <option value="">전체 등급</option>
+            <option value="완전 일치">완전 일치</option>
+            <option value="대체로 일치">대체로 일치</option>
+            <option value="부분 일치">부분 일치</option>
+            <option value="불일치">불일치</option>
+            <option value="완전 불일치">완전 불일치</option>
+          </select>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <span id="bh-count-label" style="font-size:11px;color:var(--txt4)"></span>
+            <button onclick="clearBenchHistory()"
+              style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;padding:4px 8px">
+              초기화
+            </button>
           </div>
-          <button onclick="clearBenchHistory()"
-            style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer">
-            초기화
-          </button>
         </div>
         <div id="bh-table-wrap" style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead>
-              <tr style="background:var(--bg)">
-                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건번호</th>
+              <tr style="background:#f9fafb;position:sticky;top:0">
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap;cursor:pointer" onclick="_bhSort('caseNo')">사건번호 ↕</th>
                 <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건유형</th>
                 <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">판결 요약</th>
-                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">결론<br>방향</th>
-                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">핵심<br>법리</th>
-                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">세부<br>논증</th>
-                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">종합</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('conclusion')">결론<br>방향 ↕</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('lawLogic')">핵심<br>법리 ↕</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('detail')">세부<br>논증 ↕</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('total')">종합 ↕</th>
                 <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">등급</th>
-                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">K-Law 버전</th>
-                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">평가일</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('klawVersion')">K-Law 버전 ↕</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;cursor:pointer" onclick="_bhSort('createdAt')">평가일 ↕</th>
               </tr>
             </thead>
             <tbody id="bh-tbody"></tbody>
@@ -411,6 +431,10 @@ button{font-family:var(--font);cursor:pointer}
           <div id="bh-empty" style="text-align:center;color:var(--txt4);font-size:13px;padding:32px">
             평가 이력이 없습니다. 벤치마크를 실행하면 자동으로 기록됩니다.
           </div>
+        </div>
+        <!-- 페이지네이션 -->
+        <div id="bh-pagination" style="padding:10px 16px;border-top:1px solid var(--bdr);
+          display:flex;align-items:center;justify-content:center;gap:6px;display:none">
         </div>
       </div>
     </div>
@@ -2052,6 +2076,25 @@ async function saveBenchRecord(record) {
   }
 }
 
+
+function _renderPagination(total, pages) {
+  const el = document.getElementById('bh-pagination');
+  if (!el) return;
+  if (pages <= 1) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  const btns = [];
+  for (let p = 1; p <= pages; p++) {
+    const active = p === _bhPage;
+    btns.push(`<button onclick="_bhGoPage(${p})"
+      style="min-width:28px;height:28px;padding:0 6px;border-radius:4px;border:1px solid ${active?'#0057A8':'var(--bdr)'};
+        background:${active?'#0057A8':'#fff'};color:${active?'#fff':'var(--txt2)'};
+        font-size:12px;font-weight:${active?700:400};cursor:pointer">${p}</button>`);
+  }
+  el.innerHTML = btns.join('');
+}
+
+function _bhGoPage(p) { _bhPage = p; _renderTable(_bhLoad()); }
+
 async function clearBenchHistory() {
   if (!confirm('이력을 모두 삭제하시겠습니까?')) return;
   localStorage.removeItem(BH_KEY);
@@ -2071,21 +2114,24 @@ async function clearBenchHistory() {
 
 // ── 탭 전환 ───────────────────────────────────────────────
 window.switchBenchTab = function(tab) {
-  const simTab  = document.getElementById('tab-sim');
-  const histTab = document.getElementById('tab-history');
-  const content = document.querySelector('.content');
+  const simTab   = document.getElementById('tab-sim');
+  const histTab  = document.getElementById('tab-history');
+  const content  = document.querySelector('.content');
   const histPanel = document.getElementById('bench-history-panel');
+  const guide    = document.getElementById('bench-input-guide');
 
   if (tab === 'sim') {
     simTab.classList.add('active');
     histTab.style.opacity = '1';
     if (content)   content.style.display = '';
     if (histPanel) histPanel.style.display = 'none';
+    if (guide)     guide.style.display = '';
   } else {
     simTab.classList.remove('active');
     histTab.style.opacity = '.75';
     if (content)   content.style.display = 'none';
     if (histPanel) histPanel.style.display = 'block';
+    if (guide)     guide.style.display = 'none';
     renderBenchHistory();
   }
 }
@@ -2266,21 +2312,92 @@ function _renderItemBars(arr) {
 }
 
 // 사건별 테이블
+
+// ══ 이력 필터·정렬·페이지네이션 ══════════════════════════════
+let _bhSortKey = 'createdAt';
+let _bhSortAsc = false;
+let _bhPage    = 1;
+const _BH_PAGE_SIZE = 20;
+
+function _bhApplyFilter() {
+  _bhPage = 1;
+  _renderTable(_bhLoad());
+}
+
+function _bhSort(key) {
+  if (_bhSortKey === key) _bhSortAsc = !_bhSortAsc;
+  else { _bhSortKey = key; _bhSortAsc = false; }
+  _bhPage = 1;
+  _renderTable(_bhLoad());
+}
+
+function _bhFilterData(arr) {
+  const q   = (document.getElementById('bh-search')?.value || '').toLowerCase();
+  const ver = document.getElementById('bh-filter-ver')?.value || '';
+  const grade = document.getElementById('bh-filter-grade')?.value || '';
+
+  return arr.filter(r => {
+    if (q && !(
+      (r.caseNo   || '').toLowerCase().includes(q) ||
+      (r.summary  || '').toLowerCase().includes(q) ||
+      (r.caseType || '').toLowerCase().includes(q)
+    )) return false;
+    if (ver   && r.klawVersion !== ver)   return false;
+    if (grade && r.grade       !== grade) return false;
+    return true;
+  });
+}
+
+function _bhSortData(arr) {
+  return [...arr].sort((a, b) => {
+    let va = a[_bhSortKey], vb = b[_bhSortKey];
+    if (va === null || va === undefined) va = '';
+    if (vb === null || vb === undefined) vb = '';
+    if (typeof va === 'number') return _bhSortAsc ? va - vb : vb - va;
+    return _bhSortAsc
+      ? String(va).localeCompare(String(vb))
+      : String(vb).localeCompare(String(va));
+  });
+}
+
 function _renderTable(arr) {
   const tbody = document.getElementById('bh-tbody');
   const empty = document.getElementById('bh-empty');
   if (!tbody) return;
-  if (!arr.length) {
+
+  // 버전 필터 옵션 갱신
+  const verSel = document.getElementById('bh-filter-ver');
+  if (verSel && verSel.options.length <= 1) {
+    const vers = [...new Set(arr.map(r => r.klawVersion).filter(Boolean))].sort();
+    vers.forEach(v => { const o = document.createElement('option'); o.value = o.textContent = v; verSel.appendChild(o); });
+  }
+
+  // 필터 + 정렬
+  const filtered = _bhSortData(_bhFilterData(arr));
+  const total    = filtered.length;
+  const pages    = Math.ceil(total / _BH_PAGE_SIZE) || 1;
+  if (_bhPage > pages) _bhPage = pages;
+  const paged = filtered.slice((_bhPage-1)*_BH_PAGE_SIZE, _bhPage*_BH_PAGE_SIZE);
+
+  // 카운트 레이블
+  const lbl = document.getElementById('bh-count-label');
+  if (lbl) lbl.textContent = `${total}건 중 ${(_bhPage-1)*_BH_PAGE_SIZE+1}~${Math.min(_bhPage*_BH_PAGE_SIZE,total)}건`;
+
+  if (!paged.length) {
     tbody.innerHTML = '';
     empty.style.display = 'block';
+    _renderPagination(0, 1);
     return;
   }
   empty.style.display = 'none';
+
+  // 페이지네이션
+  _renderPagination(total, pages);
   const gradeColors = {
     '완전 일치':'#dcfce7','대체로 일치':'#dbeafe','부분 일치':'#fef9c3',
     '불일치':'#fee2e2','완전 불일치':'#fce7f3'
   };
-  tbody.innerHTML = arr.map((r, i) => {
+  tbody.innerHTML = paged.map((r, i) => {
     const gl = _gradeLabel(r.total);
     const gbg = gradeColors[gl.text] || '#f9fafb';
     const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ko-KR') : '—';
