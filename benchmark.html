@@ -342,8 +342,15 @@ button{font-family:var(--font);cursor:pointer}
       <a href="https://portal.scourt.go.kr/pgp/index.on?c=900&l=N&m=PGP1011M01" target="_blank" style="color:#1e40af;font-weight:600;text-decoration:underline;text-underline-offset:2px">대법원이 공개한 최신 판례</a>에서 판결 내용을 제거하고, 사건 개요만 입력한 뒤, 가상 판결을 생성합니다.
       생성된 가상 판결을 실제 판결과 비교하여, 그 일치도를 누적 평가하는 목적입니다.
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0">
+      <ul style="margin:0;padding-left:18px;line-height:2;color:#4b5563">
+        <li>비용 문제로 K-Law의 기본 엔진인 Claude Opus 모델이 아니라, DeepSeek을 이용합니다. DeepSeek 모델은 가끔씩 아주 낮은 일치도(0점) 또는 전혀 엉뚱한 법리 해석을 내놓을 수 있습니다. 하지만, DeepSeek의 비용이 Claude의 1/50 수준이므로, 피치못할 선택입니다.</li>
+        <li>사건 개요의 판결문을 LLM이 이전에 학습했을 가능성을 차단하기 위해, K-Law의 웹 검색과 판례 검색을 차단하였습니다. 판례 검색을 허용할 경우, 성능이 현저히 향상되지만, 벤치마크 실증 실험에서는 차단 상태를 유지합니다.</li>
+        <li>이상적인 벤치마크 환경은 상당한 비용이 소요되며, 현재 모 대학 로스쿨과 공동으로 추진 중입니다.</li>
+        <li>현재의 제한적인 벤치마크 환경도 K-Law의 성능을 검증하기에 충분합니다.</li>
+      </ul>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0">
       <strong style="color:#111827">"사건의 개요" 작성 방법</strong><br>
-      DeepSeek V4 Pro 외 여타 LLM에 대법원 공개 판례를 입력하고, 다음과 같이 지시하십시오.<br>
+      DeepSeek v4 pro 모델로 가상 판결문을 생성하므로, DeepSeek v5 pro를 제외한 여타 LLM(Gemini 추천)에 대법원이 공개한 판결문 중 하나를 복사하여(Ctrl+C), 입력하고(Ctrl+V), 다음과 같이 지시하십시오.<br>
       <span style="display:block;margin-top:8px;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;color:#1e40af;font-style:italic;line-height:1.8">
         "판결 또는 판결을 암시하는 내용을 완전히 배제하고, 오직 사건의 개요만 작성하십시오.
         원고와 피고의 주장, 다툼이 없는 사실, 다툼의 요지를 정확히 파악할 수 있도록 상세히 작성하십시오."
