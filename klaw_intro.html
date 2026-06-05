@@ -308,11 +308,11 @@ a { text-decoration: none; color: inherit; }
 <div class="kpis-band">
   <div class="kpis-band-inner">
     <div class="kpi-card">
-      <div class="kpi-card-val gold">99.9%</div>
-      <div class="kpi-card-title">예측 정확도 추산</div>
-      <div class="kpi-card-desc">사안의 복잡성에 따라 95 ~ 99.9999%</div>
-      <div class="kpi-card-desc">일치도 평가방법론 v15.0 기준</div>
-      <div class="kpi-card-ref">논문 인용 수치</div>
+      <div class="kpi-card-val gold">90%</div>
+      <div class="kpi-card-title">대법원 판결 일치도 (v15.3)</div>
+      <div class="kpi-card-desc">복잡 판례 300건 자체 실증 결과</div>
+      <div class="kpi-card-desc">원심(고등법원) 일치도 45% 대비 2배 수준</div>
+      <div class="kpi-card-ref">K-Law v15.3 실험 기준</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card-val">10초</div>
@@ -327,10 +327,10 @@ a { text-decoration: none; color: inherit; }
       <div class="kpi-card-ref">K-Law 기준</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-card-val">90%</div>
-      <div class="kpi-card-title">법원 소송 대체 전망</div>
-      <div class="kpi-card-desc">향후 5년 내 법원 소송을 변호사 중재로 대체 예상</div>
-      <div class="kpi-card-ref">AI 예측</div>
+      <div class="kpi-card-val" style="font-size:22px">2배</div>
+      <div class="kpi-card-title">원심 대비 성능</div>
+      <div class="kpi-card-desc">원심(45%) 대비 약 2배 높은 일치도 달성</div>
+      <div class="kpi-card-ref">동일 복잡 판례 기준</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card-val" style="font-size:18px;padding-top:3px">예방 법학</div>
@@ -446,7 +446,7 @@ RULES:
   <div class="wide-h2">K-Law 시뮬레이션 현황 대시보드</div>
   <div class="dash-stats" style="margin-top:14px">
     <div class="dash-stat"><div class="dash-stat-val" style="color:var(--primary)">1,284</div><div class="dash-stat-lbl">누적 시뮬레이션</div><div class="dash-stat-sub">↑ 47건 전일 대비</div></div>
-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">73%</div><div class="dash-stat-lbl">대법원 일치도</div><div class="dash-stat-sub">실측 300건 기준</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">90%</div><div class="dash-stat-lbl">대법원 일치도 (v15.3)</div><div class="dash-stat-sub">복잡 판례 300건 기준</div></div>
     <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">2026-05 업데이트</div></div>
     <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">3.2초</div><div class="dash-stat-lbl">평균 분석 시간</div><div class="dash-stat-sub">DeepSeek 기준</div></div>
   </div>
@@ -526,7 +526,7 @@ RULES:
 <div class="footer-disclaimer" style="margin-top:32px">
   <div class="footer-disclaimer-inner">
     ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않습니다.
-    73%, 45% 수치는 대법원 선별 공개 판례(극소수 고난도 사건) 기준 예비 측정치. 95.5%는 전수 상고 모형 이론적 추정치(±5%p).
+    K-Law v15.3 기준, 대법원 공개 복잡 판례 300건에 대한 판결 일치도는 약 90%이며, 동일 사건에서 원심(고등법원) 판결과 대법원 판결 간 일치도는 약 45%입니다. 과거 v10.0 버전에서는 약 73% 수준이었으며, 지속적으로 개선 중입니다. 본 수치는 자체 실험 결과이며, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
     법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
   </div>
 </div>
