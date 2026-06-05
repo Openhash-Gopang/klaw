@@ -314,7 +314,6 @@ button{font-family:var(--font);cursor:pointer}
       <div class="page-header-top">
         <div>
           <div class="page-title">벤치마크</div>
-          <div class="page-subtitle">판결 일치도 누적 평가</div>
         </div>
         <div class="page-actions">
           <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
@@ -323,9 +322,20 @@ button{font-family:var(--font);cursor:pointer}
           </button>
         </div>
       </div>
-      <div class="page-tabs">
+      <div class="page-tabs" style="display:flex;align-items:center;gap:8px">
         <button class="page-tab active" id="tab-sim" onclick="switchBenchTab('sim')">입력 및 분석</button>
-        <button class="page-tab" id="tab-history" onclick="switchBenchTab('history')">이력</button>
+        <button id="tab-history" onclick="switchBenchTab('history')"
+          style="display:inline-flex;align-items:center;gap:6px;
+            padding:7px 16px;border-radius:6px;border:none;cursor:pointer;
+            background:#374151;color:#fff;font-size:13px;font-weight:700;
+            font-family:var(--font);transition:opacity .15s">
+          일치도 이력
+          <span id="bench-history-badge" style="
+            display:inline-flex;align-items:center;justify-content:center;
+            min-width:18px;height:18px;padding:0 5px;
+            background:rgba(255,255,255,.25);color:#fff;
+            font-size:10px;font-weight:700;border-radius:9px;line-height:1">0</span>
+        </button>
       </div>
     </div>
     <div style="margin:16px 28px 4px;padding:14px 18px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;line-height:1.8">
@@ -386,6 +396,7 @@ button{font-family:var(--font);cursor:pointer}
               <tr style="background:var(--bg)">
                 <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건번호</th>
                 <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건유형</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">판결 요약</th>
                 <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">결론<br>방향</th>
                 <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">핵심<br>법리</th>
                 <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">세부<br>논증</th>
@@ -837,6 +848,7 @@ async function loadKlawVersion() {
   if (badge) badge.textContent = klawVersion;
 }
 loadKlawVersion();
+document.addEventListener('DOMContentLoaded', _updateHistoryBadge);
 
 
 // ══ 가상판결 출력형식 v13.3 — Context Cache 최적화 ════════
@@ -1672,7 +1684,8 @@ async function runJudgementSim() {
       <div class="verdict-body" id="verdict-body">
         <div id="verdict-steps"></div>
       </div>
-    </div>`;
+    </div>
+`;
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
   document.getElementById('sim-counter').textContent = simCount + '건';
 
@@ -1689,11 +1702,12 @@ async function runJudgementSim() {
   window._verdictText = fullText;
   document.getElementById('dl-btn').style.display = '';
 
+
   // Supabase 저장
   const verdictM = fullText.match(/主\s*문\s*[:：]?\s*([^\n]{1,80})/)||fullText.match(/주\s*문\s*[:：]?\s*([^\n]{1,80})/);
   const confM    = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,500}?)(?:\n\n|\[━|$)/);
 
   await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
     caseType:    conversationState.caseData?.type    || null,
@@ -1750,7 +1764,11 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
     const result = await callLLM(msgs, 3000);
     window._verdictParts[stepDef.id] = result;
     const bodyEl = document.getElementById('vsb-' + stepDef.id);
-    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
+    if (bodyEl) {
+      bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
+      // 자동 스크롤: 새 STEP 완료 시 해당 카드 하단으로 이동
+      bodyEl.scrollIntoView({behavior:'smooth', block:'end'});
+    }
     const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
     if (completeMatch) {
       const badge = document.createElement('div'); badge.style.cssText = 'margin-top:8px;';
@@ -1770,7 +1788,7 @@ function appendConfidenceBlock(fullText) {
   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
   const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
-  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,500}?)(?:\n\n|\[━|$)/);
 
   const lawConf   = confM    ? confM[1]    : '—';
   const factConf  = factM    ? factM[1]    : '—';
@@ -1834,6 +1852,37 @@ function appendConfidenceBlock(fullText) {
     </div>
 `;
   body.insertBefore(div, body.firstChild);
+
+  // ── 일치도 평가 패널: 확신도 카드 바로 아래 추가 ─────────
+  const existingPanel = document.getElementById('match-eval-panel');
+  if (existingPanel) existingPanel.remove(); // 중복 방지
+
+  const matchPanel = document.createElement('div');
+  matchPanel.id = 'match-eval-panel';
+  matchPanel.style.cssText = 'margin-top:16px;padding:16px;background:#f9fafb;border:1px solid var(--bdr);border-radius:var(--r)';
+  matchPanel.innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">일치도 평가</div>
+    <div style="font-size:12px;color:var(--txt3);margin-bottom:8px">실제 대법원 판결문(또는 판례 요약문)을 아래에 붙여넣고 "일치도 평가" 버튼을 클릭하십시오.</div>
+    <textarea id="real-verdict-input" style="width:100%;height:120px;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;line-height:1.65;box-sizing:border-box" placeholder="실제 대법원 판결문 또는 판례 요약문을 입력하십시오."></textarea>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-primary" onclick="runMatchEval()" id="match-eval-btn">&#x21C4; 일치도 평가</button>
+    </div>
+    <div id="match-eval-result" style="display:none;margin-top:14px">
+      <div id="match-score-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px"></div>
+      <div id="match-grade-banner" style="display:none;padding:10px 16px;border-radius:8px;text-align:center;font-size:14px;font-weight:700;margin-bottom:12px"></div>
+      <div style="text-align:right;margin-bottom:6px">
+        <button onclick="toggleMatchDetail()" id="match-detail-toggle"
+          style="font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;text-decoration:underline">
+          상세 평가 펼치기 ▾
+        </button>
+      </div>
+      <div id="match-detail-text" style="display:none;padding:12px 14px;background:#fff;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;color:var(--txt);line-height:1.8;white-space:pre-wrap;max-height:400px;overflow-y:auto"></div>
+    </div>`;
+
+  // 확신도 블록(div) 바로 뒤에 삽입
+  div.after(matchPanel);
+  // 스크롤: 일치도 패널로 부드럽게 이동
+  setTimeout(() => matchPanel.scrollIntoView({behavior:'smooth', block:'start'}), 300);
 }
 
 function escHtml(str) {
@@ -1914,7 +1963,7 @@ function renderMatchCards(scores) {
       <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 12px;text-align:center">
         <div style="font-size:11px;font-weight:600;color:var(--txt3);margin-bottom:8px;white-space:nowrap">${it.label}</div>
         <div style="font-size:${it.big?'28':'22'}px;font-weight:800;color:${it.color};line-height:1">
-          ${displayVal}<span style="font-size:12px;color:var(--txt4);font-weight:400"> /${it.max}</span>
+          ${displayVal}<span style="font-size:inherit;color:#9ca3af;font-weight:600"> /${it.max}</span>
         </div>
         <div style="margin-top:8px;height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .6s ease"></div>
@@ -1946,12 +1995,21 @@ function _bhSave(arr) {
 
 // 평가 완료 시 호출 — runMatchEval에서 연결
 // localStorage + Supabase klaw_benchmark 동시 저장
+function _updateHistoryBadge() {
+  const arr = _bhLoad();
+  const badge = document.getElementById('bench-history-badge');
+  if (!badge) return;
+  badge.textContent = arr.length || '0';
+  badge.style.background = arr.length ? '#0057A8' : '#9ca3af';
+}
+
 async function saveBenchRecord(record) {
   // ── 1. localStorage 저장 (즉시, 오프라인 대비) ──────────
   const arr = _bhLoad();
   arr.unshift(record);
   if (arr.length > 200) arr.length = 200;
   _bhSave(arr);
+  _updateHistoryBadge(); // 뱃지 카운트 갱신
 
   // ── 2. Supabase klaw_benchmark 저장 ────────────────────
   try {
@@ -1960,6 +2018,7 @@ async function saveBenchRecord(record) {
       case_type:        record.caseType     || null,
       case_input:       (window._lastCaseInput || '').slice(0, 2000) || null,
       virtual_verdict:  (window._verdictText  || '').slice(0, 8000) || null,
+      summary:          record.summary || null,
       real_verdict:     (window._lastRealVerdict || '').slice(0, 8000) || null,
       score_conclusion: record.conclusion   ?? null,
       score_law_logic:  record.lawLogic     ?? null,
@@ -2016,21 +2075,17 @@ function switchBenchTab(tab) {
   const histTab = document.getElementById('tab-history');
   const content = document.querySelector('.content');
   const histPanel = document.getElementById('bench-history-panel');
-  const infoBar   = histPanel?.previousElementSibling; // 안내 배너
 
   if (tab === 'sim') {
     simTab.classList.add('active');
-    histTab.classList.remove('active');
-    if (content)    content.style.display = '';
-    if (histPanel)  histPanel.style.display = 'none';
-    // 안내 배너 표시
-    const banners = document.querySelectorAll('[data-bench-banner]');
-    banners.forEach(b => b.style.display = '');
+    histTab.style.opacity = '1';
+    if (content)   content.style.display = '';
+    if (histPanel) histPanel.style.display = 'none';
   } else {
-    histTab.classList.add('active');
     simTab.classList.remove('active');
-    if (content)    content.style.display = 'none';
-    if (histPanel)  histPanel.style.display = 'block';
+    histTab.style.opacity = '.75';
+    if (content)   content.style.display = 'none';
+    if (histPanel) histPanel.style.display = 'block';
     renderBenchHistory();
   }
 }
@@ -2057,6 +2112,8 @@ async function _loadBenchHistoryFromSupabase() {
       grade:       r.grade,
       klawVersion: r.klaw_version,
       createdAt:   r.created_at,
+      summary:     r.summary || null,
+      supaId:      r.id,
     }));
     _bhSave(converted);
     console.log('[Benchmark] ✅ Supabase 이력 로드 —', converted.length, '건');
@@ -2229,9 +2286,11 @@ function _renderTable(arr) {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ko-KR') : '—';
     const fmt = v => v !== null && v !== undefined ? v : '—';
     return `
-      <tr style="border-top:1px solid var(--bdr);${i%2?'background:var(--bg)':''}">
+      <tr style="border-top:1px solid var(--bdr);${i%2?'background:var(--bg)':''};cursor:pointer"
+          onclick="showBenchDetail('${r.supaId||''}','${escHtml(r.caseNo||'—')}')">
         <td style="padding:8px 12px;color:var(--txt);font-weight:500;white-space:nowrap">${fmt(r.caseNo)}</td>
-        <td style="padding:8px 12px;color:var(--txt3)">${fmt(r.caseType)}</td>
+        <td style="padding:8px 12px;color:var(--txt3);white-space:nowrap">${fmt(r.caseType)}</td>
+        <td style="padding:8px 12px;color:var(--txt2);font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.summary ? escHtml(r.summary.slice(0,80)) + (r.summary.length>80?'…':'') : '—'}</td>
         <td style="padding:8px 12px;text-align:center;font-weight:600;color:#0057A8">${fmt(r.conclusion)}</td>
         <td style="padding:8px 12px;text-align:center;font-weight:600;color:#1B6B3A">${fmt(r.lawLogic)}</td>
         <td style="padding:8px 12px;text-align:center;font-weight:600;color:#7B3FA0">${fmt(r.detail)}</td>
@@ -2244,6 +2303,111 @@ function _renderTable(arr) {
       </tr>`;
   }).join('');
 }
+
+
+// ══ 벤치마크 상세 보기 ════════════════════════════════════════
+function showBenchDetail(supaId, caseNo) {
+  const modal   = document.getElementById('bench-detail-modal');
+  const loading = document.getElementById('bdm-loading');
+  const content = document.getElementById('bdm-content');
+  const errorEl = document.getElementById('bdm-error');
+
+  document.getElementById('bdm-title').textContent = '판결문 상세 — ' + caseNo;
+  loading.style.display = 'block';
+  content.style.display = 'none';
+  errorEl.style.display = 'none';
+  modal.style.display   = 'block';
+  document.body.style.overflow = 'hidden';
+
+  if (!supaId) {
+    // Supabase ID 없으면 localStorage에서 찾기
+    const local = _bhLoad().find(r => r.caseNo === caseNo);
+    if (local?.summary) {
+      _renderBenchDetail({ summary: local.summary, virtual_verdict: null,
+        score_conclusion: local.conclusion, score_law_logic: local.lawLogic,
+        score_detail: local.detail, score_total: local.total, grade: local.grade,
+        klaw_version: local.klawVersion, created_at: local.createdAt });
+    } else {
+      loading.style.display = 'none';
+      errorEl.textContent = 'Supabase ID가 없습니다. 재평가 후 다시 시도하세요.';
+      errorEl.style.display = 'block';
+    }
+    return;
+  }
+
+  // Supabase에서 전체 판결문 로드
+  fetch(SUPA_URL + '/rest/v1/klaw_benchmark?id=eq.' + supaId + '&select=*&limit=1', {
+    headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON }
+  })
+  .then(r => r.json())
+  .then(rows => {
+    if (!rows?.length) throw new Error('기록을 찾을 수 없습니다.');
+    _renderBenchDetail(rows[0]);
+  })
+  .catch(e => {
+    loading.style.display = 'none';
+    errorEl.textContent = '로드 실패: ' + e.message;
+    errorEl.style.display = 'block';
+  });
+}
+
+function _renderBenchDetail(r) {
+  const loading = document.getElementById('bdm-loading');
+  const content = document.getElementById('bdm-content');
+
+  document.getElementById('bdm-meta').textContent =
+    (r.klaw_version || '') + ' · ' + (r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '');
+
+  // 판결 요약
+  const summaryEl = document.getElementById('bdm-summary');
+  summaryEl.style.display = r.summary ? 'block' : 'none';
+  if (r.summary) summaryEl.textContent = r.summary;
+
+  // 전체 판결문
+  const verdictEl = document.getElementById('bdm-verdict');
+  verdictEl.textContent = r.virtual_verdict || '(판결문 없음 — 이전 버전 기록)';
+
+  // 일치도 점수
+  const evalSection = document.getElementById('bdm-eval-section');
+  const scoresEl    = document.getElementById('bdm-scores');
+  if (r.score_total !== null && r.score_total !== undefined) {
+    evalSection.style.display = 'block';
+    const items = [
+      { label:'결론 방향', val:r.score_conclusion, max:4,  color:'#0057A8' },
+      { label:'핵심 법리', val:r.score_law_logic,  max:3,  color:'#1B6B3A' },
+      { label:'세부 논증', val:r.score_detail,     max:3,  color:'#7B3FA0' },
+      { label:'종합 점수', val:r.score_total,      max:10, color:'#002060' },
+    ];
+    scoresEl.innerHTML = items.map(it => `
+      <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:8px;
+        padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--txt3);margin-bottom:4px">${it.label}</div>
+        <div style="font-size:18px;font-weight:800;color:${it.color}">
+          ${it.val ?? '—'}<span style="font-size:inherit;color:#9ca3af;font-weight:600"> /${it.max}</span>
+        </div>
+      </div>`).join('');
+    if (r.grade) {
+      scoresEl.insertAdjacentHTML('afterend',
+        `<div style="margin-top:8px;text-align:center;font-size:13px;font-weight:700;
+          color:#1e40af">${r.grade}</div>`);
+    }
+  } else {
+    evalSection.style.display = 'none';
+  }
+
+  loading.style.display = 'none';
+  content.style.display = 'block';
+}
+
+function closeBenchDetail() {
+  document.getElementById('bench-detail-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeBenchDetail();
+});
 
 function toggleMatchDetail() {
   const det = document.getElementById('match-detail-text');
@@ -2265,8 +2429,29 @@ async function runMatchEval() {
 
   const btn = document.getElementById('match-eval-btn');
   const resultEl = document.getElementById('match-eval-result');
-  btn.disabled = true; btn.textContent = '평가 중…';
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 16 14 12"/><polyline points="2 12 6 8 10 12"/><line x1="18" y1="16" x2="18" y2="8"/><line x1="6" y1="8" x2="6" y2="16"/></svg> 평가 중…';
   resultEl.style.display = 'none';
+
+  // ── 진행 단계 배너 ───────────────────────────────────────
+  const steps = [
+    '① 결론 방향 일치도 분석 중…',
+    '② 핵심 법리 일치도 검토 중…',
+    '③ 세부 논증 일치도 검증 중…',
+    '④ 종합 점수 및 등급 산출 중…',
+  ];
+  let stepIdx = 0;
+  const progressBanner = document.createElement('div');
+  progressBanner.id = 'match-progress-banner';
+  progressBanner.style.cssText = 'margin-top:10px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;color:#1e40af;display:flex;align-items:center;gap:8px';
+  progressBanner.innerHTML = `<div class="spinner" style="width:12px;height:12px;border-width:2px"></div><span id="match-progress-text">${steps[0]}</span>`;
+  btn.parentElement.parentElement.appendChild(progressBanner);
+
+  const stepTimer = setInterval(() => {
+    stepIdx = (stepIdx + 1) % steps.length;
+    const el = document.getElementById('match-progress-text');
+    if (el) el.textContent = steps[stepIdx];
+  }, 2500);
 
   try {
     const prompt = buildMatchPrompt(virtualVerdict, realVerdict);
@@ -2303,12 +2488,20 @@ async function runMatchEval() {
       grade:       scores.grade,
       klawVersion: klawVersion,
       createdAt:   new Date().toISOString(),
+      summary:     (() => {
+        const m = (window._verdictText || '').match(/판결 요약:\s*([\s\S]{1,200}?)(?:
+
+|\[━|$)/);
+        return m ? m[1].trim().slice(0, 200) : null;
+      })(),
     });
   } catch(e) {
     resultEl.textContent = '평가 오류: ' + e.message;
     resultEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = '일치도 평가';
+    clearInterval(stepTimer);
+    document.getElementById('match-progress-banner')?.remove();
+    btn.disabled = false;
     btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 16 14 12"/><polyline points="2 12 6 8 10 12"/><line x1="18" y1="16" x2="18" y2="8"/><line x1="6" y1="8" x2="6" y2="16"/></svg> 일치도 평가';
   }
 }
@@ -2350,5 +2543,44 @@ document.addEventListener('DOMContentLoaded', function(){
   ta.addEventListener('blur', () => setTimeout(collapse, 150));
 });
 </script>
+
+  <!-- ══ 벤치마크 상세 보기 모달 ══════════════════════════ -->
+  <div id="bench-detail-modal" style="display:none;position:fixed;inset:0;z-index:9000;
+    background:rgba(0,0,0,.45);overflow-y:auto">
+    <div style="max-width:820px;margin:40px auto;background:var(--sur);border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--bdr);
+        display:flex;align-items:center;justify-content:space-between;background:var(--bg)">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--txt)" id="bdm-title">판결문 상세</div>
+          <div style="font-size:11px;color:var(--txt4);margin-top:2px" id="bdm-meta"></div>
+        </div>
+        <button onclick="closeBenchDetail()"
+          style="background:none;border:none;font-size:18px;color:var(--txt3);cursor:pointer;padding:4px 8px">✕</button>
+      </div>
+      <div style="padding:20px;max-height:70vh;overflow-y:auto">
+        <div id="bdm-loading" style="text-align:center;padding:40px;color:var(--txt4);font-size:13px">
+          <div class="spinner" style="margin:0 auto 12px"></div>
+          Supabase에서 판결문 로드 중…
+        </div>
+        <div id="bdm-content" style="display:none">
+          <div id="bdm-summary" style="margin-bottom:16px;padding:12px 16px;
+            background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:8px;
+            font-size:13px;color:var(--txt);line-height:1.75;font-weight:500"></div>
+          <div style="font-size:11px;font-weight:700;color:var(--txt3);
+            text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">가상 판결문 전문</div>
+          <pre id="bdm-verdict" style="font-family:var(--font);font-size:12px;color:var(--txt);
+            line-height:1.8;white-space:pre-wrap;background:var(--bg);padding:16px;
+            border-radius:8px;border:1px solid var(--bdr);max-height:400px;overflow-y:auto"></pre>
+          <div id="bdm-eval-section" style="margin-top:16px;display:none">
+            <div style="font-size:11px;font-weight:700;color:var(--txt3);
+              text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">일치도 평가 결과</div>
+            <div id="bdm-scores" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+          </div>
+        </div>
+        <div id="bdm-error" style="display:none;padding:20px;color:var(--red);font-size:13px"></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
