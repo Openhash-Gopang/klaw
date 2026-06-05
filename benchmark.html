@@ -1,0 +1,2262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — 벤치마크</title>
+<meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
+<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --side-bg:#f9fafb; --side-sel:#f3f4f6; --side-w:220px; --side-col:52px; --head-h:48px;
+  --red:#ef4444; --red-bg:#fef2f2; --org:#f59e0b; --org-bg:#fffbeb;
+  --blue:#3b82f6; --blue-bg:#eff6ff;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
+  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:13px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer}
+
+.topbar{height:var(--head-h);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0;z-index:100;position:relative}
+.topbar-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--txt);padding-right:16px;border-right:1px solid var(--bdr);margin-right:12px;flex-shrink:0}
+.topbar-brand svg{color:var(--pri)}
+.topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);flex:1}
+.topbar-breadcrumb .sep{color:var(--bdr2)}
+.topbar-breadcrumb .cur{color:var(--txt);font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:var(--pri-bg);color:var(--pri-dk);border:1px solid var(--pri-bd)}
+.badge-free{background:#f3f4f6;color:var(--txt3);border:1px solid var(--bdr)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--pri);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-clock{font-size:12px;color:var(--txt3);font-variant-numeric:tabular-nums;padding:0 8px}
+.tsep{width:1px;height:20px;background:var(--bdr)}
+.user-btn{display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);font-size:12px;color:var(--txt2);transition:background .12s}
+.user-btn:hover{background:var(--bg)}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri-dk);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+.app-body{display:flex;flex:1;overflow:hidden}
+
+.sidebar{
+  width:var(--side-col);
+  background:var(--side-bg);
+  border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow:hidden;flex-shrink:0;
+  transition:width .2s ease;
+  position:relative;z-index:50;
+}
+.sidebar:hover{width:var(--side-w)}
+.sidebar-section{padding:8px 0;overflow:hidden}
+.sidebar-section+.sidebar-section{border-top:1px solid var(--bdr)}
+.sidebar-label{
+  padding:6px 16px 3px;font-size:10px;font-weight:600;
+  color:var(--txt4);text-transform:uppercase;letter-spacing:.6px;
+  white-space:nowrap;overflow:hidden;
+  opacity:0;transition:opacity .15s .05s;
+}
+.sidebar:hover .sidebar-label{opacity:1}
+.nav-item{
+  display:flex;align-items:center;gap:0;
+  padding:8px 0 8px 14px;
+  font-size:13px;color:var(--txt3);
+  transition:background .1s,color .1s;
+  border:none;background:none;width:100%;text-align:left;
+  white-space:nowrap;overflow:hidden;
+  cursor:pointer;
+}
+.nav-item:hover{background:var(--side-sel);color:var(--txt)}
+.nav-item.active{background:var(--side-sel);color:var(--txt);font-weight:500}
+.nav-item svg{flex-shrink:0;color:var(--txt4);width:20px;height:20px;min-width:20px;margin-right:0;transition:color .1s}
+.nav-item.active svg,.nav-item:hover svg{color:var(--txt2)}
+.nav-item-label{
+  padding-left:10px;opacity:0;
+  transition:opacity .12s .03s;
+  font-size:13px;
+}
+.sidebar:hover .nav-item-label{opacity:1}
+.nav-badge{margin-left:auto;margin-right:8px;background:#f3f4f6;color:var(--txt3);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;border:1px solid var(--bdr);opacity:0;transition:opacity .12s .03s;flex-shrink:0}.sidebar:hover .nav-badge{opacity:1}
+.sidebar-footer{margin-top:auto;padding:10px 0 10px 14px;border-top:1px solid var(--bdr);overflow:hidden}
+.klaw-ver-chip{display:flex;align-items:center;gap:0;padding:6px 0;font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden}.klaw-ver-chip svg{flex-shrink:0;min-width:20px;width:20px;height:20px}.klaw-ver-chip span{padding-left:10px;opacity:0;transition:opacity .12s .03s}.sidebar:hover .klaw-ver-chip span{opacity:1}
+.klaw-ver-chip strong{color:var(--txt);font-weight:600}
+
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+.page-header{padding:20px 28px 0;border-bottom:1px solid var(--bdr);background:var(--sur);flex-shrink:0}
+.page-header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.page-title{font-size:18px;font-weight:600;color:var(--txt)}
+.page-subtitle{font-size:13px;color:var(--txt3);margin-top:2px}
+.page-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s,border-color .12s}
+.btn:hover{background:var(--bg);border-color:var(--bdr2)}
+.btn-primary{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
+.btn-primary:hover{background:var(--pri-dk)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.page-tabs{display:flex;gap:0;margin-top:0}
+.page-tab{padding:10px 16px;font-size:13px;color:var(--txt3);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .12s,border-color .12s;font-family:var(--font)}
+.page-tab:hover{color:var(--txt)}
+.page-tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:500}
+
+.content{padding:24px 28px;flex:1}
+
+.panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.panel-hd{padding:11px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.panel-title{font-size:11px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
+.panel-title svg{color:var(--txt3)}
+.panel-bd{padding:16px}
+
+.case-textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:100px;line-height:1.65;transition:height .3s ease,border-color .15s,box-shadow .15s}
+.case-textarea.expanded{height:200px;overflow-y:auto}
+.case-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.15)}
+.case-textarea::placeholder{color:var(--txt4)}
+.input-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .2s ease;pointer-events:none}
+.input-toolbar.visible{max-height:60px;opacity:1;pointer-events:auto}
+.toolbar-left{display:flex;align-items:center;gap:6px}
+.icon-btn{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);transition:border-color .12s,background .12s}
+.icon-btn:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
+.icon-btn.recording{border-color:var(--red);background:var(--red-bg);color:var(--red);animation:pulse 1s infinite}
+.file-label{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);cursor:pointer;transition:border-color .12s,background .12s}
+.file-label:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
+.file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--txt2)}
+.chip-remove{cursor:pointer;color:var(--txt4)}
+.chip-remove:hover{color:var(--txt2)}
+
+.llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
+.llm-panel.visible{max-height:300px;opacity:1}
+.llm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.llm-card{padding:14px 16px;border-right:1px solid var(--bdr);cursor:pointer;transition:background .12s;position:relative;background:var(--sur)}
+.llm-card:last-child{border-right:none}
+.llm-card:hover{background:var(--bg)}
+.llm-card.selected{background:var(--pri-bg)}
+.llm-sel-dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--sur)}
+.llm-card.selected .llm-sel-dot{background:var(--pri);border-color:var(--pri)}
+.llm-icon{margin-bottom:8px;color:var(--txt3)}
+.llm-card.selected .llm-icon{color:var(--pri-dk)}
+.llm-name{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:2px}
+.llm-model{font-size:11px;color:var(--txt4);margin-bottom:6px;font-family:var(--mono)}
+.llm-desc{font-size:11px;color:var(--txt3);line-height:1.5}
+.llm-free{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 6px;margin-top:4px}
+.api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
+.api-key-row.visible{max-height:60px}
+.api-key-label{font-size:12px;font-weight:500;color:var(--txt3);white-space:nowrap}
+.api-key-input{flex:1;padding:6px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--txt);background:var(--bg);outline:none}
+.api-key-input:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12);background:var(--sur)}
+
+.analysis-panel{margin-bottom:16px;display:none}
+.case-type-bar{border-radius:var(--r) var(--r) 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.case-type-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.case-type-detail{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px}
+.case-level-tag{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+.case-ver-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.9)}
+.analysis-table{background:var(--sur);border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.analysis-row{display:flex;gap:0;border-bottom:1px solid var(--bdr);align-items:flex-start}
+.analysis-row:last-child{border-bottom:none}
+.analysis-key{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;min-width:120px;flex-shrink:0;padding:10px 14px;background:var(--bg);border-right:1px solid var(--bdr)}
+.analysis-val{font-size:13px;color:var(--txt);line-height:1.7;white-space:pre-wrap;flex:1;padding:10px 14px}
+
+.chat-panel{margin-bottom:16px;display:none}
+.chat-panel-inner{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.klaw-msg{background:var(--bg);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.klaw-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.user-msg{background:var(--sur);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;color:var(--txt);line-height:1.6}
+.user-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.chat-input-row{padding:12px 14px;border-top:1px solid var(--bdr);background:var(--bg);display:flex;gap:8px;align-items:flex-end}
+.chat-textarea{flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:72px;line-height:1.6}
+.chat-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12)}
+.chat-actions{display:flex;flex-direction:column;gap:5px}
+.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r);font-size:12px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s}
+.btn-sm:hover{background:var(--bg)}
+.btn-sm-pri{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
+.btn-sm-pri:hover{background:var(--pri-dk)}
+
+.sim-panel{margin-bottom:32px;display:none}
+.verdict-doc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.verdict-hd{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.verdict-title-row{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:8px}
+.verdict-meta{font-size:11px;color:var(--txt4);margin-top:3px;font-family:var(--mono)}
+.verdict-body{padding:20px 24px}
+.verdict-step{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
+.verdict-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.verdict-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.step-tag{background:var(--bg);border:1px solid var(--bdr);color:var(--txt2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-family:var(--mono)}
+.step-title{font-size:12px;font-weight:600;color:var(--txt3)}
+.step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}
+.step-complete{display:inline-block;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:2px 7px;margin-top:7px;font-family:var(--mono)}
+.conf-block{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.conf-item{display:flex;flex-direction:column;gap:4px;padding:0 20px 0 0;margin-right:20px;border-right:1px solid var(--bdr)}
+.conf-item:last-child{border-right:none;margin-right:0;padding-right:0}
+.conf-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px}
+.conf-val{font-size:22px;font-weight:700;color:var(--txt);line-height:1}
+.verdict-summary{background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
+.verdict-summary-label{font-size:10px;font-weight:700;color:var(--pri-dk);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.verdict-summary-text{font-size:13px;color:var(--txt);line-height:1.75;font-weight:500}
+.caution-bar{background:var(--org-bg);border:1px solid #fed7aa;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#92400e;line-height:1.6}
+
+.spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.history-panel{position:fixed;top:52px;right:16px;z-index:500;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.1);width:340px;max-height:380px;overflow-y:auto;display:none}
+.history-panel.open{display:block}
+.history-hd{padding:11px 14px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:var(--txt);display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
+.hp-row{padding:9px 14px;border-bottom:1px solid var(--bdr);font-size:12px;display:flex;gap:10px;align-items:center}
+.hp-row:last-child{border-bottom:none}
+.hp-ver{font-weight:600;color:var(--txt);min-width:55px;font-family:var(--mono);font-size:11px}
+.hp-model{color:var(--txt3)}
+.hp-time{font-size:11px;color:var(--txt4);margin-left:auto;white-space:nowrap}
+.hp-empty{padding:20px 14px;text-align:center;color:var(--txt4);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="history-panel" id="klaw-history-panel">
+  <div class="history-hd">
+    <span style="display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      사용 이력
+    </span>
+    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div id="klaw-hp-body"><div class="hp-empty">이력이 없습니다</div></div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+    K-Law
+  </div>
+  <div class="topbar-breadcrumb">
+    <span>고팡</span><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">벤치마크</span>
+  </div>
+  <div class="topbar-right">
+    <span class="badge badge-free">FREE</span>
+    <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
+    <div class="tsep"></div>
+    <span class="topbar-clock" id="clock">--:--:--</span>
+    <div class="tsep"></div>
+    <span class="badge badge-free" id="sim-counter" style="font-family:var(--mono)">0건</span>
+    <button class="user-btn" id="user-info-bar" onclick="toggleHistoryPanel()">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span id="user-email-display" style="color:var(--txt3)">연결 중</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">판결 도구</div>
+      <a class="nav-item" href="desktop.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+        <span class="nav-item-label">판결 시뮬레이터</span>
+      </a>
+      <button class="nav-item active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>
+        <span class="nav-item-label">벤치마크</span>
+      </button>
+      <a class="nav-item" href="dashboard.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span class="nav-item-label">대시보드</span>
+      </a>
+      <a class="nav-item" href="webapp.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
+        <span class="nav-item-label">모바일 앱</span>
+      </a>
+      <a class="nav-item" href="index.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-label">홈</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">이력</div>
+      <button class="nav-item" onclick="toggleHistoryPanel()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        <span class="nav-item-label">판결 이력</span>
+        <span class="nav-badge" id="sidebar-counter">0</span>
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">모델</div>
+      <button class="nav-item active" id="llm-nav-deepseek" onclick="selectLLM('deepseek')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+        <span class="nav-item-label">DeepSeek</span>
+        <span class="nav-badge" style="background:var(--pri-bg);color:var(--pri-dk);border-color:var(--pri-bd)">기본</span>
+      </button>
+      <button class="nav-item" id="llm-nav-claude" onclick="selectLLM('claude')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span class="nav-item-label">Claude</span>
+      </button>
+      <button class="nav-item" id="llm-nav-gemini" onclick="selectLLM('gemini')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        <span class="nav-item-label">Gemini</span>
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="klaw-ver-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+        <span>K-Law <strong id="klaw-ver-badge">로딩 중</strong></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">벤치마크</div>
+          <div class="page-subtitle">판결 일치도 누적 평가</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            판결문 저장
+          </button>
+        </div>
+      </div>
+      <div class="page-tabs">
+        <button class="page-tab active" id="tab-sim" onclick="switchBenchTab('sim')">입력 및 분석</button>
+        <button class="page-tab" id="tab-history" onclick="switchBenchTab('history')">이력</button>
+      </div>
+    </div>
+    <div style="margin:16px 28px 4px;padding:14px 18px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;line-height:1.8">
+      대법원이 공개한 최신 판례에서 판결 내용을 제거하고, 사건 개요만 입력한 뒤, 가상 판결을 생성합니다.
+      생성된 가상 판결을 실제 판결과 비교하여, 그 일치도를 누적 평가하는 목적입니다.
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0">
+      <strong style="color:#111827">"사건의 개요" 작성 방법</strong><br>
+      DeepSeek V4 Pro 외 여타 LLM에 대법원 공개 판례를 입력하고, 다음과 같이 지시하십시오.<br>
+      <span style="display:block;margin-top:8px;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;color:#1e40af;font-style:italic;line-height:1.8">
+        "판결 또는 판결을 암시하는 내용을 완전히 배제하고, 오직 사건의 개요만 작성하십시오.
+        원고와 피고의 주장, 다툼이 없는 사실, 다툼의 요지를 정확히 파악할 수 있도록 상세히 작성하십시오."
+      </span>
+      <p style="margin-top:10px;color:#374151">
+        여타 LLM이 작성한 사건의 개요를 아래 <strong>"사건의 개요"</strong> 필드에 입력하고,
+        <strong>Enter</strong> 혹은 <strong>"입력 완료"</strong> 버튼을 클릭하십시오.
+      </p>
+    </div>
+
+    <!-- ══ 벤치마크 이력 패널 ══════════════════════════════ -->
+    <div id="bench-history-panel" style="display:none;padding:20px 28px">
+
+      <!-- 요약 통계 카드 -->
+      <div id="bh-stats" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px"></div>
+
+      <!-- 추세선 차트 -->
+      <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">
+          K-Law 버전별 일치도 추세
+        </div>
+        <canvas id="bh-trend-chart" height="80"></canvas>
+        <div id="bh-no-trend" style="display:none;text-align:center;color:var(--txt4);font-size:13px;padding:24px 0">
+          데이터 2건 이상 시 추세선이 표시됩니다
+        </div>
+      </div>
+
+      <!-- 항목별 평균 바 -->
+      <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px">
+          항목별 평균 점수
+        </div>
+        <div id="bh-item-bars"></div>
+      </div>
+
+      <!-- 사건별 이력 테이블 -->
+      <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px">
+            사건별 평가 이력
+          </div>
+          <button onclick="clearBenchHistory()"
+            style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer">
+            초기화
+          </button>
+        </div>
+        <div id="bh-table-wrap" style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--bg)">
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건번호</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600;white-space:nowrap">사건유형</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">결론<br>방향</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">핵심<br>법리</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">세부<br>논증</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">종합</th>
+                <th style="padding:8px 12px;text-align:center;color:var(--txt3);font-weight:600">등급</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">K-Law 버전</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--txt3);font-weight:600">평가일</th>
+              </tr>
+            </thead>
+            <tbody id="bh-tbody"></tbody>
+          </table>
+          <div id="bh-empty" style="text-align:center;color:var(--txt4);font-size:13px;padding:32px">
+            평가 이력이 없습니다. 벤치마크를 실행하면 자동으로 기록됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <div class="content">
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            사건의 개요
+          </div>
+          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
+            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
+          </span>
+        </div>
+        <div class="panel-bd">
+          <textarea class="case-textarea" id="case-input"
+            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
+          <div class="input-toolbar" id="input-toolbar">
+            <div class="toolbar-left">
+              <label class="file-label" title="파일 첨부">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
+              </label>
+              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="runSimulation()" style="background:var(--sur);border:1px solid var(--bdr);color:var(--txt2)">
+                입력 완료
+              </button>
+              <button class="btn btn-primary" onclick="runSimulation()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                분석 시작
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="llm-panel" id="llm-section">
+        <div class="panel-hd" style="border-bottom:1px solid var(--bdr)">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0112 2a10 10 0 00-7.07 2.93M4.93 19.07A10 10 0 0012 22a10 10 0 007.07-2.93M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
+            AI 모델
+          </div>
+        </div>
+        <div class="llm-grid">
+          <div class="llm-card selected" id="card-deepseek" onclick="selectLLM('deepseek')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><path d="M9 18h6"/></svg></div>
+            <div class="llm-name">DeepSeek</div>
+            <div class="llm-model">deepseek-chat</div>
+            <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
+            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
+          </div>
+          <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="llm-name">Claude</div>
+            <div class="llm-model">claude-sonnet-4-20250514</div>
+            <div class="llm-desc">정밀한 법률 언어 해석 · 높은 일관성</div>
+          </div>
+          <div class="llm-card" id="card-gemini" onclick="selectLLM('gemini')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></div>
+            <div class="llm-name">Gemini</div>
+            <div class="llm-model">gemini-2.0-flash</div>
+            <div class="llm-desc">멀티모달 · 긴 문서 처리 특화</div>
+          </div>
+        </div>
+        <div class="api-key-row" id="api-key-section">
+          <label class="api-key-label" id="api-key-label">API Key</label>
+          <input class="api-key-input" type="password" id="api-key" placeholder="API Key를 입력하세요">
+        </div>
+      </div>
+
+      <div class="analysis-panel" id="analysis-panel"></div>
+      <div class="chat-panel" id="chat-panel"></div>
+      <div class="sim-panel" id="sim-panel"></div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ══ SUPABASE 초기화 ════════════════════════════════════════
+const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+// ══ PDV 보고 ═══════════════════════════════════════════════
+async function _sendPdvReport(user, action) {
+  if (!user?.ipv6) { console.warn('[K-Law] PDV 전송 건너뜀: ipv6 없음'); return; }
+  try {
+    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report: {
+          svc:  'klaw',
+          type: 'action',
+          who:  { ipv6: user.ipv6, role: 'user' },
+          when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
+          where:{ svc_url: location.origin + location.pathname },
+          what: { summary: action.summary },
+          how:  { method: 'subsystem-auth', auth_level: user?.level || 1 },
+          why:  { goal: action.goal },
+        }
+      })
+    });
+    if (res.ok) console.log('[K-Law] ✅ PDV 전송 완료');
+    else { const t = await res.text(); console.warn('[K-Law] PDV 전송 실패:', res.status, t); }
+  } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
+}
+
+// ══ 고팡 인증 콜백 ════════════════════════════════════════
+// subsystem-auth.js가 인증 완료 후 호출
+let currentUser = null;
+let userKlawSentVersions = {};
+
+window._onGopangAuth = function(user) {
+  currentUser = user;
+  const shortId = user.ipv6 ? user.ipv6.slice(-8) : user.via || '—';
+  const initials = shortId.slice(0,2).toUpperCase();
+  const avatar  = document.getElementById('user-avatar');
+  const display = document.getElementById('user-email-display');
+  if(avatar)  avatar.textContent  = initials;
+  if(display) display.textContent = 'Lv.' + (user.level||1) + ' · ' + shortId;
+  // 이력 로드
+  _loadKlawHistory();
+};
+
+// ══ K-Law 이력 (Supabase klaw_sessions) ══════════════════
+async function _loadKlawHistory() {
+  if (!currentUser?.ipv6) return;
+  try {
+    const { data } = await supa
+      .from('klaw_sessions')
+      .select('klaw_version, llm_model, used_at')
+      .eq('user_id', currentUser.ipv6)
+      .order('used_at', { ascending: false })
+      .limit(50);
+    userKlawSentVersions[currentUser.ipv6] = {};
+    (data||[]).forEach(r => { userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
+    _renderKlawHistory(data||[]);
+  } catch(e) { console.warn('[Supa]', e.message); }
+}
+
+async function recordKlawUsage(klawVer, llmModel, simData = {}) {
+  const uid = currentUser?.ipv6;
+  if (!uid) return;
+  try {
+    const { error } = await supa.from('klaw_sessions').insert({
+      user_id:      uid,
+      klaw_version: klawVer,
+      llm_model:    llmModel,
+      used_at:      new Date().toISOString(),
+      case_type:    simData.caseType    || null,
+      case_level:   simData.caseLevel   || null,
+      case_summary: simData.caseSummary || null,
+      verdict:      simData.verdict     || null,
+      confidence:   simData.confidence  || null,
+      case_input:   simData.caseInput   || null
+    });
+    if (error) { console.error('[Supa] klaw_sessions 저장 실패:', JSON.stringify(error)); return; }
+    if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
+    userKlawSentVersions[uid][klawVer] = true;
+    console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
+    _loadKlawHistory();
+  } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
+}
+
+function hasKlawBeenSent(klawVer) {
+  const uid = currentUser?.ipv6;
+  if (!uid) return false;
+  return !!(userKlawSentVersions[uid]?.[klawVer]);
+}
+
+function _renderKlawHistory(rows) {
+  const body = document.getElementById('klaw-hp-body');
+  const sc = document.getElementById('sidebar-counter');
+  if (sc) sc.textContent = rows.length;
+  if (!rows.length) { body.innerHTML = '<div class="hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
+  const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude', gemini:'Gemini' };
+  body.innerHTML = rows.map(r => `
+    <div class="hp-row">
+      <div class="hp-ver">${escHtml(r.klaw_version)}</div>
+      <div class="hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
+      <div class="hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+
+function toggleHistoryPanel() {
+  document.getElementById('klaw-history-panel').classList.toggle('open');
+}
+function closeHistoryPanel() {
+  document.getElementById('klaw-history-panel').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('klaw-history-panel');
+  const bar   = document.getElementById('user-info-bar');
+  if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
+});
+
+// Supabase klaw_cases 저장
+const _KLAW_SUPABASE_URL = SUPA_URL;
+const _KLAW_SUPABASE_KEY = SUPA_ANON;
+
+function _sendCaseToKlaw(klawResult, caseInput) {
+  try {
+    const caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
+    function _typeCode(type) {
+      if (!type) return null;
+      if (type.includes('민사')) return 'TYPE_01';
+      if (type.includes('형사')) return 'TYPE_02';
+      if (type.includes('행정')) return 'TYPE_03';
+      if (type.includes('가사')) return 'TYPE_04';
+      if (type.includes('소액')) return 'TYPE_05';
+      if (type.includes('노동')) return 'TYPE_06';
+      return null;
+    }
+    const record = {
+      id:            caseNo,
+      source:        'desktop',
+      case_type:     klawResult?.caseType    || null,
+      case_type_code:_typeCode(klawResult?.caseType),
+      case_level:    klawResult?.caseLevel   || null,
+      case_detail:   klawResult?.caseDetail  || null,
+      case_input:    (caseInput || '').slice(0, 2000),
+      case_summary:  klawResult?.caseSummary?.slice(0, 500) || null,
+      verdict:       klawResult?.verdict?.slice(0, 80)      || null,
+      confidence:    klawResult?.confidence  || null,
+      complexity:    klawResult?.complexity  || null,
+      match_rate:    klawResult?.matchRate   || null,
+      verdict_type:  klawResult?.verdictType || null,
+      llm_model:     conversationState?.llmModel || 'deepseek',
+      klaw_version:  klawVersion || 'v15.1',
+      reporter:      currentUser?.ipv6 || null,
+      status:        'completed'
+    };
+    fetch(_KLAW_SUPABASE_URL + '/rest/v1/klaw_cases', {
+      method: 'POST',
+      headers: {
+        'apikey': _KLAW_SUPABASE_KEY, 'Authorization': 'Bearer ' + _KLAW_SUPABASE_KEY,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(record)
+    }).then(res => {
+      if (res.ok || res.status === 201) console.log('[K-Law] ✅ Supabase 저장 →', caseNo);
+      else res.text().then(t => console.warn('[K-Law] Supabase 오류:', res.status, t));
+    }).catch(e => console.warn('[K-Law] 네트워크 오류:', e.message));
+  } catch(e) { console.warn('[K-Law] _sendCaseToKlaw 오류:', e.message); }
+}
+
+// ══ 상태 ══════════════════════════════════════════════════
+let simCount = 0;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+let attachedFiles = [];
+
+let conversationState = {
+  phase: 'idle', messages: [], caseData: null,
+  apiKey: '', llmModel: '', caseText: ''
+};
+
+// ── 시계
+(function tick(){
+  const el = document.getElementById('clock');
+  if(el) el.textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick, 1000);
+})();
+
+// ══ LLM 카드 선택 ════════════════════════════════════════
+function selectLLM(model) {
+  conversationState.llmModel = model;
+  document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + model).classList.add('selected');
+  ['deepseek','claude','gemini'].forEach(m => {
+    const n = document.getElementById('llm-nav-' + m);
+    if (n) n.classList.toggle('active', m === model);
+  });
+  const apiSec = document.getElementById('api-key-section');
+  const apiLabel = document.getElementById('api-key-label');
+  const apiInput = document.getElementById('api-key');
+  if (model === 'deepseek') {
+    apiSec.classList.remove('visible');
+    conversationState.apiKey = '';
+  } else {
+    apiSec.classList.add('visible');
+    apiLabel.textContent = model === 'claude' ? 'Anthropic API Key' : 'Google API Key';
+    apiInput.placeholder = model === 'claude' ? 'sk-ant-…' : 'AIza…';
+  }
+}
+
+// ══ 파일 첨부 ════════════════════════════════════════════
+function handleFileAttach(input) {
+  const file = input.files[0];
+  if (!file) return;
+  attachedFiles.push(file);
+  renderFileChips();
+  input.value = '';
+}
+function renderFileChips() {
+  const wrap = document.getElementById('file-chips');
+  wrap.innerHTML = attachedFiles.map((f, i) =>
+`<span class="file-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>${f.name.slice(0,18)}${f.name.length>18?"…":""}<span class="chip-remove" onclick="removeFile(${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>`
+  ).join('');
+}
+function removeFile(idx) { attachedFiles.splice(idx, 1); renderFileChips(); }
+
+// ══ 음성 입력 ════════════════════════════════════════════
+async function toggleVoice() {
+  if (isRecording) {
+    mediaRecorder && mediaRecorder.stop(); isRecording = false;
+    const btn = document.getElementById('voice-btn');
+    btn.classList.remove('recording'); btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z'/><path d='M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8'/></svg>`;
+    document.getElementById('voice-status').style.display = 'none';
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      alert('음성 녹음 완료. 텍스트 변환 기능은 추가 API 연동이 필요합니다.');
+    };
+    mediaRecorder.start(); isRecording = true;
+    const btn = document.getElementById('voice-btn');
+    btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='4' width='4' height='16'/><rect x='14' y='4' width='4' height='16'/></svg>`; btn.classList.add('recording');
+    document.getElementById('voice-status').style.display = 'inline';
+  } catch(e) { alert('마이크 접근 권한이 필요합니다.'); }
+}
+
+// ══ LLM API 호출 ════════════════════════════════════════
+const DEEPSEEK_DEFAULT_KEY = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
+const DEEPSEEK_ENDPOINT    = 'https://api.deepseek.com/v1/chat/completions';
+
+async function callLLM(messages, maxTokens = 2000) {
+  const model  = conversationState.llmModel || 'deepseek';
+  const apiKey = conversationState.apiKey;
+
+  if (model === 'claude') {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content?.[0]?.text || '';
+  }
+  if (model === 'gemini') {
+    const gmsg = messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+    const sys  = messages.find(m=>m.role==='system')?.content || '';
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+  // DeepSeek
+  const key  = apiKey || DEEPSEEK_DEFAULT_KEY;
+  const resp = await fetch(DEEPSEEK_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+    body: JSON.stringify({ model:'deepseek-chat', messages, max_tokens:maxTokens, temperature:0.2 })
+  });
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// ══ K-Law 버전 동적 로드 ════════════════════════════════
+const KLAW_REPO_API = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
+const KLAW_RAW_BASE = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
+
+let klawVersion    = '로딩 중…';
+let klawMethodText = '';
+
+async function loadKlawVersion() {
+  // ── 캐시 확인 (벤치마크: 24시간 TTL, 전체 텍스트 저장) ──
+  try {
+    const cached = JSON.parse(sessionStorage.getItem('klaw_bench_cache') || 'null');
+    if (cached?.version && cached?.text && cached?.ts &&
+        (Date.now() - cached.ts) < 24 * 60 * 60 * 1000) {
+      klawVersion    = cached.version;
+      klawMethodText = cached.text;
+      const badge = document.getElementById('klaw-ver-badge');
+      if (badge) badge.textContent = klawVersion;
+      console.log('[K-Law Bench] 캐시 로드:', klawVersion, '전체', klawMethodText.length, 'chars');
+      return;
+    }
+  } catch(e) {}
+
+  // ── GitHub에서 v15.3 이상 최신 버전 로드 ──────────────
+  try {
+    const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
+    const files = await res.json();
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
+    function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
+    vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
+    // v15.3 이상 우선 선택
+    const eligible = vFiles.filter(f => parseVer(f) >= 15.3);
+    const latestFile = (eligible[0] || vFiles[0]) || 'klaw_v15_3.md';
+    const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
+    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.3';
+    // ── 전체 텍스트 로드 (슬라이스 없음) ──────────────────
+    const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache'});
+    klawMethodText = await raw.text();
+    // ── 캐시 저장 ──────────────────────────────────────────
+    try {
+      sessionStorage.setItem('klaw_bench_cache', JSON.stringify({
+        version: klawVersion, text: klawMethodText, ts: Date.now()
+      }));
+    } catch(e) {}
+    console.log('[K-Law Bench] 로드 완료:', klawVersion, '전체', klawMethodText.length, 'chars');
+  } catch(e) {
+    console.warn('[K-Law Bench] GitHub 로드 실패:', e.message);
+    klawVersion = 'v15.3'; klawMethodText = '';
+  }
+  const badge = document.getElementById('klaw-ver-badge');
+  if (badge) badge.textContent = klawVersion;
+}
+loadKlawVersion();
+
+
+// ══ 가상판결 출력형식 v13.3 — Context Cache 최적화 ════════
+// 고정 prefix의 일부: 방법론 + 출력형식 모두 캐시 대상
+const VERDICT_FORMAT_TEXT = `# 가상판결 출력형식 v13.3
+
+> 이 서식은 K-Law 판결 방법론 v15.1의 **강제 이행 형식**이다.
+> 각 항목은 대응하는 강제규칙·완료 태그와 연동되어 있으며,
+> 누락 시 해당 강제규칙 위반으로 감점 또는 무효 처리된다.
+> 선택적 항목([조건부])은 발동 조건 미해당 시 미해당 선언 1줄로 대체한다.
+
+## 변경 이력
+
+| 버전 | 기준 방법론 | 주요 변경 |
+|------|------------|-----------|
+| v12.0 | K-Law v12.0 | 형식-실질 비교 분석, A-0-S+, A-2+ 신설 |
+| v13.2 | K-Law v13.2 | 전면 재편. 공리 T → 공리 C 수정. 완료 태그 표준화. B-5-A/B/C 다층 검증 모듈 신설. 강제규칙 1~16 연동. 부록 A 서식 참조 체계 통일. C-α (9)(10)항 추가. |
+| v13.3 | K-Law v15.1 | **대법원 판결 일치도 동적 산출 신설.** [AI 예측 일치도] → [K-Law 대법원 판결 일치도 예상]으로 대체. 복잡도 기반 90~99.99% 구간 계산 공식 도입. STEP A 소항목 완료 태그 전면 의무화. B-5-A/B/C 조건부 발동 구조 명시. C-α 10항목 체크리스트 완전 포함. |
+
+---
+
+## ── STEP 0 ──────────────────────────────────────
+
+**[응답 헤더]** \`[K-Law vXX.X 적용 | 사건번호: XXXX | 심급: X심]\`
+→ 강제규칙 1. 미출력 시 응답 불완전.
+
+**[0-α 직관]** [원고 유리 / 피고 유리 / 불명확]
+근거: ① 입증책임 관점: [요약] ② 신뢰 보호 관점: [요약] ③ 결과 수긍 관점: [요약]
+
+**[0-β 격리]** [해당 없음 / 이전 결론 방향: (원고 유리·피고 유리·불명확) → 부록 A [A-9] 출력]
+→ 2안 이상 시 독립적 재판단 선언 필수. 강제규칙 7.
+
+**[명제]** 총 [N]쌍
+- 제1층위(소송 요건): [개수]개
+- 제2층위(법적 성격): [개수]개
+- 제3층위(본안): [개수]개
+→ 부록 A [A-1] 서식 별첨.
+
+\`[STEP-0-COMPLETE | 명제 N쌍 | 0-α: X유리 | 0-β: 해당/없음]\`
+
+---
+
+## ── STEP A ──────────────────────────────────────
+
+**[A-0 판례 법리 군]** 수집 [N]건. 전원합의체 검색: [완료/해당 없음].
+하위 판단 요소: [총 N개 추출]. 변경 법리: [있음(구 법리 인용 금지 선언) / 없음].
+→ 강제규칙 12. 3개 미만 시 -2점.
+
+\`[STEP-A-0-COMPLETE | 판례 N건 | 하위 판단 요소 N개]\`
+
+**[A-0-S 의미 해석]** → 부록 A [A-2] 서식 출력. 강제규칙 10.
+핵심 단어·문구 [N개] 해석 완료. 판례 인용: [있음 / 없음].
+특별법 감지: [특별법 존재([법률명]) / 부존재 / 검토 불필요].
+형식-실질 표지 구별: [형식적 / 실체적 / 혼합적] (판단 근거: [요약]).
+
+\`[STEP-A-0-S-COMPLETE | 해석 N개 | 판례 인용 유/무 | 특별법: 존재/부존재]\`
+
+**[A-1 역방향 추론]** 공리 B. 수량 기준 → STEP A-1 단일 출처.
+피고 최강 논거(300자 이상, 법원칙 1건 이상):
+[논거 본문]
+반대 논거 ①[내용] ②[내용] ③[내용]
+입증책임: [원고/피고] 부담 (근거: [요약])
+원고 대응 논거(동등 분량):
+[논거 본문]
+
+\`[STEP-A-1-COMPLETE | 피고 최강: (1문장 요약)]\`
+
+**[A-2 법률관계 확정]** → 게이트웨이: 부록 A [A-5] 출력. 강제규칙 2.
+[A-2-0 특별법 감지]: [특별법 존재([법률명] 제[N]조) / 부존재]
+[A-2-1 법령 시제]: 적용 법령 [법률명] ([시행일] 기준). 개정 연혁: [확인 완료 / 경과 규정 없음].
+[A-2-2 복잡도]: [N/10] (법리중복 [N] / 판례일관 [N] / 사실다층 [N] / 가치충돌 [N])
+[A-2-3 공격·방어 목록화]: 원고 [N]개 / 피고 [N]개.
+
+\`[STEP-A-2-COMPLETE | 게이트웨이 통과 | 특별법: 존재/부존재]\`
+
+**[A-3 인과 분해]** 공리 E. 6층위 전부 분해.
+① 채권·채무 발생 원인: [요약]
+② 이익 귀속 관계: [요약]
+③ 제3자 역할: [요약]
+④ 사후 행태·시간적 흐름: [요약]
+⑤ 의무의 근원법령 검토: [요약]
+⑥ 행정처분 연계성 분석: [해당 없음 / 전제-후속 관계: (요약)]
+
+\`[STEP-A-3-COMPLETE | 분해 층위 6개]\`
+
+**[A-4 명제 정교화]** 숨은 명제: [N개 추가].
+[S1]: [내용] → 탐지 근거: [부록 B 체크리스트 / 예외 법리 트리거 / 법령 조문 / 판례 법리]
+최종 명제: [총 N개].
+
+\`[STEP-A-4-COMPLETE | 최종 명제 N개(숨은 명제 N개 포함)]\`
+
+**[A-5 충돌 지점]** [N]개 식별.
+[충돌 1]: [법리 해석 차이 / 사실 인정 차이 / 입증책임 차이] — [요약]
+상식(0-α: [X유리]) ↔ 법리 예상([Y유리]): [일치 / 불일치]
+→ 불일치 시 강제규칙 3-1 발동: [발동 / 해당 없음]
+
+\`[STEP-A-5-COMPLETE | 충돌 지점 N개]\`
+
+---
+
+## ── STEP B ──────────────────────────────────────
+
+**[B-1 법률관계 최종 확정]** 강행규정 확인: [해당 없음 / 강행규정 [조문], 요건 [충족/미충족]].
+[B-1-1 특별법 우선 적용 최종 확인]: [일반법 [법률명] 적용 / 특별법 [법률명] 우선 적용]
+
+**[B-2 쟁점 계층적 처리]** 귀속 주체: [확인 완료].
+[B-2-1 행정처분 연계성]: [해당 없음 / 전제 처분 취소 시 후속 처분 효력 상실 → 판단: (요약)]
+
+**[B-3 법률행위 해석]** [해당 없음 / 계약 해석 5대 요소 적용: (요약)] (공리 I)
+
+**[B-4 해석 우선순위]** 공리 H 적용 흔적 → 강제규칙 4.
+적용 우선순위: [제1.5우선(문언 명확성 게이트) / 제1.6우선(특별법 감지) / 제1우선(제재규범 엄격해석) / 제2우선(실질 우선) / ...]
+근거: "공리 H [해당 우선순위]에 따라 [조문]은 [해석 내용]."
+[B-4-α 제재규범 이중 해석]: [해당 없음 / 엄격해석 결과: (요약) vs 확장해석 결과: (요약)]
+
+**[형식-실질 비교 분석]** → 부록 A [A-3]. 강제규칙 13.
+[해당 없음(문언 명확성 게이트 통과) / 아래 출력]
+
+\`\`\`
+적용 규정: [법률명] 제[ ]조 [ ]항
+[문언 명확성 게이트]: 명확 / 불명확
+(명확 시) 문언 해석 결과: [요약] → 실질 해석 발동 불가.
+(불명확 시)
+  형식적 해석: [요약] → 결론: [요약]
+  실질적 해석: [요약] → 결론: [요약]
+  최종 선택: [형식적/실질적] 채택. 근거: 공리 C 선행 확인 순서 [N]항.
+\`\`\`
+
+**[특별법-일반법 관계 분석]** → 부록 A [A-4]. 강제규칙 14. [조건부]
+[해당 없음 / 아래 출력]
+
+\`\`\`
+해당 영역: [행정 / 조세 / ...]
+일반법: [법률명] 제[ ]조 / 특별법: [법률명] 제[ ]조
+특별법 우선 적용 여부: 예 / 아니오
+근거: [법문 명시적 배제 / 입법 취지 / 규율 대상 특수성]
+배제 범위: [구체적으로]
+\`\`\`
+
+**[B-5 손해액 산정]** [해당 없음 / 손해액: [금액], 책임 제한: [비율·근거]] (공리 E·D)
+
+**[B-5-A 역방향 판결 초안]** → 부록 A [A-10]. 강제규칙 15. [조건부]
+발동 조건 점검: A-5 충돌 지점 [N]개 / 강제규칙 3-1 경고 [발생/없음] / 복잡도 [N/10]
+→ [B-5-A: 발동 조건 미해당 / 아래 출력]
+
+\`\`\`
+[역방향 판결 초안 – Counterfactual Judgment]
+주문: [정반대 결론]
+핵심 법리: [반대 결론 지지 법리]
+사실관계 해석: [반대 결론 지지 사실관계 해석]
+인용 판례: [원칙 수준 서술 — 판례 번호 인용 금지]
+
+[비교 분석]
+  법리 해석 차이: [요약]
+  사실 인정 차이: [요약]
+  입증책임 분배 차이: [요약]
+역방향 판결이 더 설득력 있는 지점: [있음(요약) / 없음]
+최종 결론 유지 근거: [공리 B 반전 논거 배척 논리]
+\`\`\`
+
+**[B-5-B 국제 비교 법원칙 검증]** → 부록 A [A-11]. 강제규칙 16. [조건부]
+발동 조건: B-5-A 트리거 해당 AND 해당 영역(공법·행정법·조세법·형사법·계약법)
+→ [B-5-B: 발동 조건 미해당 / 아래 출력]
+
+\`\`\`
+[국제 비교 법원칙 검증]
+해당 영역: [공법 / 행정법 / ...]
+참조 법체계: [대륙법계 공통 / ECHR / 보통법계 공통]
+수렴 확인: [복수 법체계 수렴 / 단일 법체계 원칙(참고만)]
+핵심 원칙: [비례성 / 실질 우선 / 효과적 권리 구제 / 법적 명확성 / ...]
+주문: [국제 비교 법원칙 적용 결론]
+K-Law 판결과 비교: [일치 / 불일치 — 불일치 원인 명시]
+\`\`\`
+
+**[B-5-C 통합 비교 분석]** [B-5-A 또는 B-5-B 발동 시] → 부록 A [A-12].
+→ [B-5-C: 선행 모듈 미발동 / 아래 출력]
+
+\`\`\`
+[통합 비교 분석]
+              K-Law 판결    역방향 판결    국제 법원칙 판결
+주문:         ( )          ( )           ( / 미발동)
+핵심 근거:    ( )          ( )           ( / 미발동)
+
+의사결정 규칙 판정:
+  □ (1) 역방향 AND 국제 법원칙 모두 K-Law와 상이 → -2점(법리) + STEP A 재실행 권고
+  □ (2) 둘 중 하나만 K-Law와 상이 → -1점(법리) + 차이 지점 명시
+  □ (3) 모두 K-Law와 동일 → +1점(법리) 가산
+
+최종 결론: [K-Law 판결 유지 / 수정 → 수정 방향: (요약)]
+확신도 조정: 법리 [X/10] → [Y/10]
+\`\`\`
+
+**[B-6 상식 필터·반전 논거]** (공리 D·B·K)
+반전 논거: "[결론을 뒤집을 수 있는 가장 강력한 단일 법리적 논거]"
+배척 이유: [배척 논리] → 강제규칙 4·공리 B 5항.
+
+**[B-7 최종 판결문]** → 부록 A [A-6]. 강제규칙 5.
+[B-7-0 공격·방어 방법 누락 검증]: 원고 [N]개 전부 판단 완료 / 피고 [N]개 전부 판단 완료.
+
+주 문:
+[구체적 주문 내용]
+
+이 유:
+[상세 이유 — 사실관계, 법리 적용, 결론 도출 과정]
+
+\`[STEP-B-COMPLETE | 판결문 완료 | 확신도 포함]\`
+
+---
+
+## ── STEP C ──────────────────────────────────────
+
+**[C-1]** 인권 보호 항목: [해당 없음 / 위법수집증거: (판단) / 자백 임의성: (판단) / 절차적 약자 조치: (판단)] (공리 F)
+**[C-2]** 판례 인용 5단계 검증: [완료]. 하위 판단 요소 완전성: [충족 / 보완 N개].
+**[C-3]** 출력 형식: [인용 / 기각 / 각하 / 절차적 환송(파기환송)]. '승/패' 표현: [미사용 확인].
+**[C-4]** 자기 갱신 트리거: [해당 없음 / 트리거 발동 → 수정 대상: (요약)].
+
+**[C-α 완결 게이트웨이]**
+\`\`\`
+(1)  명제-판단 일치 완전성: 완료
+(2)  확신도 출력: 완료 [A-6]
+(3)  자기 평가 출력: 완료 [A-7]
+(4)  판례 인용 검증: 완료
+(5)  강제규칙 1~16 준수: 완료
+(6)  반대 의견 생성 및 배척: 완료
+(7)  특별법 감지 비교 분석: 완료 [A-4] / 해당 없음
+(8)  행정처분 연계성 분석: 완료 / 해당 없음
+(9)  역방향 판결 초안 [A-10]: 완료 / 해당 없음
+(10) 국제 비교 법원칙 검증 [A-11]: 완료 / 해당 없음
+\`\`\`
+
+\`[STEP-C-α-COMPLETE | 전 항목 완료]\`
+
+---
+
+## ── 확신도 및 대법원 판결 일치도 (v13.3 신설) ─────────────
+
+→ 부록 A [A-6][A-7]. 강제규칙 5·6.
+
+\`\`\`
+[법리 확신도: X/10] [사실 확신도: Y/10]
+[종합 확신도: min(X,Y)/10]
+[결론 유형: 판단유보 / 조건부 / 확정적 / 절차적 환송]
+(절차적 환송 시) 환송 취지: 추가 심리 필요 / 법리 재검토 / 사실관계 재확인
+[사건 복잡도: X/10]
+\`\`\`
+
+### ※ v13.3 대법원 판결 일치도 산출 기준 (신설)
+
+**근거**: K-Law v15.1 논문
+- 대법원 공개 판례(고난도, 선별) 기준 실측 일치도: **73%**
+- 일반 사건(법리 명확, 사실관계 단순) 기준 추정 일치도: **평균 99%**
+- 합리적 추정: 1만 건 일반 사건 중 9,990건 이상 일치 예상
+
+**산출 공식**:
+\`\`\`
+대법원 판결 일치도 예상 = 99.99% − (사건복잡도 − 1) × 1.11%
+\`\`\`
+
+| 사건 복잡도 | 일치도 예상 | 해당 사건 유형 예시 |
+|------------|-----------|-----------------|
+| 1/10 | **99.99%** | 법리 명확, 단순 계약 위반 |
+| 2/10 | **98.88%** | 단순 대여금 반환 |
+| 3/10 | **97.77%** | 소액 손해배상 |
+| 4/10 | **96.66%** | 표준 행정처분 취소 |
+| 5/10 | **95.55%** | 중간 복잡도 민사 |
+| 6/10 | **94.44%** | 복합 법률관계 |
+| 7/10 | **93.33%** | 가치충돌 행정·형사 |
+| 8/10 | **92.22%** | 고도 법리 해석 분쟁 |
+| 9/10 | **91.11%** | 헌법적 쟁점 포함 |
+| 10/10 | **90.00%** | 대법원 공개 판례 수준 고난도 |
+
+\`\`\`
+[K-Law 대법원 판결 일치도 예상: XX.XX% (복잡도 N/10 기준)]
+\`\`\`
+
+---
+
+## ── 자기 검증 ────────────────────────────────────
+
+→ 부록 A [A-8]. 강제규칙 9.
+
+\`\`\`
+==============================
+[자기 검증]
+□ 강제규칙 1~16 준수: 예 / 아니오
+□ 준수하지 않은 규칙: 없음 / (번호 및 사유 명시)
+□ 독립적 재판단 선언 출력 여부 (2안 이상 시): 출력 / 해당 없음
+□ 재생성 필요 여부: 불필요 / 필요
+==============================
+\`\`\`
+
+\`[STEP-C-COMPLETE | C-α 완료 후 최종 출력]\`
+
+---
+
+## ── 판결 요약 ────────────────────────────────────
+
+**판결 요약:** [판결의 핵심 내용 2~3문장. 주문·핵심 법리·종합확신도·대법원 판결 일치도 예상 포함.]
+
+---
+
+## 부록: 일치도 면책 고지
+
+본 대법원 판결 일치도 예상 수치는 K-Law v15.1 논문에 근거한 통계적 추정치입니다.
+개별 사건의 실제 대법원 판결 결과와 다를 수 있으며, 법률 자문을 대체하지 않습니다.
+실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
+`;
+
+// ══ 일치도 평가 기준 (v1.6) — Context Cache 최적화 ════════
+// 고정 prefix: 평가 기준 전체 텍스트 (매 요청마다 동일 → 캐시 히트)
+// 가변 suffix: 가상 판결문 + 실제 판결문 (매 요청마다 다름)
+const MATCH_CRITERIA_TEXT = `**일치도 평가 기준**
+
+**v1.6**
+
+기반 방법론: K-Law v13.2
+
+작성일: 2026. 5. 1.
+
+이전 버전: v1.5 (2026. 4. 27.)
+
+**주요 갱신 (v1.5 → v1.6)**
+
+- 공리 번호 오류 수정: 공리 11 → 공리 G, 공리 19 → 공리 J
+
+- 절차 참조 수정: 절차 B-7 → STEP B-7 / 구조 이해도 STEP C-7 → C-α
+
+- 용어 통일: [잠정 결론] → [조건부 결론] (공리 G 용어 정합)
+
+- 판단 유보 면책 조건 정밀화: 공리 G 결정 회피 방지 장치 연동
+
+- 세부 논증 평가: A-0-S 의미 해석 완료 여부 반영 기준 추가
+
+- 다층 검증 모듈 평가 반영: B-5-A/B/C 결과 연동 기준 신설
+
+- 확신도 가산 연동: B-5-C (3) +1점 트리거와 평가 가산 연계
+
+- 강제규칙 범위 갱신: 1~13 → 1~16
+
+- 기반 방법론 갱신: K-Law v9.2 → v13.2
+
+# **제1장 목적 및 적용 범위**
+
+본 기준은 K-Law 방법론에 의해 생성된 가상 판결문과 실제 상위 법원(대법원 등)의 판결문 간 일치도를 체계적으로 평가하기 위해 설계되었다. 평가 결과는 K-Law 방법론의 품질 측정 및 갱신 필요성 판단에 사용된다.
+
+**적용 대상:** K-Law 가상 판결문과 대응하는 실제 판결문(또는 판례 요약문) 쌍.
+
+**적용 방법론:** K-Law v13.2 이상. 이전 버전(v12.x 이하)에서 생성된 판결문은 해당 버전 기준으로 평가한다.**  [v1.6 수정]**
+
+# **제2장 평가 항목 및 배점 (10점 만점)**
+
+| **항목** | **배점** | **설명** |
+| --- | --- | --- |
+| 결론 방향 일치도 | 4점 | 최종 주문(인용, 기각, 각하, 파기, 환송 등)의 방향 일치 |
+| 핵심 법리 일치도 | 3점 | 사건의 핵심 쟁점에 대한 법리 적용 및 해석의 일치 |
+| 세부 논증 일치도 | 3점 | 구체적 사실 평가, 논증 구조, 보조 법리, A-0-S 의미 해석 등의 일치 |
+| 종합 점수 | 10점 | 위 항목 단순 합계 (4+3+3) |
+
+*※ 세부 논증 일치도(3점)는 v1.6부터 A-0-S 의미 해석 완료 여부를 평가 항목에 포함한다. (→ 제2장 2.1 참조)*
+
+## **2.1 세부 논증 일치도 세부 기준 (v1.6 강화)**
+
+세부 논증 3점은 다음 3개 하위 항목으로 구성된다.
+
+| **하위 항목** | **배점** | **평가 기준** |
+| --- | --- | --- |
+| 사실 평가·논증 구조 | 1.5점 | 구체적 사실 인정, 인과관계 분석, 논증 흐름의 일치 |
+| 보조 법리·판례 적용 | 1.0점 | 주요 쟁점 외 보조 법리, 입증책임 분배의 일치 |
+| A-0-S 의미 해석 정합성 | 0.5점 | v13.2 STEP A-0-S의 핵심 단어·문구 의미 해석이 실제 판결의 법령 해석과 일치하는지 여부 |
+
+*※ A-0-S 의미 해석 정합성(0.5점)은 가상 판결문에 A-0-S 출력이 존재하는 경우에만 평가한다. A-0-S 출력이 누락된 경우는 강제규칙 10 위반으로 별도 기록하고, 이 항목은 N/A 처리한다.*
+
+## **2.2 등급 구분**
+
+| **등급** | **점수 범위** | **설명** |
+| --- | --- | --- |
+| 완전 일치 | 9.0 ~ 10.0 |  |
+| 대체로 일치 | 7.0 ~ 8.9 |  |
+| 부분 일치 | 5.0 ~ 6.9 |  |
+| 불일치 | 3.0 ~ 4.9 |  |
+| 완전 불일치 | 0.0 ~ 2.9 |  |
+
+## **2.3 다층 검증 모듈(B-5-A/B/C) 평가 반영 기준 (v1.6 신설)**
+
+v13.2 STEP B-5-A(역방향 판결 초안), B-5-B(국제 비교 법원칙 검증), B-5-C(통합 비교 분석)의 결과는 다음과 같이 평가에 반영한다.
+
+| **상황** | **평가 반영** |
+| --- | --- |
+| B-5-A/B 발동 조건 미해당 → [미해당] 1줄 출력 | 정상 평가. 감점 없음. |
+| B-5-A/B 발동 조건 해당 → 출력 누락 | 강제규칙 15 또는 16 위반. 세부 논증 -0.5점. |
+| B-5-C (1): 역방향+국제 법원칙 모두 K-Law와 상이 → 최종 결론 미수정 | 결론 방향 점수에서 추가 -0.5점 고려 (평가자 재량). |
+| B-5-C (3): 모두 동일 → +1점 가산 트리거 발동 | 세부 논증 +0.5점 가산 가능 (10점 초과 불가). |
+| B-5-B 국제 법원칙 참조 시 판례 번호 인용 | 공리 J 허위 판례 차단 위반. 핵심 법리 -0.5점. |
+
+*※ B-5-C (3) +0.5점 가산은 v1.6에서 최초 도입된 유일한 세부 논증 가산 트리거이다.*
+
+# **제3장 정보 부족 처리 및 면책 조항**
+
+## **3.1 판단 유보 면책 (v1.6 정밀화)**
+
+K-Law 가상 판결문이 다음 조건 중 하나에 해당하여 특정 쟁점에 대해 확정적 결론을 내리지 않은 경우, 평가 시 해당 쟁점에 대한 감점을 적용하지 않는다.
+
+단, K-Law가 면책 조건을 충족했음을 명시적으로 기록하여야 한다.
+
+### **(1) 판단 유보 면책**
+
+공리 G 분기표에 따라 사실 확신도 < 4 또는 법리 확신도 < 4인 경우, STEP B-7에서 [판단 유보: 필요 정보 목록]을 출력하고 명확한 필요 정보를 제시한 경우.
+
+*※ v1.5의 **"**공리 11 및 절차 B-7**"** 참조를 **"**공리 G(정보 불확실성과 확신도) 및 STEP B-7**"**로 수정.*
+
+- 해당 쟁점에 대한 결론 방향 및 세부 논증 평가 항목은 면책하여 점수에 반영하지 않음.
+
+- 나머지 쟁점은 정상 평가.
+
+### **(2) 조건부 결론 면책 (v1.6: 용어 수정)**
+
+공리 G 분기표에 따라 사실 확신도 4~6인 경우, STEP B-7에서 [조건부 결론]을 출력한 경우.
+
+*※ v1.5의 **"**[잠정 결론]**"** 용어를 v13.2 공리 G 용어인 **"**[조건부 결론]**"**으로 통일.*
+
+- 결론 방향 점수(4점)는 면책하고, 조건부 결론의 법리와 논증만 평가(최대 3점).
+
+### **(3) 결정 회피 방지 장치와의 관계 (v1.6 신설)****  [v1.6 신설]**
+
+v13.2 공리 G의 "결정 회피 방지 장치"에 따라 다음 4가지 정보가 모두 제공된 경우에는 판단 유보 면책이 적용되지 않는다.
+
+- (a) 청구 취지 및 청구 원인
+
+- (b) 당사자 특정 정보
+
+- (c) 사건 발생 일시 및 경위
+
+- (d) 원심의 판단 요지
+
+*※ 4대 정보가 모두 제공되었음에도 K-Law가 판단을 유보한 경우, 이는 강제규칙 3 위반이므로 면책하지 않고 정상 감점한다.*
+
+### **(4) 완전한 정보 부족으로 전체 평가 불가**
+
+사건 요약 자체가 핵심 사실(청구 취지, 당사자, 발생 일시 등)을 전혀 제공하지 않아 K-Law가 어떠한 결론도 내릴 수 없는 경우.
+
+- 평가자는 "평가 불가"로 표시하고 점수를 부여하지 않는다.
+
+- 이 경우 방법론 갱신 통계에서 제외한다.
+
+## **3.2 판례 미인용 면책 (v1.5 유지)**
+
+K-Law 가상 판결문이 실제 판례를 전혀 인용하지 않았더라도 감점 없음. 단, 다음 조건을 만족하여야 한다.
+
+- 허위 판례 생성 금지: 존재하지 않는 판례번호를 임의로 생성하는 행위는 감점 대상.
+
+- 판례 부재 시 표준 문구 의무 (공리 J 준수 시 면책): "※ 직접 적용 가능한 판례 없음" 문구 출력 시 면책.
+
+- 판례 인용의 정확성 평가: 판례를 인용한 경우에만 정확성(판례 번호, 법리 일치 여부)을 평가한다.
+
+*※ v1.5의 **"**공리 19 준수 시 면책**"** 참조를 **"**공리 J(판례법적 사고) 7항 허위 판례 차단 준수 시 면책**"**으로 수정.*
+
+## **3.3 정보 부족 가산점 체크리스트 (v1.5 유지)**
+
+정보 부족으로 평가가 어려운 경우 아래 체크리스트에 따라 최대 +1.5점 가산.
+
+단, 이 가산점은 면책 조건과 별도로 적용된다.
+
+| **항목** | **가산점** | **조건** |
+| --- | --- | --- |
+| ① 미포착 쟁점이 결론 방향에 직접 영향을 미쳤는가? | - | 영향 시 가산 불가 |
+| ② K-Law가 정보 부족을 인지하고 추가 정보 요청하였는가? | +0.5점 |  |
+| ③ 제공된 사실관계에 해당 정보가 애초에 없었는가? | +0.5점 |  |
+| ④ 정보 부족의 정도가 중대한 수준인가? | +1.0점 | 예: 원심·대법원 판결문 미제공 |
+| ⑤ 미포착 쟁점이 구조적 부재에 기인하는가? | +0.5점 | 예: 판결문 자체 미제공 |
+
+*※ 가산 적용 시 최종 점수 = (결론+법리+논증) + 가산점, 단 10점 초과 불가.*
+
+# **제4장 1심·2심 결론 유추 및 평가 (강제 규칙, v1.5 유지)**
+
+실제 심급별 판결문이 제공되지 않은 경우라도, 대법원 판결문만으로 원심 결론을 반드시 유추하여 평가한다.
+
+| **대법원 결과** | **원심 결론 유추** |
+| --- | --- |
+| 상고인용 + 원심 파기환송 | 원심 결론 = 대법원 결론의 정반대 방향 |
+| 상고기각 (원심 확정) | 원심 결론 = 대법원 결론 |
+| 상고 각하 | 원심 결론 평가 불가 (N/A) |
+
+유추가 불가능한 경우는 없다. 최소한 결론 방향(4점 또는 0점)은 항상 부여한다.
+
+*※ 단, 사실 데이터 부족 면책 조항(제3장 3.1)에 따라 K-Law가 원심 정보 부족으로 판단 유보한 경우, 해당 심급 평가도 면책된다.*
+
+# **제5장 평가 출력 형식 (v1.6 개정)**
+
+평가자는 아래 형식을 반드시 따라야 한다. 모든 점수는 숫자 또는 "N/A", 면책 사항은 "[면책]" 표시.
+
+**▶ 필수 출력 형식**
+
+| **항목** | **형식** |
+| --- | --- |
+| 다툼의 요지 | (2~3문장) |
+| K-Law 가상 판결 vs 대법원 |  |
+| 결론 방향 | [0-4]점 또는 [면책] / 4점 |
+| 핵심 법리 | [0-3]점 / 3점 |
+| 세부 논증 | [0-3]점 / 3점 (A-0-S 정합성 포함) |
+| A-0-S 의미 해석 정합성 | [0-0.5]점 또는 N/A (세부 논증 내 포함) |
+| 종합 점수 | [0-10]점 또는 [면책] / 10점 (등급: ...) |
+| 면책 사유 (있는 경우) | 예: 사실 확신도 4 미만으로 판단 유보 / 판례 미인용 / 4대 정보 미제공 |
+| B-5-A/B/C 결과 반영 | 발동: [해당/미해당] → 감점/가산: [±X점 / 없음] |
+| 1심(유추/추정) vs 대법원 | 동일 형식. 정보 부족 시 N/A. |
+| 2심(유추/추정) vs 대법원 | 동일 형식. |
+| 종합 비교 | K-Law vs 대법원: X.X점 / 1심: X.X점 / 2심: X.X점 / 더 일치: [K-Law / 1심 / 2심 / 면책] |
+| 정보 부족 가산점 | 적용 여부: [예/아니오] / 체크리스트 ①②③④⑤ / 가산점: +?점 / 최종: X.X점 |
+| 구조 이해도 반영 (C-α 기준) | C-α 항목 (1)~(10) 완료율 [N/10] / 세부 논증 가감: ±?점 (재량) |
+| 방법론 갱신 필요성 분석 | 종합 점수 < 7 시 필수 / 갱신 트리거 / 미흡 지점 / 개선 제안 |
+| 강제규칙 준수 현황 | 강제규칙 1~16 중 위반 여부: [없음 / 위반 규칙 번호 명시] |
+
+*※ v1.6 수정: 구조 이해도 기준이 **"**STEP C-7**"**에서 **"**C-α (1)~(10) 항목 완료율**"**로 변경되었다.*
+
+*※ v1.6 신설: B-5-A/B/C 결과 반영 항목 및 강제규칙 1~16 준수 현황 항목이 추가되었다.*
+
+# **제6장 특별 규정 (v1.5 유지, v1.6 조항 추가)**
+
+## **6.1 면책과 가산점의 관계**
+
+면책은 감점을 방지하는 소극적 보호이며, 가산점은 평가자가 정보 부족을 고려해 점수를 높이는 적극적 조치이다. 둘은 함께 사용할 수 있다.
+
+## **6.2 판례 미인용 완전 면책**
+
+v1.5부터 판례 미인용 자체는 어떤 경우에도 감점되지 않는다. 그러나 평가 보고서에는 "판례 인용 여부"를 별도로 기록할 수 있다.
+
+## **6.3 일치도 저하 통계**
+
+면책 처리된 사건은 방법론 갱신 트리거(일치도 평균 7점 미만 등) 계산에서 제외한다. 별도로 "면책 사건 수"와 "정상 평가 사건 수"를 분리 기록한다.
+
+## **6.4 결정 회피 방지 장치 위반 처리 (v1.6 신설)**
+
+4대 정보(청구 취지, 당사자, 발생 일시, 원심 판단 요지)가 모두 제공되었음에도 K-Law가 판단을 유보한 경우, 이는 강제규칙 3 위반 및 공리 G 결정 회피 방지 장치 위반으로 처리한다.
+
+- 결론 방향 점수: 면책 불가. 정상 채점.
+
+- 방법론 갱신 보고서: 해당 사건을 "결정 회피 위반" 항목으로 별도 기록.
+
+- 공리 O 트리거 (p) 발동 여부 검토.
+
+## **6.5 다층 검증 모듈 미발동 처리 (v1.6 신설)**
+
+B-5-A/B/C 발동 조건에 해당함에도 출력이 누락된 경우:
+
+- 강제규칙 15 또는 16 위반으로 기록.
+
+- 세부 논증에서 -0.5점 반영.
+
+- 방법론 갱신 보고서에 누락 건수 기록 (공리 O 트리거 (x)(y) 발동 기준).
+
+# **제7장 버전 이력**
+
+| **버전** | **날짜** | **주요 변경 사항** |
+| --- | --- | --- |
+| v1.6 | 2026. 5. 1. | 기반 방법론 K-Law v13.2 반영. 공리 번호 오류 수정(공리 11→G, 공리 19→J). 절차 참조 수정(절차 B-7→STEP B-7, STEP C-7→C-α). 용어 통일([잠정 결론]→[조건부 결론]). 결정 회피 방지 장치 면책 제한 신설. A-0-S 의미 해석 정합성 세부 논증 0.5점 반영. 다층 검증 모듈(B-5-A/B/C) 평가 반영 기준 신설. B-5-C (3) +0.5점 가산 도입. 강제규칙 1~16 준수 현황 출력 항목 신설. |
+| v1.5 | 2026. 4. 27. | 사실 데이터 부족 판단 불가(유보) 시 면책 조항 신설, 판례 미인용 전면 면책, 출력 형식에 면책 표시 추가 |
+| v1.4 | 2026. 4. 26. | 정보 부족 가산점 체크리스트, 1심·2심 유추 강제, 판례 인용 의무화 |
+| v1.3 | 2026. 4. 25. | 확신도 이원화 반영, 종합 점수 산출식 수정 |
+| v1.0 | 2026. 4. 20. | 최초 제정 |
+
+*이 기준은 K-Law 방법론 v13.2 이상과 함께 사용되며, 평가의 공정성과 일관성을 보장한다.*`;
+
+function buildMatchPrompt(virtualVerdict, realVerdict) {
+  // ── 고정 prefix (캐시 대상) ─────────────────────────────
+  // 평가 기준 전체를 앞에 배치 — DeepSeek Context Cache가 자동 캐시
+  const fixedPrefix = `당신은 K-Law 가상 판결문과 실제 대법원 판결문의 일치도를 평가하는 전문가입니다.
+아래 일치도 평가 기준(v1.6)을 반드시 준수하여 평가하십시오.
+
+[일치도 평가 기준 v1.6]
+${MATCH_CRITERIA_TEXT}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+위 기준에 따라 아래 두 판결문을 비교 평가하십시오.
+제5장 필수 출력 형식을 반드시 준수하여 출력하십시오.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  // ── 가변 suffix (캐시 제외) ─────────────────────────────
+  // 판결문은 매번 다르므로 맨 끝에 배치
+  return fixedPrefix + `
+
+[K-Law 가상 판결문]
+${virtualVerdict}
+
+[실제 대법원 판결문]
+${realVerdict}`;
+}
+
+// ══ 분석 프롬프트 ════════════════════════════════════════
+const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
+사용자가 제출한 사건의 개요를 분석하여 아래 형식으로 정확히 응답하세요.
+
+【심급】1심 / 2심 / 3심 / 헌법재판 중 하나
+【사건분류】민사(본안) / 형사 / 행정 / 가사 / 소액사건 / 노동 중 하나
+【사건종류_상세】사건의 구체적 유형
+【사건의 개요】입력된 내용을 바탕으로 명확하게 정리
+【원고의 주장】원고(신청인) 측 주장 정리 (없으면 "정보 부족"으로 표기)
+【피고의 주장】피고(상대방) 측 주장 정리 (없으면 "정보 부족"으로 표기)
+【다툼이 없는 사실】양측이 동의하는 사실관계 (없으면 "추가 확인 필요"로 표기)
+【다툼의 요지】핵심 법적 쟁점 2~3가지
+【추가질문】판결 시뮬레이션에 필요한 정보가 부족한 경우 구체적인 질문 1~3개. 충분하면 "없음".
+
+응답은 반드시 위 형식만 사용하세요.`;
+
+function calcMatchRate(complexity) {
+  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+  const rate = 99.99 - (c - 1) * (9.99 / 9);
+  if (rate >= 99.9) return rate.toFixed(2) + '%';
+  if (rate >= 99)   return rate.toFixed(1) + '%';
+  return rate.toFixed(0) + '%';
+}
+
+function buildKlawSimPrompt(caseNo, level) {
+  // ── DeepSeek Context Cache 최적화 ─────────────────────────
+  // 고정 prefix (캐시 대상): 역할 선언 + 방법론 전체 + 출력형식 안내
+  // 가변 suffix (캐시 제외): 사건번호·심급 — 맨 끝에 배치
+  const methodBody = klawMethodText
+    ? '[K-Law 방법론 원문]\n' + klawMethodText + '\n\n---\n\n'
+    : '';
+  // 출력 형식 전체도 고정 prefix에 포함 (캐시 대상)
+  const formatBody = VERDICT_FORMAT_TEXT
+    ? '[가상판결 출력형식 v13.3]\n' + VERDICT_FORMAT_TEXT + '\n\n---\n\n'
+    : '';
+  return `당신은 대한민국 법원 판결 AI입니다. K-Law 판결 방법론을 적용하여 가상판결을 작성합니다.
+${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
+본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]`;
+}
+
+// ══ STEP 정의 ════════════════════════════════════════════
+const STEP_DEFS = [
+  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
+    prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
+  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석',
+    prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
+  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
+    prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+];
+
+// ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
+async function runSimulation() {
+  const caseInput = document.getElementById('case-input').value.trim();
+  if (!caseInput || caseInput.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
+
+  document.getElementById('llm-section').classList.add('visible');
+  if (!conversationState.llmModel) selectLLM('deepseek');
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = '분석 중...';
+
+  conversationState.caseText = caseInput;
+  conversationState.phase = 'analyzing';
+  conversationState.messages = [
+    { role:'system', content: KLAW_ANALYZE_PROMPT },
+    { role:'user',   content: '사건의 개요:\n' + caseInput }
+  ];
+
+  showAnalysisPanel(true);
+
+  try {
+    const result = await callLLM(conversationState.messages, 1400);
+    conversationState.messages.push({ role:'assistant', content: result });
+    conversationState.caseData = parseAnalysis(result);
+    showAnalysisPanel(false);
+    renderAnalysis(conversationState.caseData);
+
+    const addQ = conversationState.caseData.extraQ;
+    if (addQ && addQ !== '없음' && addQ.trim().length > 2) {
+      conversationState.phase = 'chatting';
+      renderChatPanel(addQ);
+    } else {
+      autoRunSim();
+    }
+  } catch(e) {
+    showAnalysisPanel(false);
+    showError('분석 중 오류: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '입력 완료';
+  }
+}
+
+function autoRunSim() {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="chat-panel-inner"><div class="klaw-msg"><div class="klaw-msg-label">K-Law AI</div>추가 정보 없이 판결 시뮬레이션을 시작합니다.</div></div>`;
+  setTimeout(() => runJudgementSim(), 400);
+}
+
+function parseAnalysis(text) {
+  const get = tag => { const m = text.match(new RegExp('【' + tag + '】\\s*([\\s\\S]*?)(?=【|$)')); return m ? m[1].trim() : ''; };
+  return {
+    level: get('심급'), type: get('사건분류'), typeDetail: get('사건종류_상세'),
+    overview: get('사건의 개요'), plaintiff: get('원고의 주장'), defendant: get('피고의 주장'),
+    agreed: get('다툼이 없는 사실'), dispute: get('다툼의 요지'), extraQ: get('추가질문')
+  };
+}
+
+function caseTypeColor(type) {
+  const map = {'민사':'#0057A8','민사(본안)':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#7B3FA0','소액사건':'#C05621','노동':'#B8952A','헌법재판':'#003C82'};
+  for (const [k,v] of Object.entries(map)) { if (type && type.includes(k)) return v; }
+  return '#0057A8';
+}
+
+function renderAnalysis(d) {
+  const panel = document.getElementById('analysis-panel');
+  const typeColor = caseTypeColor(d.type);
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="case-type-bar" style="background:${typeColor}">
+      <div>
+        <div class="case-type-name">${escHtml(d.type||'—')}</div>
+        ${d.typeDetail?`<div class="case-type-detail">${escHtml(d.typeDetail)}</div>`:''}
+        <div class="case-level-tag">${escHtml(d.level||'—')}</div>
+      </div>
+      <div class="case-ver-badge">K-Law <span id="analysis-klaw-ver">${escHtml(klawVersion)}</span></div>
+    </div>
+    <div class="analysis-table">
+      ${analysisRow('사건의 개요',d.overview)}
+      ${analysisRow('원고의 주장',d.plaintiff)}
+      ${analysisRow('피고의 주장',d.defendant)}
+      ${analysisRow('다툼이 없는 사실',d.agreed)}
+      ${analysisRow('다툼의 요지',d.dispute)}
+    </div>`;
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function analysisRow(label, value) {
+  return `<div class="analysis-row"><div class="analysis-key">${label}</div><div class="analysis-val">${value||'—'}</div></div>`;
+}
+
+function renderChatPanel(question) {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="chat-panel-inner">
+      <div class="klaw-msg">
+        <div class="klaw-msg-label">K-Law AI</div>
+        ${question.replace(/\n/g,'<br>')}
+      </div>
+      <div id="chat-messages"></div>
+      <div class="chat-input-row" id="chat-input-area">
+        <textarea class="chat-textarea" id="chat-reply" placeholder="추가 정보를 입력하세요…"></textarea>
+        <div class="chat-actions">
+          <button class="btn-sm btn-sm-pri" onclick="sendChatReply()">전송</button>
+          <button class="btn-sm" onclick="requestReadyCheck()">생략</button>
+        </div>
+      </div>
+    </div>`;
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function appendKlawMsg(html) {
+  const chatMsgs = document.getElementById('chat-messages');
+  if (!chatMsgs) return;
+  const div = document.createElement('div'); div.className = 'klaw-msg';
+  div.innerHTML = `<div class="klaw-msg-label">K-Law AI</div>${html}`;
+  chatMsgs.appendChild(div);
+}
+function appendUserMsg(text) {
+  const chatMsgs = document.getElementById('chat-messages');
+  if (!chatMsgs) return;
+  const div = document.createElement('div'); div.className = 'user-msg';
+  div.innerHTML = `<div class="user-msg-label">입력</div>${escHtml(text)}`;
+  chatMsgs.appendChild(div);
+}
+
+async function sendChatReply() {
+  const reply = document.getElementById('chat-reply').value.trim();
+  if (!reply) return;
+  appendUserMsg(reply);
+  document.getElementById('chat-reply').value = '';
+  conversationState.messages.push({ role:'user', content: reply });
+  const checkPrompt = [...conversationState.messages, { role:'user', content:'위 추가 답변을 반영하여, 판결 시뮬레이션에 충분한 정보가 갖춰졌는지 판단하세요. 추가 질문이 필요하면 【추가질문】 형식으로, 충분하면 "시뮬레이션_진행"이라고만 답하세요.' }];
+  const loadId = 'chat-loading-' + Date.now();
+  appendKlawMsg(`<span id="${loadId}" style="opacity:.5;display:flex;align-items:center;gap:6px"><div class="spinner"></div> 검토 중…</span>`);
+  try {
+    const resp = await callLLM(checkPrompt, 500);
+    document.getElementById(loadId)?.parentElement?.remove();
+    if (resp.includes('시뮬레이션_진행') || resp.includes('시뮬레이션 진행')) {
+      showReadyMessage();
+    } else {
+      const qM = resp.match(/【추가질문】\s*([\s\S]*?)(?=【|$)/);
+      appendKlawMsg((qM ? qM[1].trim() : resp.trim()).replace(/\n/g,'<br>'));
+      conversationState.messages.push({ role:'assistant', content: resp });
+    }
+  } catch(e) {
+    document.getElementById(loadId)?.parentElement?.remove();
+    appendKlawMsg(`<span style="color:var(--red)">오류: ${escHtml(e.message)}</span>`);
+  }
+}
+
+function requestReadyCheck() {
+  conversationState.messages.push({ role:'user', content:'(추가 정보 없이 진행)' });
+  readyAndAutoRun();
+}
+
+function showReadyMessage() {
+  readyAndAutoRun();
+}
+
+function readyAndAutoRun() {
+  const inputArea = document.getElementById('chat-input-area');
+  if (inputArea) inputArea.style.display = 'none';
+  appendKlawMsg('판결문 작성을 시작합니다.');
+  setTimeout(() => runJudgementSim(), 300);
+}
+
+// ══ STEP별 순차 출력 ════════════════════════════════════
+async function runJudgementSim() {
+  const model  = conversationState.llmModel || 'deepseek';
+  const apiKey = document.getElementById('api-key') ? document.getElementById('api-key').value.trim() : '';
+  if (model !== 'deepseek' && !apiKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
+  conversationState.apiKey = apiKey;
+
+  const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
+  const level  = conversationState.caseData?.level || '3심';
+
+  const simPanel = document.getElementById('sim-panel');
+  simPanel.style.display = 'block';
+  simPanel.innerHTML = `
+    <div class="verdict-doc" id="verdict-container">
+      <div class="verdict-hd">
+        <div>
+          <div class="verdict-title-row">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
+            K-Law 가상 판결문
+          </div>
+          <div class="verdict-meta">${escHtml(caseNo)} · ${escHtml(level)} · K-Law ${escHtml(klawVersion)} · ${new Date().toLocaleString('ko-KR')}</div>
+        </div>
+      </div>
+      <div class="verdict-body" id="verdict-body">
+        <div id="verdict-steps"></div>
+      </div>
+    </div>`;
+  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('sim-counter').textContent = simCount + '건';
+
+  const baseCtx = conversationState.messages.filter(m=>m.role!=='system').map(m=>(m.role==='user'?'사용자: ':'K-Law: ')+m.content).join('\n\n');
+  window._verdictParts = {};
+  window._verdictCaseNo = caseNo;
+
+  for (const stepDef of STEP_DEFS) {
+    await renderStepStreaming(stepDef, baseCtx, caseNo, level);
+  }
+
+  const fullText = Object.values(window._verdictParts).join('\n\n');
+  appendConfidenceBlock(fullText);
+  window._verdictText = fullText;
+  document.getElementById('dl-btn').style.display = '';
+
+  // Supabase 저장
+  const verdictM = fullText.match(/主\s*문\s*[:：]?\s*([^\n]{1,80})/)||fullText.match(/주\s*문\s*[:：]?\s*([^\n]{1,80})/);
+  const confM    = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
+
+  await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
+    caseType:    conversationState.caseData?.type    || null,
+    caseLevel:   conversationState.caseData?.level   || level,
+    caseSummary: summM ? summM[1].trim().slice(0,150) : null,
+    verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
+    confidence:  confM ? confM[1] + '/10' : null,
+    caseInput:   (conversationState.caseText || '').slice(0, 200)
+  });
+
+  _sendCaseToKlaw({
+    caseType:    conversationState.caseData?.type,
+    caseLevel:   conversationState.caseData?.level,
+    caseSummary: summM ? summM[1].trim().slice(0,500) : null,
+    verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
+    confidence:  confM ? confM[1]+'/10' : null,
+    complexity:  complexM ? complexM[1] : null,
+    matchRate:   complexM ? calcMatchRate(complexM[1]) : null,
+  }, conversationState.caseText || '');
+
+  // PDV 보고 — 판결 시뮬레이션 완료
+  await _sendPdvReport(currentUser, {
+    summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
+    goal:    '판결 예측 시뮬레이션'
+  });
+
+  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+  const stepsEl = document.getElementById('verdict-steps');
+  const card = document.createElement('div');
+  card.className = 'verdict-step'; card.id = 'vs-' + stepDef.id;
+  card.innerHTML = `
+    <div class="verdict-step-hd">
+      <span class="step-tag">${stepDef.tag}</span>
+      <span class="step-title">${stepDef.title}</span>
+    </div>
+    <div id="vsb-${stepDef.id}">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 0;color:var(--txt4)">
+        <div class="spinner"></div>
+        <span style="font-size:12px">${stepDef.tag} 작성 중…</span>
+      </div>
+    </div>`;
+  stepsEl.appendChild(card);
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const prevParts    = Object.values(window._verdictParts).join('\n\n');
+  const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
+  const prompt = stepDef.prompt(contextWithPrev).replace(/{CASENO}/g, caseNo).replace(/{LEVEL}/g, level);
+  const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level) }, { role:'user', content: prompt }];
+
+  try {
+    const result = await callLLM(msgs, 3000);
+    window._verdictParts[stepDef.id] = result;
+    const bodyEl = document.getElementById('vsb-' + stepDef.id);
+    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
+    const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
+    if (completeMatch) {
+      const badge = document.createElement('div'); badge.style.cssText = 'margin-top:8px;';
+      badge.innerHTML = completeMatch.map(t => `<span class="step-complete">${escHtml(t)}</span>`).join(' ');
+      document.getElementById('vs-' + stepDef.id).appendChild(badge);
+    }
+  } catch(e) {
+    const bodyEl = document.getElementById('vsb-' + stepDef.id);
+    if (bodyEl) bodyEl.innerHTML = `<span style="color:var(--red)">⚠ ${stepDef.tag} 생성 오류: ${escHtml(e.message)}</span>`;
+  }
+}
+
+function appendConfidenceBlock(fullText) {
+  const confM    = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
+  const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+  const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+  const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
+
+  const lawConf   = confM    ? confM[1]    : '—';
+  const factConf  = factM    ? factM[1]    : '—';
+  const totalConf = totalM   ? totalM[1]   : '—';
+  const complexity= complexM ? complexM[1] : null;
+  const vType     = typeM    ? typeM[1].trim() : '—';
+  const summary   = summM    ? summM[1].trim() : '';
+  const matchRate = matchLLM ? matchLLM[1].trim() : complexity ? calcMatchRate(complexity) : '90~99.99%';
+  const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
+  const cx = parseFloat(complexity);
+  const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
+
+  const body = document.getElementById('verdict-body');
+  const div = document.createElement('div');
+  const tc = parseFloat(totalConf);
+  const confColor = tc>=7?'var(--pri-dk)':tc>=5?'#2563eb':'var(--org)';
+  const cx2 = parseFloat(complexity);
+  const cxColor2 = cx2<=3?'var(--pri-dk)':cx2<=6?'var(--org)':'var(--red)';
+  div.innerHTML = `
+    ${summary?`<div class="verdict-summary"><div class="verdict-summary-label">판결 요약</div><div class="verdict-summary-text">${escHtml(summary)}</div></div>`:''}
+    <div class="conf-block">
+      <div class="conf-item"><span class="conf-label">법리 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${lawConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
+      <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
+      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
+        <span class="conf-label">대법원 판결 일치도 예상</span>
+        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
+        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
+      </div>
+      <div class="conf-item" style="border-right:none">
+        <span class="conf-label">결론 유형</span>
+        <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
+      </div>
+    </div>
+    <div class="caution-bar">
+      본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: K-Law ${escHtml(klawVersion)}).
+      법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
+    </div>
+    <div id="match-eval-panel" style="margin-top:16px;padding:16px;background:#f9fafb;border:1px solid var(--bdr);border-radius:var(--r)">
+      <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">일치도 평가</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:8px">실제 대법원 판결문(또는 판례 요약문)을 아래에 붙여넣고 "일치도 평가" 버튼을 클릭하십시오.</div>
+      <textarea id="real-verdict-input" style="width:100%;height:120px;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;line-height:1.65;box-sizing:border-box" placeholder="실제 대법원 판결문 또는 판례 요약문을 입력하십시오."></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-primary" onclick="runMatchEval()" id="match-eval-btn">&#x21C4; 일치도 평가</button>
+      </div>
+      <div id="match-eval-result" style="display:none;margin-top:14px">
+        <!-- 점수 카드 -->
+        <div id="match-score-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px"></div>
+        <!-- 등급 배너 -->
+        <div id="match-grade-banner" style="display:none;padding:10px 16px;border-radius:8px;text-align:center;font-size:14px;font-weight:700;margin-bottom:12px"></div>
+        <!-- 상세 텍스트 토글 -->
+        <div style="text-align:right;margin-bottom:6px">
+          <button onclick="toggleMatchDetail()" id="match-detail-toggle"
+            style="font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;text-decoration:underline">
+            상세 평가 펼치기 ▾
+          </button>
+        </div>
+        <div id="match-detail-text" style="display:none;padding:12px 14px;background:#fff;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;color:var(--txt);line-height:1.8;white-space:pre-wrap;max-height:400px;overflow-y:auto"></div>
+      </div>
+    </div>
+`;
+  body.insertBefore(div, body.firstChild);
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══ 일치도 평가 ════════════════════════════════════════════
+// ══ 일치도 점수 파싱 ════════════════════════════════════════
+function parseMatchResult(text) {
+  const get = (patterns) => {
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m) return m[1].trim();
+    }
+    return null;
+  };
+  // 결론 방향: "결론 방향 | [X-4]점" 또는 "결론 방향 일치도 X점" 등
+  const conclusion = get([
+    /결론 방향[^|]*\|\s*\[?([\d.]+)[^\d/]*/,
+    /결론 방향[^:：\d]*([\d.]+)\s*점/,
+    /결론 방향[^:：]*[:：]\s*\[?([\d.]+)/,
+  ]);
+  const lawLogic = get([
+    /핵심 법리[^|]*\|\s*\[?([\d.]+)[^\d/]*/,
+    /핵심 법리[^:：\d]*([\d.]+)\s*점/,
+    /핵심 법리[^:：]*[:：]\s*\[?([\d.]+)/,
+  ]);
+  const detail = get([
+    /세부 논증[^|]*\|\s*\[?([\d.]+)[^\d/]*/,
+    /세부 논증[^:：\d]*([\d.]+)\s*점/,
+    /세부 논증[^:：]*[:：]\s*\[?([\d.]+)/,
+  ]);
+  const total = get([
+    /종합\s*점수[^|]*\|\s*\[?([\d.]+)[^\d/]*/,
+    /종합\s*점수[^:：\d]*([\d.]+)\s*점/,
+    /종합[^:：]*[:：]\s*\[?([\d.]+)/,
+    /종합\s*([\d.]+)\s*\/\s*10/,
+  ]);
+  const grade = get([
+    /등급\s*[:：]\s*([가-힣\s]+)/,
+    /\(등급\s*[:：]\s*([^)]+)\)/,
+  ]);
+  return {
+    conclusion: conclusion ? parseFloat(conclusion) : null,
+    lawLogic:   lawLogic   ? parseFloat(lawLogic)   : null,
+    detail:     detail     ? parseFloat(detail)     : null,
+    total:      total      ? parseFloat(total)      : null,
+    grade:      grade      ? grade.trim()            : null,
+  };
+}
+
+function renderMatchCards(scores) {
+  const cards = document.getElementById('match-score-cards');
+  const gradeBanner = document.getElementById('match-grade-banner');
+  if (!cards) return;
+
+  const items = [
+    { label:'결론 방향', val:scores.conclusion, max:4,  color:'#0057A8' },
+    { label:'핵심 법리', val:scores.lawLogic,   max:3,  color:'#1B6B3A' },
+    { label:'세부 논증', val:scores.detail,     max:3,  color:'#7B3FA0' },
+    { label:'종합 점수', val:scores.total,      max:10, color:'#002060', big:true },
+  ];
+
+  const gradeInfo = (t) => {
+    if (t === null) return { label:'—', bg:'#f3f4f6', color:'#374151' };
+    if (t >= 9.0)  return { label:'완전 일치',   bg:'#dcfce7', color:'#14532d' };
+    if (t >= 7.0)  return { label:'대체로 일치', bg:'#dbeafe', color:'#1e3a8a' };
+    if (t >= 5.0)  return { label:'부분 일치',   bg:'#fef9c3', color:'#713f12' };
+    if (t >= 3.0)  return { label:'불일치',      bg:'#fee2e2', color:'#7f1d1d' };
+    return            { label:'완전 불일치',  bg:'#fce7f3', color:'#831843' };
+  };
+
+  cards.innerHTML = items.map(it => {
+    const pct = it.val !== null ? Math.min(100, (it.val / it.max) * 100) : 0;
+    const displayVal = it.val !== null ? it.val : '—';
+    const barColor = it.val === null ? '#e5e7eb' : it.color;
+    return `
+      <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 12px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--txt3);margin-bottom:8px;white-space:nowrap">${it.label}</div>
+        <div style="font-size:${it.big?'28':'22'}px;font-weight:800;color:${it.color};line-height:1">
+          ${displayVal}<span style="font-size:12px;color:var(--txt4);font-weight:400"> /${it.max}</span>
+        </div>
+        <div style="margin-top:8px;height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .6s ease"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 등급 배너
+  const gi = gradeInfo(scores.total);
+  const gradeText = scores.grade || gi.label;
+  gradeBanner.textContent = '판정: ' + gradeText + (scores.total !== null ? '  (' + scores.total + ' / 10점)' : '');
+  gradeBanner.style.background = gi.bg;
+  gradeBanner.style.color = gi.color;
+  gradeBanner.style.border = '1px solid ' + gi.color + '33';
+  gradeBanner.style.display = 'block';
+}
+
+
+// ══ 벤치마크 이력 (localStorage) ══════════════════════════
+const BH_KEY = 'klaw_bench_history';
+
+function _bhLoad() {
+  try { return JSON.parse(localStorage.getItem(BH_KEY) || '[]'); }
+  catch { return []; }
+}
+function _bhSave(arr) {
+  try { localStorage.setItem(BH_KEY, JSON.stringify(arr)); } catch {}
+}
+
+// 평가 완료 시 호출 — runMatchEval에서 연결
+function saveBenchRecord(record) {
+  const arr = _bhLoad();
+  arr.unshift(record); // 최신순
+  if (arr.length > 200) arr.length = 200;
+  _bhSave(arr);
+}
+
+function clearBenchHistory() {
+  if (!confirm('이력을 모두 삭제하시겠습니까?')) return;
+  localStorage.removeItem(BH_KEY);
+  renderBenchHistory();
+}
+
+// ── 탭 전환 ───────────────────────────────────────────────
+function switchBenchTab(tab) {
+  const simTab  = document.getElementById('tab-sim');
+  const histTab = document.getElementById('tab-history');
+  const content = document.querySelector('.content');
+  const histPanel = document.getElementById('bench-history-panel');
+  const infoBar   = histPanel?.previousElementSibling; // 안내 배너
+
+  if (tab === 'sim') {
+    simTab.classList.add('active');
+    histTab.classList.remove('active');
+    if (content)    content.style.display = '';
+    if (histPanel)  histPanel.style.display = 'none';
+    // 안내 배너 표시
+    const banners = document.querySelectorAll('[data-bench-banner]');
+    banners.forEach(b => b.style.display = '');
+  } else {
+    histTab.classList.add('active');
+    simTab.classList.remove('active');
+    if (content)    content.style.display = 'none';
+    if (histPanel)  histPanel.style.display = 'block';
+    renderBenchHistory();
+  }
+}
+
+// ── 이력 렌더링 ───────────────────────────────────────────
+function renderBenchHistory() {
+  const arr = _bhLoad();
+  _renderStats(arr);
+  _renderTrend(arr);
+  _renderItemBars(arr);
+  _renderTable(arr);
+}
+
+function _gradeLabel(t) {
+  if (t === null || t === undefined) return { text:'—', color:'#6b7280' };
+  if (t >= 9.0) return { text:'완전 일치',   color:'#14532d' };
+  if (t >= 7.0) return { text:'대체로 일치', color:'#1e3a8a' };
+  if (t >= 5.0) return { text:'부분 일치',   color:'#713f12' };
+  if (t >= 3.0) return { text:'불일치',      color:'#7f1d1d' };
+  return             { text:'완전 불일치', color:'#831843' };
+}
+
+function _avg(arr, key) {
+  const vals = arr.map(r => r[key]).filter(v => v !== null && v !== undefined);
+  if (!vals.length) return null;
+  return Math.round((vals.reduce((a,b)=>a+b,0) / vals.length) * 100) / 100;
+}
+
+// 요약 통계 카드
+function _renderStats(arr) {
+  const el = document.getElementById('bh-stats');
+  if (!el) return;
+  const n = arr.length;
+  const avgTotal      = _avg(arr, 'total');
+  const avgConclusion = _avg(arr, 'conclusion');
+  const avgLawLogic   = _avg(arr, 'lawLogic');
+  const avgDetail     = _avg(arr, 'detail');
+  const items = [
+    { label:'총 평가 건수',   val: n + '건',                    color:'#002060' },
+    { label:'종합 평균',      val: avgTotal      !== null ? avgTotal + ' / 10'      : '—', color:'#0057A8' },
+    { label:'결론 방향 평균', val: avgConclusion !== null ? avgConclusion + ' / 4'  : '—', color:'#1B6B3A' },
+    { label:'핵심 법리 평균', val: avgLawLogic   !== null ? avgLawLogic   + ' / 3'  : '—', color:'#7B3FA0' },
+    { label:'세부 논증 평균', val: avgDetail     !== null ? avgDetail     + ' / 3'  : '—', color:'#B8952A' },
+  ];
+  el.innerHTML = items.map(it => `
+    <div style="background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 12px;text-align:center">
+      <div style="font-size:11px;font-weight:600;color:var(--txt3);margin-bottom:6px">${it.label}</div>
+      <div style="font-size:22px;font-weight:800;color:${it.color}">${it.val}</div>
+    </div>`).join('');
+}
+
+// 추세 차트 (Canvas 직접 그리기 — 라이브러리 불필요)
+function _renderTrend(arr) {
+  const canvas = document.getElementById('bh-trend-chart');
+  const noData = document.getElementById('bh-no-trend');
+  if (!canvas) return;
+
+  // 버전별 평균 집계
+  const byVer = {};
+  arr.forEach(r => {
+    if (!r.klawVersion || r.total === null) return;
+    if (!byVer[r.klawVersion]) byVer[r.klawVersion] = [];
+    byVer[r.klawVersion].push(r.total);
+  });
+  const verKeys = Object.keys(byVer).sort();
+  const points  = verKeys.map(v => ({
+    ver: v,
+    avg: Math.round(_avg(byVer[v].map(x=>({total:x})), 'total') * 100) / 100
+  }));
+
+  if (points.length < 2) {
+    canvas.style.display = 'none';
+    noData.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  noData.style.display = 'none';
+
+  const W = canvas.offsetWidth || 600, H = 140;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const PAD = { t:16, r:16, b:32, l:40 };
+  const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // 격자
+  ctx.strokeStyle = '#f3f4f6'; ctx.lineWidth = 1;
+  [0,2.5,5,7.5,10].forEach(y => {
+    const cy = PAD.t + cH * (1 - y/10);
+    ctx.beginPath(); ctx.moveTo(PAD.l, cy); ctx.lineTo(PAD.l+cW, cy); ctx.stroke();
+    ctx.fillStyle = '#9ca3af'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(y, PAD.l - 4, cy + 3);
+  });
+
+  // 추세선
+  const xStep = points.length > 1 ? cW / (points.length - 1) : cW;
+  ctx.beginPath(); ctx.strokeStyle = '#0057A8'; ctx.lineWidth = 2.5;
+  points.forEach((p, i) => {
+    const x = PAD.l + i * xStep;
+    const y = PAD.t + cH * (1 - p.avg / 10);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // 점 + 레이블
+  points.forEach((p, i) => {
+    const x = PAD.l + i * xStep;
+    const y = PAD.t + cH * (1 - p.avg / 10);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#0057A8'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    // 값
+    ctx.fillStyle = '#374151'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(p.avg, x, y - 8);
+    // 버전 레이블
+    ctx.fillStyle = '#9ca3af'; ctx.font = '10px sans-serif';
+    ctx.fillText(p.ver, x, H - 4);
+  });
+}
+
+// 항목별 평균 바
+function _renderItemBars(arr) {
+  const el = document.getElementById('bh-item-bars');
+  if (!el) return;
+  const items = [
+    { label:'결론 방향', key:'conclusion', max:4,  color:'#0057A8' },
+    { label:'핵심 법리', key:'lawLogic',   max:3,  color:'#1B6B3A' },
+    { label:'세부 논증', key:'detail',     max:3,  color:'#7B3FA0' },
+    { label:'종합 점수', key:'total',      max:10, color:'#002060' },
+  ];
+  el.innerHTML = items.map(it => {
+    const avg = _avg(arr, it.key);
+    const pct = avg !== null ? Math.min(100, (avg / it.max) * 100) : 0;
+    const disp = avg !== null ? avg + ' / ' + it.max : '—';
+    return `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:80px;font-size:12px;color:var(--txt2);flex-shrink:0">${it.label}</div>
+        <div style="flex:1;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${it.color};border-radius:4px;transition:width .6s"></div>
+        </div>
+        <div style="width:52px;font-size:12px;font-weight:600;color:${it.color};text-align:right">${disp}</div>
+      </div>`;
+  }).join('');
+}
+
+// 사건별 테이블
+function _renderTable(arr) {
+  const tbody = document.getElementById('bh-tbody');
+  const empty = document.getElementById('bh-empty');
+  if (!tbody) return;
+  if (!arr.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const gradeColors = {
+    '완전 일치':'#dcfce7','대체로 일치':'#dbeafe','부분 일치':'#fef9c3',
+    '불일치':'#fee2e2','완전 불일치':'#fce7f3'
+  };
+  tbody.innerHTML = arr.map((r, i) => {
+    const gl = _gradeLabel(r.total);
+    const gbg = gradeColors[gl.text] || '#f9fafb';
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ko-KR') : '—';
+    const fmt = v => v !== null && v !== undefined ? v : '—';
+    return `
+      <tr style="border-top:1px solid var(--bdr);${i%2?'background:var(--bg)':''}">
+        <td style="padding:8px 12px;color:var(--txt);font-weight:500;white-space:nowrap">${fmt(r.caseNo)}</td>
+        <td style="padding:8px 12px;color:var(--txt3)">${fmt(r.caseType)}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#0057A8">${fmt(r.conclusion)}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#1B6B3A">${fmt(r.lawLogic)}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#7B3FA0">${fmt(r.detail)}</td>
+        <td style="padding:8px 12px;text-align:center;font-size:15px;font-weight:800;color:#002060">${fmt(r.total)}</td>
+        <td style="padding:8px 12px;text-align:center">
+          <span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${gbg};color:${gl.color}">${gl.text}</span>
+        </td>
+        <td style="padding:8px 12px;color:var(--txt3);white-space:nowrap">${fmt(r.klawVersion)}</td>
+        <td style="padding:8px 12px;color:var(--txt4);white-space:nowrap">${date}</td>
+      </tr>`;
+  }).join('');
+}
+
+function toggleMatchDetail() {
+  const det = document.getElementById('match-detail-text');
+  const btn = document.getElementById('match-detail-toggle');
+  const open = det.style.display === 'none';
+  det.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '상세 평가 접기 ▴' : '상세 평가 펼치기 ▾';
+}
+
+async function runMatchEval() {
+  const realVerdict = document.getElementById('real-verdict-input').value.trim();
+  if (!realVerdict || realVerdict.length < 20) {
+    alert('실제 판결문을 20자 이상 입력하십시오.'); return;
+  }
+  const virtualVerdict = window._verdictText || '';
+  if (!virtualVerdict) {
+    alert('가상 판결문이 없습니다. 먼저 판결 시뮬레이션을 완료하십시오.'); return;
+  }
+
+  const btn = document.getElementById('match-eval-btn');
+  const resultEl = document.getElementById('match-eval-result');
+  btn.disabled = true; btn.textContent = '평가 중…';
+  resultEl.style.display = 'none';
+
+  try {
+    const prompt = buildMatchPrompt(virtualVerdict, realVerdict);
+    // Worker /ai/chat 경유 — DeepSeek V4 Pro + Context Cache 자동 적용
+    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider:   'deepseek',
+        model:      'deepseek-v4-pro',
+        max_tokens: 3000,
+        messages:   [{ role: 'user', content: prompt }],
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'API 오류');
+    const rawText = data.content || '(결과 없음)';
+    const scores  = parseMatchResult(rawText);
+    renderMatchCards(scores);
+    document.getElementById('match-detail-text').textContent = rawText;
+    resultEl.style.display = 'block';
+    console.log('[Benchmark] 일치도 평가 완료. 종합:', scores.total, '/ cache hit:', data.usage?.prompt_cache_hit_tokens || '—');
+    // 이력 저장
+    saveBenchRecord({
+      caseNo:      window._verdictCaseNo   || '—',
+      caseType:    conversationState?.caseData?.type || '—',
+      conclusion:  scores.conclusion,
+      lawLogic:    scores.lawLogic,
+      detail:      scores.detail,
+      total:       scores.total,
+      grade:       scores.grade,
+      klawVersion: klawVersion,
+      createdAt:   new Date().toISOString(),
+    });
+  } catch(e) {
+    resultEl.textContent = '평가 오류: ' + e.message;
+    resultEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '일치도 평가';
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 16 14 12"/><polyline points="2 12 6 8 10 12"/><line x1="18" y1="16" x2="18" y2="8"/><line x1="6" y1="8" x2="6" y2="16"/></svg> 일치도 평가';
+  }
+}
+
+function downloadVerdict() {
+  const text   = window._verdictText || '';
+  const caseNo = window._verdictCaseNo || 'verdict';
+  const blob   = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a      = document.createElement('a');
+  a.href       = URL.createObjectURL(blob);
+  a.download   = `K-Law_판결문_${caseNo}.txt`;
+  a.click();
+}
+
+function showAnalysisPanel(show) {
+  const p = document.getElementById('analysis-panel');
+  if (show) {
+    p.style.display = 'block';
+    p.innerHTML = `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:10px"><div class="spinner"></div><span style="font-size:13px;color:var(--txt3)">사건 분석 중 — 심급 · 분류 · 쟁점 추출</span></div>`;
+  }
+}
+
+function showError(msg) {
+  const p = document.getElementById('analysis-panel');
+  p.style.display = 'block';
+  p.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">${msg}</div>`;
+}
+
+// ── textarea 확장 + 툴바 표시
+document.addEventListener('DOMContentLoaded', function(){
+  selectLLM('deepseek');
+  const ta      = document.getElementById('case-input');
+  const toolbar = document.getElementById('input-toolbar');
+  if (!ta || !toolbar) return;
+  function expand() { ta.classList.add('expanded'); toolbar.classList.add('visible'); }
+  function collapse() { if (!ta.value.trim() && attachedFiles.length===0) { ta.classList.remove('expanded'); toolbar.classList.remove('visible'); } }
+  ta.addEventListener('focus', expand);
+  ta.addEventListener('input', expand);
+  ta.addEventListener('blur', () => setTimeout(collapse, 150));
+});
+</script>
+</body>
+</html>
