@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law 소개 — AI 판결 시뮬레이션 시스템</title>
+<meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --gov-header: #002060;
+  --gov-nav:    #003C82;
+  --primary:    #0057A8;
+  --primary-lt: #006CC3;
+  --primary-bg: #EBF3FC;
+  --primary-bd: #B8D4F0;
+  --gold:       #B8952A;
+  --surface:    #FFFFFF;
+  --bg:         #F4F6F9;
+  --border:     #D1D9E6;
+  --text:       #1A202C;
+  --sub:        #4A5568;
+  --hint:       #718096;
+  --green:      #1B6B3A; --green-bg:#E6F4EC;
+  --orange:     #C05621; --orange-bg:#FEF3E2;
+  --red:        #C01C28; --red-bg:#FEE2E2;
+  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --shadow-1: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.10);
+  --r: 4px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+a { text-decoration: none; color: inherit; }
+
+/* GOV BAR */
+.gov-bar { background: var(--gov-header); color: rgba(255,255,255,.75); font-size: 11px; padding: 5px 0; text-align: center; letter-spacing: .3px; font-weight: 500; }
+
+/* TOP NAV */
+.topnav { background: var(--gov-nav); position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.topnav-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: stretch; height: 52px; }
+.topnav-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.4px; padding-right: 20px; border-right: 1px solid rgba(255,255,255,.15); flex-shrink: 0; margin-right: 4px; }
+.topnav-logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,.12); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.topnav-links { display: flex; flex: 1; }
+.topnav-links a { display: flex; align-items: center; padding: 0 15px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.72); transition: background .15s, color .15s; border-bottom: 3px solid transparent; white-space: nowrap; }
+.topnav-links a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topnav-links a.active { color: #fff; border-bottom-color: #A8D4FF; background: rgba(255,255,255,.06); }
+.topnav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; padding-left: 20px; border-left: 1px solid rgba(255,255,255,.12); flex-shrink: 0; }
+.topnav-clock { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.65); font-variant-numeric: tabular-nums; }
+.topnav-badge { background: rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.80); }
+.topnav-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.60); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* 사용자 배지 */
+.user-info-bar { display:flex; align-items:center; gap:8px; padding:3px 12px; background:rgba(255,255,255,.10); border-radius:20px; cursor:pointer; transition:background .15s; }
+.user-avatar { width:24px; height:24px; border-radius:50%; background:var(--primary-lt); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+
+/* HERO */
+.hero { background: linear-gradient(150deg, #001845 0%, #002D72 60%, #003C82 100%); color: #fff; padding: 64px 0 60px; border-bottom: 3px solid #006CC3; }
+.hero-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+.hero-text { max-width: 720px; }
+.hero-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 4px 14px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.75); letter-spacing: .4px; margin-bottom: 20px; }
+.hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+.hero-text h1 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.3; margin-bottom: 16px; }
+.hero-text h1 em { color: #90C4FF; font-style: normal; }
+.hero-text p { font-size: 15px; color: rgba(255,255,255,.70); line-height: 1.75; max-width: 660px; }
+.hero-btns { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.hero-btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; background: var(--primary-lt); color: #fff; border-radius: var(--r); font-size: 14px; font-weight: 700; transition: background .15s; }
+.hero-btn-primary:hover { background: var(--primary); }
+.hero-btn-outline { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.20); color: rgba(255,255,255,.85); border-radius: var(--r); font-size: 14px; font-weight: 600; transition: background .15s; }
+.hero-btn-outline:hover { background: rgba(255,255,255,.14); }
+
+/* KPIS BAND */
+.kpis-band { background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.kpis-band-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(5, 1fr); }
+.kpi-card { padding: 22px 20px; border-right: 1px solid var(--border); position: relative; transition: background .15s; }
+.kpi-card:last-child { border-right: none; }
+.kpi-card:hover { background: var(--bg); }
+.kpi-card-val { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -1px; line-height: 1; margin-bottom: 5px; }
+.kpi-card-val.gold { color: var(--gold); }
+.kpi-card-val.green { color: var(--green); }
+.kpi-card-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.kpi-card-desc { font-size: 11px; color: var(--hint); line-height: 1.5; }
+.kpi-card-ref { font-size: 10px; color: var(--primary); font-weight: 600; margin-top: 5px; }
+
+/* WIDE SECTION */
+.wide-section { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.wide-h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; letter-spacing: -.3px; }
+.wide-sub { font-size: 13px; color: var(--sub); margin-bottom: 16px; line-height: 1.6; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); padding-bottom: 8px; border-bottom: 2px solid var(--primary); margin-bottom: 14px; }
+
+/* STEPS */
+.steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; }
+.step-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-bottom: none; }
+.step-item:first-child { border-radius: var(--r) var(--r) 0 0; }
+.step-item:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--r) var(--r); }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.step-desc { font-size: 12px; color: var(--sub); line-height: 1.5; }
+
+/* SCENARIOS */
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.scenario-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; box-shadow: var(--shadow-1); }
+.scenario-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--primary); margin-bottom: 5px; }
+.scenario-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.scenario-desc { font-size: 11px; color: var(--hint); line-height: 1.5; }
+
+/* ENGINE */
+.engine-steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 12px; }
+.engine-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-bottom: none; font-size: 12px; }
+.engine-step:first-child { border-radius: var(--r) var(--r) 0 0; }
+.engine-step:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--r) var(--r); }
+.engine-num { width: 22px; height: 22px; border-radius: 50%; background: var(--primary-bg); color: var(--primary); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.engine-label { font-weight: 700; color: var(--primary); margin-right: 4px; }
+.prompt-box { background: #0F1117; color: #E2E8F0; border-radius: var(--r); padding: 16px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.7; overflow-x: auto; margin-bottom: 16px; white-space: pre; }
+
+/* BLOCKCHAIN */
+.tx-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.tx-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; box-shadow: var(--shadow-1); }
+.tx-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.tx-id { font-size: 11px; font-weight: 700; color: var(--primary); }
+.tx-rows { display: flex; flex-direction: column; gap: 4px; }
+.tx-row { display: flex; justify-content: space-between; font-size: 11px; }
+.tx-key { color: var(--hint); }
+.tx-val { font-weight: 600; color: var(--text); }
+.tx-hash { font-size: 10px; color: var(--hint); font-family: monospace; word-break: break-all; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.badge-blue   { background: var(--primary-bg); color: var(--primary); }
+.badge-green  { background: var(--green-bg); color: var(--green); }
+.badge-gold   { background: #FEF3CD; color: var(--gold); }
+
+/* DASH STATS */
+.dash-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+.dash-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--shadow-1); }
+.dash-stat-val { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.dash-stat-lbl { font-size: 11px; color: var(--sub); }
+.dash-stat-sub { font-size: 10px; font-weight: 600; color: var(--primary); margin-top: 2px; }
+
+/* CTA */
+.cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.cta-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow-1); }
+.cta-icon { font-size: 28px; margin-bottom: 10px; }
+.cta-title { font-size: 15px; font-weight: 800; margin-bottom: 5px; }
+.cta-desc { font-size: 12px; color: var(--sub); line-height: 1.6; margin-bottom: 12px; }
+.cta-list { list-style: none; margin-bottom: 14px; }
+.cta-list li { font-size: 12px; color: var(--sub); padding: 2px 0 2px 14px; position: relative; line-height: 1.5; }
+.cta-list li::before { content: '▸'; position: absolute; left: 0; color: var(--primary); font-size: 9px; top: 4px; }
+.cta-btn { display: block; text-align: center; padding: 10px 0; background: var(--primary); color: #fff; border-radius: var(--r); font-size: 13px; font-weight: 700; transition: background .15s; }
+.cta-btn:hover { background: var(--gov-nav); }
+.cta-btn.outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+.cta-btn.outline:hover { background: var(--bg); }
+
+/* ROADMAP */
+.roadmap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.roadmap-phase { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow-1); }
+.roadmap-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.roadmap-num { background: var(--primary); color: #fff; border-radius: var(--r); padding: 2px 8px; font-size: 10px; font-weight: 700; }
+.roadmap-title { font-size: 13px; font-weight: 700; }
+.roadmap-period { font-size: 10px; color: var(--hint); width: 100%; margin-top: 2px; }
+.roadmap-items { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.roadmap-items li { font-size: 12px; color: var(--sub); padding-left: 14px; position: relative; line-height: 1.5; }
+.roadmap-items li::before { content: '·'; position: absolute; left: 4px; color: var(--primary); font-weight: 700; }
+
+/* FOOTER */
+.footer-disclaimer { background: #FEF3E2; border-top: 2px solid var(--orange); padding: 12px 0; font-size: 11px; color: var(--orange); line-height: 1.6; margin-top: 32px; }
+.footer-disclaimer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.site-footer { margin-top: 0; background: var(--gov-nav); color: rgba(255,255,255,.55); font-size: 11px; padding: 20px 0 0; }
+.site-footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+.site-footer a { color: rgba(255,255,255,.55); }
+.site-footer a:hover { color: #fff; }
+.sf-col-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; color: rgba(255,255,255,.35); }
+.sf-col-links { display: flex; flex-direction: column; gap: 5px; }
+
+@media(max-width:1024px) {
+  .kpis-band-inner { grid-template-columns: repeat(3,1fr); }
+  .kpi-card:nth-child(3) { border-right: none; }
+  .kpi-card:nth-child(4), .kpi-card:nth-child(5) { border-top: 1px solid var(--border); }
+  .kpi-card:nth-child(5) { border-right: none; }
+}
+@media(max-width:900px) {
+  .cta-grid, .scenario-grid, .roadmap, .dash-stats { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- GOV BAR -->
+<div class="gov-bar">
+  <strong>K-Law</strong> 공식 AI 판결 시뮬레이션 시스템 &nbsp;|&nbsp; 법률 정보 제공 목적 &nbsp;·&nbsp; 법률 자문 아님
+</div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="topnav-logo">
+      <div class="topnav-logo-icon">⚖</div>
+      K-Law
+    </div>
+    <div class="topnav-links">
+      <a href="#how" class="active">이용방법</a>
+      <a href="#scenarios">판결 유형</a>
+      <a href="dashboard.html">📊 대시보드</a>
+      <a href="#engine">AI 엔진</a>
+      <a href="#blockchain">블록체인</a>
+    </div>
+    <div class="topnav-right">
+      <div class="topnav-status"><div class="status-dot"></div>AI 분석 가동 중</div>
+      <div class="topnav-badge" id="klaw-ver-badge">K-Law 로딩중…</div>
+      <div class="user-info-bar" id="user-info-bar">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.80);" id="user-display">연결 중…</div>
+      </div>
+      <div class="topnav-clock" id="clock">--:--:--</div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-tag"><span class="hero-tag-dot"></span> AI 분석 시스템 운영 중</div>
+      <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
+      <p>엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
+      <div class="hero-btns">
+        <a href="desktop.html" class="hero-btn-primary">⚖ 데스크탑 시뮬레이터</a>
+        <a href="webapp.html" class="hero-btn-outline">📱 모바일 웹앱</a>
+        <a href="dashboard.html" class="hero-btn-outline">🖥 관리자 대시보드</a>
+        <a href="https://gopang.net/" target="_blank" class="hero-btn-outline">🚀 고팡 앱</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KPIS BAND -->
+<div class="kpis-band">
+  <div class="kpis-band-inner">
+    <div class="kpi-card">
+      <div class="kpi-card-val gold">99.9%</div>
+      <div class="kpi-card-title">대법원 판결 예측 정확도</div>
+      <div class="kpi-card-desc">대법원 판결 예상 정확도 99.9%</div>
+      <div class="kpi-card-ref">논문 참조</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card-val">10초</div>
+      <div class="kpi-card-title">판결 시뮬레이션 소요 시간</div>
+      <div class="kpi-card-desc">인간 법원 1~3심 3~5년 대비 K-Law 10초 미만</div>
+      <div class="kpi-card-ref">K-Law 전용 LLM</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card-val green">1,000원</div>
+      <div class="kpi-card-title">시뮬레이션 비용</div>
+      <div class="kpi-card-desc">1~3심 소송 비용 수백~수천만원 대비 1,000~10,000원</div>
+      <div class="kpi-card-ref">K-Law 기준</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card-val">90%</div>
+      <div class="kpi-card-title">법원 소송 대체 전망</div>
+      <div class="kpi-card-desc">향후 5년 내 법원 소송을 변호사 중재로 대체 예상</div>
+      <div class="kpi-card-ref">전문가 예측</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card-val" style="font-size:18px;padding-top:3px">예방 법학</div>
+      <div class="kpi-card-title">고팡 시스템</div>
+      <div class="kpi-card-desc">분쟁·갈등·범죄의 90%를 미연에 방지 혹은 차단</div>
+      <div class="kpi-card-ref">논문 참조</div>
+    </div>
+  </div>
+</div>
+
+<!-- 이용 방법 -->
+<div class="wide-section" id="how" style="margin-top:32px">
+  <div class="section-title">이용 방법</div>
+  <div class="wide-h2">5단계로 완성되는 AI 판결 예측</div>
+  <div class="wide-sub">사건의 개요 입력 한 번으로 AI가 분석하고 판결 결과까지 자동으로 도출합니다.</div>
+  <div class="steps">
+    <div class="step-item"><div class="step-num">1</div><div><div class="step-title">사건 개요 입력</div><div class="step-desc">데스크탑 시뮬레이터 또는 모바일 웹앱에서 사건의 핵심 사실관계와 법적 쟁점을 자유롭게 기술합니다</div></div></div>
+    <div class="step-item"><div class="step-num">2</div><div><div class="step-title">AI 법리 분석</div><div class="step-desc">DeepSeek · Claude 등 멀티 AI 엔진이 대법원 법리 공리 체계로 사건을 분류하고 판단 근거를 수립</div></div></div>
+    <div class="step-item"><div class="step-num">3</div><div><div class="step-title">판결 예측 도출</div><div class="step-desc">원고 승소 / 피고 승소 / 일부 승소 / 판단 불가 중 하나와 신뢰도(0~100%)를 제시</div></div></div>
+    <div class="step-item"><div class="step-num">4</div><div><div class="step-title">핵심 쟁점 제시</div><div class="step-desc">적용 법조문, 판례 근거, 법리 분석, 핵심 쟁점을 구조화된 형태로 제공</div></div></div>
+    <div class="step-item"><div class="step-num">5</div><div><div class="step-title">블록체인 영구 기록</div><div class="step-desc">모든 시뮬레이션 결과가 Openhash Network에 위변조 불가능하게 기록되어 영구 보존</div></div></div>
+  </div>
+</div>
+
+<!-- 판결 유형 -->
+<div class="wide-section" id="scenarios" style="margin-top:32px">
+  <div class="section-title">판결 유형</div>
+  <div class="wide-h2">어떤 사건도 놓치지 않습니다</div>
+  <div class="wide-sub">AI가 분석하는 6가지 사건 분류별로 최적의 판결 예측 시나리오가 자동 구성됩니다.</div>
+  <div class="scenario-grid">
+    <div class="scenario-item"><div class="scenario-type">TYPE_01</div><div class="scenario-title">민사 (본안)</div><div class="scenario-desc">계약, 불법행위, 채권·채무, 손해배상 등 민사 일반 사건</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_02</div><div class="scenario-title">형사</div><div class="scenario-desc">사기, 횡령, 배임, 폭행, 성범죄 등 형사사건 판결 예측</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_03</div><div class="scenario-title">행정</div><div class="scenario-desc">행정처분, 취소소송, 부당해고 구제신청 등 행정·공법 사건</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_04</div><div class="scenario-title">가사</div><div class="scenario-desc">이혼, 양육권, 재산분할, 상속 등 가사 사건</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_05</div><div class="scenario-title">소액사건</div><div class="scenario-desc">3,000만원 이하 소액사건 간이 절차 예측</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_06</div><div class="scenario-title">노동</div><div class="scenario-desc">해고무효, 임금체불, 산업재해 등 노동 관련 사건</div></div>
+  </div>
+</div>
+
+<!-- AI 엔진 -->
+<div class="wide-section" id="engine" style="margin-top:32px">
+  <div class="section-title">AI 분석 엔진</div>
+  <div class="wide-h2">멀티 AI 엔진이 즉시 판단합니다</div>
+  <div class="wide-sub">DeepSeek · Claude 등 어떤 AI 모델도 연동 가능합니다. 사건 접수 즉시 5단계 분석 사이클이 작동합니다.</div>
+  <div class="engine-steps">
+    <div class="engine-step"><div class="engine-num">1</div><span class="engine-label">ANALYZE</span> — 사건 유형, 관련 법조문, 쟁점 심각도, 증거 강도를 판단</div>
+    <div class="engine-step"><div class="engine-num">2</div><span class="engine-label">PLAN</span> — 판결 시나리오 선택, 적용 법리 및 판례 DB 검색</div>
+    <div class="engine-step"><div class="engine-num">3</div><span class="engine-label">PREDICT</span> — 승소 여부 및 신뢰도(0~100%) 도출</div>
+    <div class="engine-step"><div class="engine-num">4</div><span class="engine-label">REVIEW</span> — 핵심 쟁점 및 주의사항 검토</div>
+    <div class="engine-step"><div class="engine-num">5</div><span class="engine-label">RECORD</span> — 결과 보고서 자동 작성 및 Openhash 블록체인 기록</div>
+  </div>
+  <div class="prompt-box"># K-Law System Prompt v15.1
+# DeepSeek / Claude — AI 판결 시뮬레이션
+
+ROLE: 대한민국 법원 판결 예측 AI
+
+CYCLE: ANALYZE → PLAN → PREDICT → REVIEW → RECORD
+
+TYPES:
+  TYPE_01 "민사_본안"    → 계약·불법행위·채권채무 판결
+  TYPE_02 "형사"         → 유죄·무죄·집행유예 예측
+  TYPE_03 "행정"         → 인용·기각·각하 예측
+  TYPE_04 "가사"         → 이혼·양육·재산분할 판결
+  TYPE_05 "소액사건"     → 간이 절차 판결
+  TYPE_06 "노동"         → 해고무효·임금체불 판결
+
+RULES:
+  - 모든 예측은 법률 정보 제공 목적, 법률 자문 아님
+  - 신뢰도 0~100 숫자로만 표기
+  - 접수 즉시 이미지 해시 Openhash 기록
+  - 모든 기록은 위변조 불가</div>
+</div>
+
+<!-- 블록체인 -->
+<div class="wide-section" id="blockchain" style="margin-top:32px">
+  <div class="section-title">블록체인 기록</div>
+  <div class="wide-h2">수백 년이 지나도 열람할 수 있는 기록</div>
+  <div class="wide-sub">모든 시뮬레이션 접수·분석·결과 단계가 별도 트랜잭션으로 블록체인에 기록되어 위변조가 불가능합니다.</div>
+  <div class="tx-list">
+    <div class="tx-item">
+      <div class="tx-header"><span class="tx-id">TX #1 — 사건 접수</span><span class="badge badge-blue">입력 해시 기록</span></div>
+      <div class="tx-rows">
+        <div class="tx-row"><span class="tx-key">사건ID</span><span class="tx-val">SIM-2026-0001</span></div>
+        <div class="tx-row"><span class="tx-key">사건 분류</span><span class="tx-val">TYPE_01 민사(본안)</span></div>
+        <div class="tx-row"><span class="tx-key">타임스탬프</span><span class="tx-val">2026-05-24 14:23:08</span></div>
+      </div>
+      <div class="tx-hash">SHA256: a3f8c2d1e9b4f7a2c8d1e3f9a4b7c2d8e1f3a9b4c7d2e8f1a3c9e4b7d2f8a1e3</div>
+    </div>
+    <div class="tx-item">
+      <div class="tx-header"><span class="tx-id">TX #2 — AI 분석 완료</span><span class="badge badge-gold">법리 분석 기록</span></div>
+      <div class="tx-rows">
+        <div class="tx-row"><span class="tx-key">예측 결과</span><span class="tx-val">원고 승소</span></div>
+        <div class="tx-row"><span class="tx-key">신뢰도</span><span class="tx-val">78%</span></div>
+        <div class="tx-row"><span class="tx-key">적용 법조문</span><span class="tx-val">민법 제598조</span></div>
+      </div>
+      <div class="tx-hash">SHA256: 8b2d1ae3f9c4b7d2f8a1e3c9b4d7f2a8e1c3b9d4f7a2e8c1b3d9e4a7f2c8b1d3</div>
+    </div>
+    <div class="tx-item">
+      <div class="tx-header"><span class="tx-id">TX #3 — 결과 확정</span><span class="badge badge-green">영구 보존</span></div>
+      <div class="tx-rows">
+        <div class="tx-row"><span class="tx-key">처리 시간</span><span class="tx-val">3.2초</span></div>
+        <div class="tx-row"><span class="tx-key">블록 높이</span><span class="tx-val">#12,847,221</span></div>
+        <div class="tx-row"><span class="tx-key">네트워크</span><span class="tx-val">Openhash Network</span></div>
+      </div>
+      <div class="tx-hash">SHA256: f1a3c9e4b7d2f8a1e3b9d4c7f2a8e1f3c9b4d7a2e8f1c3b9d4e7a2f8c1b3d9e4</div>
+    </div>
+  </div>
+</div>
+
+<!-- 실시간 현황 -->
+<div class="wide-section" style="margin-top:32px">
+  <div class="section-title">실시간 현황</div>
+  <div class="wide-h2">K-Law 시뮬레이션 현황 대시보드</div>
+  <div class="dash-stats" style="margin-top:14px">
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--primary)">1,284</div><div class="dash-stat-lbl">누적 시뮬레이션</div><div class="dash-stat-sub">↑ 47건 전일 대비</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">73%</div><div class="dash-stat-lbl">대법원 일치도</div><div class="dash-stat-sub">실측 300건 기준</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">2026-05 업데이트</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">3.2초</div><div class="dash-stat-lbl">평균 분석 시간</div><div class="dash-stat-sub">DeepSeek 기준</div></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="wide-section" style="margin-top:32px">
+  <div class="section-title">바로 시작하세요</div>
+  <div class="cta-grid">
+    <div class="cta-card">
+      <div class="cta-icon">🖥</div>
+      <div class="cta-title">데스크탑 시뮬레이터</div>
+      <div class="cta-desc">풀스크린 UI에서 LLM 선택·파일첨부·음성입력까지. PC 환경에 최적화된 완전한 기능을 제공합니다.</div>
+      <ul class="cta-list">
+        <li>DeepSeek · Claude 멀티 AI 엔진</li>
+        <li>파일 첨부 · 음성 입력</li>
+        <li>STEP 별 판결문 순차 생성</li>
+        <li>판결문 저장 · 블록체인 기록</li>
+      </ul>
+      <a href="desktop.html" class="cta-btn">⚖ 데스크탑 시뮬레이터 →</a>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon">📱</div>
+      <div class="cta-title">모바일 웹앱</div>
+      <div class="cta-desc">스마트폰에 최적화된 간결한 UI. 언제 어디서나 빠르게 사건을 입력하고 판결을 받아보세요.</div>
+      <ul class="cta-list">
+        <li>모바일 최적화 UI</li>
+        <li>음성 입력 지원</li>
+        <li>단계별 진행 상태 표시</li>
+        <li>Supabase 자동 저장</li>
+      </ul>
+      <a href="webapp.html" class="cta-btn outline">📱 모바일 웹앱 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- 로드맵 -->
+<div class="wide-section" style="margin-top:32px">
+  <div class="section-title">서비스 로드맵</div>
+  <div class="wide-h2">단계적 확장 계획</div>
+  <div class="wide-sub" style="margin-bottom:14px">K-Law를 시작으로 전국 법원·법무법인으로 확산하는 3단계 계획입니다.</div>
+  <div class="roadmap">
+    <div class="roadmap-phase">
+      <div class="roadmap-head"><div class="roadmap-num">Phase 1</div><div class="roadmap-title">파일럿 서비스</div><div class="roadmap-period">2024 Q4 — 2025 Q2</div></div>
+      <ul class="roadmap-items">
+        <li>K-Law 판결 시뮬레이터 출시</li>
+        <li>DeepSeek AI 연동</li>
+        <li>Openhash 블록체인 기록</li>
+        <li>6개 사건 분류 구축</li>
+        <li>민사·형사 파일럿</li>
+      </ul>
+    </div>
+    <div class="roadmap-phase">
+      <div class="roadmap-head"><div class="roadmap-num">Phase 2</div><div class="roadmap-title">기능 고도화</div><div class="roadmap-period">2025 Q3 — 2026 Q1</div></div>
+      <ul class="roadmap-items">
+        <li>대법원 판례 DB 직접 연동</li>
+        <li>다국어 지원 (영·일·중)</li>
+        <li>법무법인 API 연동</li>
+        <li>예측 정확도 리포트 자동화</li>
+        <li>담당자 모바일 앱</li>
+      </ul>
+    </div>
+    <div class="roadmap-phase">
+      <div class="roadmap-head"><div class="roadmap-num">Phase 3</div><div class="roadmap-title">전국·글로벌 확산</div><div class="roadmap-period">2026 Q2 이후</div></div>
+      <ul class="roadmap-items">
+        <li>전국 법원·법무법인 라이선스</li>
+        <li>법무부·대법원 연계</li>
+        <li>AI 판사 보조 시스템</li>
+        <li>예측 분석 모델 고도화</li>
+        <li>해외 법률 시스템 수출</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 면책 고지 -->
+<div class="footer-disclaimer" style="margin-top:32px">
+  <div class="footer-disclaimer-inner">
+    ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않습니다.
+    73%, 45% 수치는 대법원 선별 공개 판례(극소수 고난도 사건) 기준 예비 측정치. 95.5%는 전수 상고 모형 이론적 추정치(±5%p).
+    법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
+  </div>
+</div>
+
+<!-- SITE FOOTER -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <div style="font-size:15px;font-weight:800;color:rgba(255,255,255,.90);margin-bottom:6px">K-Law</div>
+      <div style="font-size:12px;line-height:1.7">AI 판결 시뮬레이션 시스템<br>AI + 블록체인으로 더 공정한 법률 서비스를 만듭니다.</div>
+    </div>
+    <div style="display:flex;gap:40px;flex-wrap:wrap">
+      <div>
+        <div class="sf-col-title">서비스</div>
+        <div class="sf-col-links">
+          <a href="desktop.html">데스크탑 시뮬레이터</a>
+          <a href="webapp.html">모바일 웹앱</a>
+          <a href="dashboard.html">대시보드</a>
+          <a href="#blockchain">블록체인 기록</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">문서</div>
+        <div class="sf-col-links">
+          <a href="report.html">실증 보고서</a>
+          <a href="whitepaper.html">백서</a>
+          <a href="business.html">사업화 계획서</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">관련 사이트</div>
+        <div class="sf-col-links">
+          <a href="https://openhash.kr" target="_blank">openhash.kr</a>
+          <a href="https://fiil.kr" target="_blank">fiil.kr</a>
+          <a href="https://gopang.net" target="_blank">gopang.net</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:1160px;margin:0 auto;padding:10px 24px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.30)">
+    © 2026 AI City Inc. / K-Law Inc. &nbsp;·&nbsp; klaw.gopang.net &nbsp;·&nbsp; 기술: Openhash Network + DeepSeek AI
+  </div>
+</footer>
+
+<script>
+// ── 시계
+(function tick(){
+  const el = document.getElementById('clock');
+  if(el) el.textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick, 1000);
+})();
+
+// ── K-Law 버전 배지 로드
+(async () => {
+  try {
+    const res = await fetch('https://api.github.com/repos/Openhash-Gopang/klaw/contents/', {cache:'no-cache'});
+    const files = await res.json();
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
+    function pv(n){const m=n.match(/klaw_v([\d]+)_?([\d]*)\.md/i);return m?parseFloat(m[1]+'.'+(m[2]||'0')):0;}
+    vFiles.sort((a,b)=>pv(b)-pv(a));
+    if(vFiles[0]){
+      const m=vFiles[0].match(/klaw_v([\d]+_?[\d]*)\.md/i);
+      if(m){
+        const ver='v'+m[1].replace('_','.');
+        const badge=document.getElementById('klaw-ver-badge');
+        const stat=document.getElementById('klaw-ver-stat');
+        if(badge) badge.textContent='K-Law '+ver;
+        if(stat)  stat.textContent=ver;
+      }
+    }
+  } catch(e){ console.warn('[K-Law] 버전 로드 실패'); }
+})();
+
+// ── 고팡 인증 콜백 — 사용자 배지 업데이트
+window._onGopangAuth = function(user) {
+  const shortId = user.ipv6 ? user.ipv6.slice(-8) : '—';
+  const initials = shortId.slice(0,2).toUpperCase();
+  const avatar  = document.getElementById('user-avatar');
+  const display = document.getElementById('user-display');
+  if(avatar)  avatar.textContent  = initials;
+  if(display) display.textContent = 'Lv.' + (user.level||1) + ' · ' + shortId;
+};
+</script>
+</body>
+</html>
