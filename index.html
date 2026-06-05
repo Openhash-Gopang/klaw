@@ -3,20 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <script>
-// 스마트폰이면 webapp.html로 리다이렉트
+// 화면 크기·UA로 모바일/PC 분기 → 각 전용 페이지로 즉시 이동
 (function(){
-  if(/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-     || window.innerWidth < 768) {
-    location.replace('webapp.html');
-  }
+  var mobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+               || window.innerWidth < 768;
+  location.replace(mobile ? 'webapp.html' : 'desktop.html');
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — AI 판결 시뮬레이션 시스템</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
 
-<!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
