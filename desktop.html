@@ -3,1182 +3,1862 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-Law — 판결 시뮬레이터</title>
-<meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>고팡 (Gopang) — AI 자율 시장 플랫폼 v3.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+/* ── TOKENS (Supabase-inspired light) ── */
 :root {
-  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
-  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
-  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
-  --side-bg:#f9fafb; --side-sel:#f3f4f6; --side-w:220px; --side-col:52px; --head-h:48px;
-  --red:#ef4444; --red-bg:#fef2f2; --org:#f59e0b; --org-bg:#fffbeb;
-  --blue:#3b82f6; --blue-bg:#eff6ff;
-  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
-  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:6px;
+  --bg:        #f8f9fa;
+  --bg-alt:    #ffffff;
+  --bg-subtle: #f1f3f5;
+  --surface:   #ffffff;
+  --surface2:  #f8f9fa;
+
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+
+  --brand:     #3ecf8e;
+  --brand-dk:  #1a9e6a;
+  --brand-lt:  #d1fae5;
+  --brand-bg:  #f0fdf8;
+
+  --blue:      #3b82f6;
+  --blue-lt:   #eff6ff;
+  --amber:     #f59e0b;
+  --amber-lt:  #fffbeb;
+  --red:       #ef4444;
+  --red-lt:    #fef2f2;
+
+  /* 텍스트 — Supabase 수준 대비율 */
+  --text:      #0f172a;   /* 본문 제목: 대비율 ~18:1 */
+  --text2:     #1e293b;   /* 본문 내용: 대비율 ~14:1 */
+  --text3:     #374151;   /* 보조 텍스트: 대비율 ~9:1 */
+  --text4:     #6b7280;   /* 힌트: 대비율 ~5:1 */
+
+  --nav-h:     57px;
+  --radius:    6px;
+  --radius-lg: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);font-size:13px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
-a{text-decoration:none;color:inherit}
-button{font-family:var(--font);cursor:pointer}
 
-.topbar{height:var(--head-h);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0;z-index:100;position:relative}
-.topbar-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--txt);padding-right:16px;border-right:1px solid var(--bdr);margin-right:12px;flex-shrink:0}
-.topbar-brand svg{color:var(--pri)}
-.topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);flex:1}
-.topbar-breadcrumb .sep{color:var(--bdr2)}
-.topbar-breadcrumb .cur{color:var(--txt);font-weight:500}
-.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.badge-green{background:var(--pri-bg);color:var(--pri-dk);border:1px solid var(--pri-bd)}
-.badge-free{background:#f3f4f6;color:var(--txt3);border:1px solid var(--bdr)}
-.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--pri);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.topbar-clock{font-size:12px;color:var(--txt3);font-variant-numeric:tabular-nums;padding:0 8px}
-.tsep{width:1px;height:20px;background:var(--bdr)}
-.user-btn{display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);font-size:12px;color:var(--txt2);transition:background .12s}
-.user-btn:hover{background:var(--bg)}
-.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri-dk);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
-
-.app-body{display:flex;flex:1;overflow:hidden}
-
-.sidebar{
-  width:var(--side-col);
-  background:var(--side-bg);
-  border-right:1px solid var(--bdr);
-  display:flex;flex-direction:column;
-  overflow:hidden;flex-shrink:0;
-  transition:width .2s ease;
-  position:relative;z-index:50;
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.sidebar:hover{width:var(--side-w)}
-.sidebar-section{padding:8px 0;overflow:hidden}
-.sidebar-section+.sidebar-section{border-top:1px solid var(--bdr)}
-.sidebar-label{
-  padding:6px 16px 3px;font-size:10px;font-weight:600;
-  color:var(--txt4);text-transform:uppercase;letter-spacing:.6px;
-  white-space:nowrap;overflow:hidden;
-  opacity:0;transition:opacity .15s .05s;
+
+/* ── DOTTED BG PATTERN (Supabase signature) ── */
+.dot-bg {
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+  background-size: 24px 24px;
 }
-.sidebar:hover .sidebar-label{opacity:1}
-.nav-item{
-  display:flex;align-items:center;gap:0;
-  padding:8px 0 8px 14px;
-  font-size:13px;color:var(--txt3);
-  transition:background .1s,color .1s;
-  border:none;background:none;width:100%;text-align:left;
-  white-space:nowrap;overflow:hidden;
-  cursor:pointer;
+.dot-bg-light {
+  background-color: var(--bg-alt);
+  background-image: radial-gradient(circle, #e9ecef 1px, transparent 1px);
+  background-size: 20px 20px;
 }
-.nav-item:hover{background:var(--side-sel);color:var(--txt)}
-.nav-item.active{background:var(--side-sel);color:var(--txt);font-weight:500}
-.nav-item svg{flex-shrink:0;color:var(--txt4);width:20px;height:20px;min-width:20px;margin-right:0;transition:color .1s}
-.nav-item.active svg,.nav-item:hover svg{color:var(--txt2)}
-.nav-item-label{
-  padding-left:10px;opacity:0;
-  transition:opacity .12s .03s;
-  font-size:13px;
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
 }
-.sidebar:hover .nav-item-label{opacity:1}
-.nav-badge{margin-left:auto;margin-right:8px;background:#f3f4f6;color:var(--txt3);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;border:1px solid var(--bdr);opacity:0;transition:opacity .12s .03s;flex-shrink:0}.sidebar:hover .nav-badge{opacity:1}
-.sidebar-footer{margin-top:auto;padding:10px 0 10px 14px;border-top:1px solid var(--bdr);overflow:hidden}
-.klaw-ver-chip{display:flex;align-items:center;gap:0;padding:6px 0;font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden}.klaw-ver-chip svg{flex-shrink:0;min-width:20px;width:20px;height:20px}.klaw-ver-chip span{padding-left:10px;opacity:0;transition:opacity .12s .03s}.sidebar:hover .klaw-ver-chip span{opacity:1}
-.klaw-ver-chip strong{color:var(--txt);font-weight:600}
+.nav-left { display: flex; align-items: center; gap: 8px; }
+.nav-logo {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.nav-logo-icon {
+  width: 28px; height: 28px;
+  background: var(--brand);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: white;
+}
+.nav-sep { color: var(--border2); font-size: 18px; font-weight: 200; margin: 0 4px; }
+.nav-project {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 400; color: var(--text2);
+}
+.nav-badge-prod {
+  font-size: 10px; font-family: 'DM Mono', monospace; font-weight: 500;
+  padding: 2px 8px; border-radius: 99px;
+  background: var(--amber-lt); color: var(--amber);
+  border: 1px solid #fde68a;
+  letter-spacing: 0.5px;
+}
+.nav-badge-ver {
+  font-size: 10px; font-family: 'DM Mono', monospace; font-weight: 400;
+  padding: 2px 8px; border-radius: 99px;
+  background: var(--bg-subtle); color: var(--text3);
+  border: 1px solid var(--border);
+}
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a {
+  color: var(--text3); text-decoration: none;
+  font-size: 13px; font-weight: 400;
+  padding: 5px 10px; border-radius: var(--radius);
+  transition: all 0.15s;
+}
+.nav-links a:hover { color: var(--text); background: var(--bg-subtle); }
+.nav-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--brand); color: white;
+  padding: 7px 16px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500; text-decoration: none;
+  border: none; cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.nav-cta:hover { background: var(--brand-dk); box-shadow: var(--shadow); }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 20px; height: 1.5px; background: var(--text3); border-radius: 2px; transition: all 0.2s; }
 
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+/* ── HERO ── */
+.hero {
+  min-height: auto;
+  padding: calc(var(--nav-h) + 48px) 24px 52px;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  align-items: center; text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero-inner { max-width: 720px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 14px; border-radius: 99px;
+  background: var(--bg-subtle); border: 1px solid var(--border2);
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 400;
+  color: var(--text3); letter-spacing: 0.2px;
+  margin-bottom: 24px;
+  text-decoration: none;
+  transition: all 0.15s;
+  animation: fadeUp 0.5s ease both;
+}
+.hero-eyebrow:hover { border-color: var(--brand); color: var(--brand-dk); background: var(--brand-bg); }
+.hero-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hero h1 {
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  color: var(--text);
+  margin-bottom: 12px;
+  animation: fadeUp 0.5s 0.08s ease both;
+}
+.hero h1 strong { font-weight: 700; }
+.hero h1 .brand { color: var(--brand); font-weight: 600; }
+.hero-sub {
+  font-size: 18px; font-weight: 400;
+  color: var(--text); letter-spacing: -0.3px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s 0.14s ease both;
+}
+.hero-desc {
+  max-width: 580px; font-size: 16px; font-weight: 400;
+  color: var(--text3); line-height: 1.75;
+  margin: 0 auto 36px;
+  animation: fadeUp 0.5s 0.2s ease both;
+}
+.hero-desc strong { color: var(--text2); font-weight: 500; }
 
-.page-header{padding:20px 28px 0;border-bottom:1px solid var(--bdr);background:var(--sur);flex-shrink:0}
-.page-header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-.page-title{font-size:18px;font-weight:600;color:var(--txt)}
-.page-subtitle{font-size:13px;color:var(--txt3);margin-top:2px}
-.page-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s,border-color .12s}
-.btn:hover{background:var(--bg);border-color:var(--bdr2)}
-.btn-primary{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
-.btn-primary:hover{background:var(--pri-dk)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.page-tabs{display:flex;gap:0;margin-top:0}
-.page-tab{padding:10px 16px;font-size:13px;color:var(--txt3);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .12s,border-color .12s;font-family:var(--font)}
-.page-tab:hover{color:var(--txt)}
-.page-tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:500}
+/* ── STAT ROW ── */
+/* ── HERO TAGLINE ── */
+.hero-tagline {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text2);
+  letter-spacing: -0.3px;
+  line-height: 1.5;
+  margin: 0 auto 36px;
+  animation: fadeUp 0.5s 0.26s ease both;
+}
+.hero-tagline strong {
+  font-weight: 600;
+  color: var(--brand);
+}
 
-.content{padding:24px 28px;flex:1}
+/* ── HERO ACTIONS ── */
+.hero-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 0.5s 0.32s ease both;
+}
+.btn-lg {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500; text-decoration: none;
+  cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-green { background: var(--brand); color: white; box-shadow: var(--shadow-sm); }
+.btn-green:hover { background: var(--brand-dk); box-shadow: var(--shadow); transform: translateY(-1px); }
+.btn-outline { background: white; color: var(--text2); border: 1px solid var(--border2); box-shadow: var(--shadow-sm); }
+.btn-outline:hover { border-color: var(--brand); color: var(--brand); box-shadow: var(--shadow); transform: translateY(-1px); }
 
-.panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
-.panel-hd{padding:11px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
-.panel-title{font-size:11px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
-.panel-title svg{color:var(--txt3)}
-.panel-bd{padding:16px}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-.case-textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:100px;line-height:1.65;transition:height .3s ease,border-color .15s,box-shadow .15s}
-.case-textarea.expanded{height:200px;overflow-y:auto}
-.case-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.15)}
-.case-textarea::placeholder{color:var(--txt4)}
-.input-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .2s ease;pointer-events:none}
-.input-toolbar.visible{max-height:60px;opacity:1;pointer-events:auto}
-.toolbar-left{display:flex;align-items:center;gap:6px}
-.icon-btn{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);transition:border-color .12s,background .12s}
-.icon-btn:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
-.icon-btn.recording{border-color:var(--red);background:var(--red-bg);color:var(--red);animation:pulse 1s infinite}
-.file-label{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);cursor:pointer;transition:border-color .12s,background .12s}
-.file-label:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
-.file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--txt2)}
-.chip-remove{cursor:pointer;color:var(--txt4)}
-.chip-remove:hover{color:var(--txt2)}
+/* ── SECTION ── */
+.section { padding: 88px 8%; }
+.section-inner { max-width: 860px; margin: 0 auto; }
 
-.llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
-.llm-panel.visible{max-height:300px;opacity:1}
-.llm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-.llm-card{padding:14px 16px;border-right:1px solid var(--bdr);cursor:pointer;transition:background .12s;position:relative;background:var(--sur)}
-.llm-card:last-child{border-right:none}
-.llm-card:hover{background:var(--bg)}
-.llm-card.selected{background:var(--pri-bg)}
-.llm-sel-dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--sur)}
-.llm-card.selected .llm-sel-dot{background:var(--pri);border-color:var(--pri)}
-.llm-icon{margin-bottom:8px;color:var(--txt3)}
-.llm-card.selected .llm-icon{color:var(--pri-dk)}
-.llm-name{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:2px}
-.llm-model{font-size:11px;color:var(--txt4);margin-bottom:6px;font-family:var(--mono)}
-.llm-desc{font-size:11px;color:var(--txt3);line-height:1.5}
-.llm-free{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 6px;margin-top:4px}
-.api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
-.api-key-row.visible{max-height:60px}
-.api-key-label{font-size:12px;font-weight:500;color:var(--txt3);white-space:nowrap}
-.api-key-input{flex:1;padding:6px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--txt);background:var(--bg);outline:none}
-.api-key-input:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12);background:var(--sur)}
+/* 섹션 배경: 순백 ↔ 연회색 교대로 대비 강화 */
+.agents-bg   { background: #ffffff; }
+.table-bg    { background: #ffffff; }
+.metrics-section { background: #ffffff; }
+.dist-section    { background: #ffffff; }
+.comparison-section { background: #ffffff; }
+.section-tag {
+  display: inline-block;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--brand-dk); background: var(--brand-bg);
+  border: 1px solid #a7f3d0;
+  padding: 3px 10px; border-radius: 99px;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: clamp(22px, 3vw, 30px); font-weight: 300;
+  letter-spacing: -0.6px; color: var(--text);
+  margin-bottom: 10px; line-height: 1.2;
+}
+.section-title strong { font-weight: 600; }
+.section-body {
+  font-size: 16px; font-weight: 400;
+  color: var(--text2); line-height: 1.75;
+  max-width: 100%;
+}
+.section-body p { margin-bottom: 10px; }
+.section-body p:last-child { margin-bottom: 0; }
+.overview-list {
+  list-style: none;
+  margin: 10px 0 12px 0;
+  padding: 0;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.overview-list li {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 16px; font-weight: 400; color: var(--text2); line-height: 1.75;
+}
+.overview-list li::before {
+  content: '◆';
+  color: var(--text);
+  font-size: 0.5em;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding-left: 0.6em;
+}
+.overview-p2 {
+  margin-top: 20px;
+}
+.overview-p3 {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
 
-.analysis-panel{margin-bottom:16px;display:none}
-.case-type-bar{border-radius:var(--r) var(--r) 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.case-type-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px}
-.case-type-detail{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px}
-.case-level-tag{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
-.case-ver-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.9)}
-.analysis-table{background:var(--sur);border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
-.analysis-row{display:flex;gap:0;border-bottom:1px solid var(--bdr);align-items:flex-start}
-.analysis-row:last-child{border-bottom:none}
-.analysis-key{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;min-width:120px;flex-shrink:0;padding:10px 14px;background:var(--bg);border-right:1px solid var(--bdr)}
-.analysis-val{font-size:13px;color:var(--txt);line-height:1.7;white-space:pre-wrap;flex:1;padding:10px 14px}
+/* ── DIVIDER ── */
+.sep { border: none; border-top: 1px solid var(--border); }
 
-.chat-panel{margin-bottom:16px;display:none}
-.chat-panel-inner{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
-.klaw-msg{background:var(--bg);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;line-height:1.75;color:var(--txt2)}
-.klaw-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.user-msg{background:var(--sur);border-bottom:1px solid var(--bdr);padding:10px 14px;font-size:13px;color:var(--txt);line-height:1.6}
-.user-msg-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.chat-input-row{padding:12px 14px;border-top:1px solid var(--bdr);background:var(--bg);display:flex;gap:8px;align-items:flex-end}
-.chat-textarea{flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:72px;line-height:1.6}
-.chat-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12)}
-.chat-actions{display:flex;flex-direction:column;gap:5px}
-.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r);font-size:12px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s}
-.btn-sm:hover{background:var(--bg)}
-.btn-sm-pri{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
-.btn-sm-pri:hover{background:var(--pri-dk)}
+/* ── HOW STEPS ── */
+.steps-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-top: 48px;
+}
+.step-card {
+  background: white; padding: 36px 28px;
+  transition: background 0.15s;
+}
+.step-card:hover { background: var(--brand-bg); }
+.step-num {
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
+  color: var(--brand); letter-spacing: 0.5px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.step-num::before { content:''; width:20px; height:1px; background:var(--brand); }
+.step-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; letter-spacing: -0.3px; }
+.step-card p { font-size: 15px; font-weight: 400; color: var(--text2); line-height: 1.7; }
+.step-tag {
+  display: inline-block; margin-top: 14px;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+  color: var(--blue); background: var(--blue-lt);
+  border: 1px solid #bfdbfe; padding: 2px 9px; border-radius: 99px;
+  letter-spacing: 0.3px;
+}
 
-.sim-panel{margin-bottom:32px;display:none}
-.verdict-doc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
-.verdict-hd{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
-.verdict-title-row{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:8px}
-.verdict-meta{font-size:11px;color:var(--txt4);margin-top:3px;font-family:var(--mono)}
-.verdict-body{padding:20px 24px}
-.verdict-step{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
-.verdict-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.verdict-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.step-tag{background:var(--bg);border:1px solid var(--bdr);color:var(--txt2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-family:var(--mono)}
-.step-title{font-size:12px;font-weight:600;color:var(--txt3)}
-.step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}
-.step-complete{display:inline-block;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:2px 7px;margin-top:7px;font-family:var(--mono)}
-.conf-block{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
-.conf-item{display:flex;flex-direction:column;gap:4px;padding:0 20px 0 0;margin-right:20px;border-right:1px solid var(--bdr)}
-.conf-item:last-child{border-right:none;margin-right:0;padding-right:0}
-.conf-label{font-size:10px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:.5px}
-.conf-val{font-size:22px;font-weight:700;color:var(--txt);line-height:1}
-.verdict-summary{background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
-.verdict-summary-label{font-size:10px;font-weight:700;color:var(--pri-dk);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.verdict-summary-text{font-size:13px;color:var(--txt);line-height:1.75;font-weight:500}
-.caution-bar{background:var(--org-bg);border:1px solid #fed7aa;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#92400e;line-height:1.6}
+/* ── AGENTS ── */
+.agents-bg { background: var(--bg-alt); }
+.agents-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-top: 48px;
+}
+.agent-card {
+  background: white; padding: 28px 24px;
+  position: relative; transition: background 0.15s;
+  cursor: default;
+}
+.agent-card:hover { background: var(--bg); }
+.agent-card-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 12px;
+}
+.agent-name {
+  font-size: 16px; font-weight: 600; color: var(--text);
+  letter-spacing: -0.3px; margin-bottom: 2px;
+}
+.agent-link {
+  text-decoration: none;
+  color: var(--text);
+  transition: color 0.15s;
+  display: inline-block;
+}
+.agent-link:hover { color: var(--brand-dk); }
+.agent-desc strong {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.agent-url {
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+  color: var(--text3); letter-spacing: 0.2px;
+}
+.badge {
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+  padding: 3px 9px; border-radius: 99px; letter-spacing: 0.3px;
+  white-space: nowrap; border: 1px solid;
+}
+.badge-live  { color: #059669; background: #ecfdf5; border-color: #6ee7b7; }
+.badge-dev   { color: #d97706; background: #fffbeb; border-color: #fde68a; }
+.badge-soon  { color: var(--text4); background: var(--bg-subtle); border-color: var(--border); }
+.agent-desc {
+  font-size: 15px; font-weight: 400; color: var(--text2);
+  line-height: 1.7; margin-bottom: 16px;
+}
+.agent-inst {
+  font-size: 14px; font-weight: 500; color: var(--text3);
+  display: flex; align-items: center; gap: 5px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+.agent-inst::before { content: '↔'; color: var(--brand); font-size: 12px; }
 
-.spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ── METRICS ── */
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-top: 48px;
+}
+.metric-card {
+  background: white; padding: 40px 36px;
+  position: relative; overflow: hidden;
+}
+.metric-card::after {
+  content: attr(data-label);
+  position: absolute; bottom: 24px; right: 24px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--border2); letter-spacing: 2px; text-transform: uppercase;
+}
+.metric-big {
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(36px, 4.5vw, 52px); font-weight: 300;
+  line-height: 1; margin-bottom: 10px; letter-spacing: -2px;
+}
+.metric-big.green { color: var(--brand); }
+.metric-big.blue  { color: var(--blue); }
+.metric-big.amber { color: var(--amber); }
+.metric-big.red   { color: var(--red); }
+.metric-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: -0.3px; }
+.metric-sub { font-size: 15px; font-weight: 400; color: var(--text3); line-height: 1.6; }
 
-.history-panel{position:fixed;top:52px;right:16px;z-index:500;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.1);width:340px;max-height:380px;overflow-y:auto;display:none}
-.history-panel.open{display:block}
-.history-hd{padding:11px 14px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:var(--txt);display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
-.hp-row{padding:9px 14px;border-bottom:1px solid var(--bdr);font-size:12px;display:flex;gap:10px;align-items:center}
-.hp-row:last-child{border-bottom:none}
-.hp-ver{font-weight:600;color:var(--txt);min-width:55px;font-family:var(--mono);font-size:11px}
-.hp-model{color:var(--txt3)}
-.hp-time{font-size:11px;color:var(--txt4);margin-left:auto;white-space:nowrap}
-.hp-empty{padding:20px 14px;text-align:center;color:var(--txt4);font-size:12px}
+/* ── TABLE ── */
+.table-bg { background: var(--bg-alt); }
+.tbl-wrap {
+  margin-top: 48px; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+table { width: 100%; border-collapse: collapse; background: white; }
+thead { background: #f8fafc; border-bottom: 1px solid var(--border); }
+th {
+  padding: 11px 18px; text-align: left;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
+  color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f8fafc; }
+td { padding: 14px 18px; font-size: 15px; font-weight: 400; color: var(--text2); }
+td:first-child { font-weight: 600; color: var(--text); }
+.td-bad { color: var(--red); font-weight: 400; }
+.td-bad small { display: block; color: var(--text3); font-size: 14px; font-family: 'DM Mono', monospace; margin-top: 2px; }
+.td-good { color: #059669; font-weight: 600; }
+.td-mod { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 500; }
+
+/* ── DISTRIBUTION ── */
+.dist-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-top: 48px;
+}
+.dist-card {
+  background: white; padding: 32px 24px; text-align: center;
+  transition: background 0.15s;
+}
+.dist-card:hover { background: var(--brand-bg); }
+.dist-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 36px; font-weight: 300;
+  line-height: 1; margin-bottom: 10px; letter-spacing: -1.5px;
+}
+.dist-role { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.dist-note { font-size: 14px; font-weight: 400; color: var(--text3); }
+.dc-green  { color: var(--brand); }
+.dc-blue   { color: var(--blue); }
+.dc-amber  { color: var(--amber); }
+.dc-red    { color: var(--red); }
+
+/* ── TICKER ── */
+.ticker-bar {
+  background: var(--bg-subtle); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 9px 0; overflow: hidden;
+  position: relative; z-index: 1;
+}
+.ticker-track { display: flex; width: max-content; animation: slide 28s linear infinite; }
+.tick-item {
+  white-space: nowrap; padding: 0 28px;
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 400;
+  color: var(--text4); display: flex; align-items: center; gap: 8px;
+}
+.tick-item::after { content: '·'; color: var(--border2); }
+.tick-item span { color: var(--brand); font-weight: 500; }
+@keyframes slide { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ── REVEAL ── */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border); background: white;
+  padding: 36px 24px;
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+}
+.footer-logo {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text);
+}
+.footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+.footer-links a {
+  color: var(--text3); text-decoration: none; font-size: 13px; font-weight: 400;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--brand); }
+.footer-copy { font-size: 12px; font-weight: 400; color: var(--text3); font-family: 'DM Mono', monospace; }
+.footer-disclaimer {
+  max-width: 860px;
+  margin: 32px auto 0;
+  padding-top: 0;
+  font-family: 'DM Sans', 'Noto Sans KR', sans-serif;
+}
+.footer-disclaimer-panel {
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand);
+  border-radius: 0 12px 12px 0;
+  padding: 20px 28px;
+  text-align: left;
+}
+.footer-disclaimer-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-disclaimer-body {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text2);
+  line-height: 1.8;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .agents-grid { grid-template-columns: repeat(2, 1fr); }
+  .steps-grid  { grid-template-columns: 1fr; }
+  .dist-grid   { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  nav { padding: 0 16px; }
+  .nav-links, .nav-cta { display: none; }
+  .nav-hamburger { display: flex; }
+  .hero { padding: calc(var(--nav-h) + 40px) 16px 60px; }
+  .section { padding: 56px 16px; }
+  .agents-grid { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .dist-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:"neutral", fontFamily:"inherit"});</script>
 </head>
 <body>
 
-<div class="history-panel" id="klaw-history-panel">
-  <div class="history-hd">
-    <span style="display:flex;align-items:center;gap:6px">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-      사용 이력
-    </span>
-    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-left">
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-icon">G</div>
+      gopang
+    </a>
+    <span class="nav-sep">/</span>
+    <div class="nav-project">
+      klaw &nbsp;<span class="nav-badge-prod">PRODUCTION</span>
+    </div>
+    <span class="nav-sep" style="margin-left:4px;">/</span>
+    <span class="nav-badge-ver">v3.4</span>
   </div>
-  <div id="klaw-hp-body"><div class="hp-empty">이력이 없습니다</div></div>
+  <ul class="nav-links">
+    <li><a href="#overview">개요</a></li>
+    <li><a href="#agents">에이전트</a></li>
+    <li><a href="#metrics">성능</a></li>
+    <li><a href="#compare">비교</a></li>
+    <li><a href="/docs/gopang_whitepaper.html" target="_blank" style="color:var(--brand-dk);font-weight:500">기술 백서</a></li>
+    <li><a href="https://democracy.gopang.net/desktop.html" target="_blank" style="color:var(--brand-dk);font-weight:500">K-Democracy</a></li>
+  </ul>
+  <button class="nav-cta" onclick="openWebApp()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3a1 1 0 000 2h2.586L3.293 10.293a1 1 0 101.414 1.414L10 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1H6z"/></svg>
+    웹앱 열기
+  </button>
+  <div class="nav-hamburger" onclick="toggleNav(this)">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ── TICKER ── -->
+<div class="ticker-bar" style="margin-top:var(--nav-h);">
+  <div class="ticker-track">
+    <span class="tick-item">Hash Chain 갱신 완료</span>
+    <span class="tick-item">최대 처리 성능 <span>7.3M TPS</span></span>
+    <span class="tick-item">전력 절감 <span>99.8%</span></span>
+    <span class="tick-item">소비자 데이터 노출 <span>0%</span></span>
+    <span class="tick-item">알리페이 대비 <span>29배</span></span>
+    <span class="tick-item">차분 프라이버시 <span>ε ≤ 0.1</span></span>
+    <span class="tick-item">재해 복구율 <span>99.99%</span></span>
+    <span class="tick-item">GDPR 완벽 준수</span>
+    <span class="tick-item">Hash Chain 갱신 완료</span>
+    <span class="tick-item">최대 처리 성능 <span>7.3M TPS</span></span>
+    <span class="tick-item">전력 절감 <span>99.8%</span></span>
+    <span class="tick-item">소비자 데이터 노출 <span>0%</span></span>
+    <span class="tick-item">알리페이 대비 <span>29배</span></span>
+    <span class="tick-item">차분 프라이버시 <span>ε ≤ 0.1</span></span>
+    <span class="tick-item">재해 복구율 <span>99.99%</span></span>
+    <span class="tick-item">GDPR 완벽 준수</span>
+  </div>
 </div>
 
-<header class="topbar">
-  <div class="topbar-brand">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
-    <a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a>
-  </div>
-  <div class="topbar-breadcrumb">
-    <a href="https://gopang.net" style="color:inherit;text-decoration:none">고팡</a><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">판결 시뮬레이터</span>
-  </div>
-  <div class="topbar-right">
-    <span class="badge badge-free">FREE</span>
-    <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
-    <div class="tsep"></div>
-    <span class="topbar-clock" id="clock">--:--:--</span>
-    <div class="tsep"></div>
-    <span class="badge badge-free" id="sim-counter" style="font-family:var(--mono)">0건</span>
-    <button class="user-btn" id="user-info-bar" onclick="toggleHistoryPanel()">
-      <div class="user-avatar" id="user-avatar">?</div>
-      <span id="user-email-display" style="color:var(--txt3)">연결 중</span>
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-  </div>
-</header>
+<!-- ── HERO ── -->
+<section class="hero dot-bg" id="top">
+  <div class="hero-inner">
+    <a class="hero-eyebrow" href="https://github.com/Openhash-Gopang/gopang_v2" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      오픈소스 프로젝트 · GitHub
+    </a>
+    <h1><strong>고팡</strong></h1>
+    <p class="hero-sub">AI 평행세계 플랫폼 · v3.4</p>
 
-<div class="app-body">
-  <nav class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">판결 도구</div>
-      <a class="nav-item" href="klaw_intro.html">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span class="nav-item-label">Home</span>
-      </a>
-      <button class="nav-item active">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
-        <span class="nav-item-label">판결 시뮬레이터</span>
-      </button>
-      <a class="nav-item" href="dashboard.html">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-        <span class="nav-item-label">대시보드</span>
-      </a>
-      <a class="nav-item" href="webapp.html">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
-        <span class="nav-item-label">모바일 앱</span>
-      </a>
+    <p class="hero-tagline">AI 평행 세계는 현실 세계의 비용을 <strong>99.9%</strong>, 시간을 <strong>99.99999%</strong> 줄입니다.</p>
 
+    <div class="hero-actions">
+      <button onclick="openWebApp()" class="btn-lg btn-green">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3a1 1 0 000 2h2.586L3.293 10.293a1 1 0 101.414 1.414L10 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1H6z"/></svg>
+        고팡 웹앱 열기
+      </button>
+      <a href="https://klaw.openhash.kr" target="_blank" class="btn-lg btn-outline">
+        K-Law 체험하기 →
+      </a>
+      <a href="https://github.com/Openhash-Gopang/gopang_v2" target="_blank" class="btn-lg btn-outline">
+        GitHub
+      </a>
+      <a href="/gopang-auth-guide.html" target="_blank" class="btn-lg btn-outline">
+        인증 안내 →
+      </a>
+      <a href="/gopang-id-whitepaper.html" target="_blank" class="btn-lg btn-outline">
+        ID 백서 →
+      </a>
+      <a href="https://democracy.gopang.net/desktop.html" target="_blank" class="btn-lg btn-outline">
+        K-Democracy →
+      </a>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">이력</div>
-      <button class="nav-item" onclick="toggleHistoryPanel()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        <span class="nav-item-label">판결 이력</span>
-        <span class="nav-badge" id="sidebar-counter">0</span>
-      </button>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── OVERVIEW ── -->
+<section class="section" id="overview">
+  <div class="section-inner">
+    <p style="font-size:16px;color:var(--text2);line-height:1.8;margin-bottom:28px;font-weight:400">고팡은 상대방과 대화하는 AI 메신저 플랫폼입니다. 카카오톡과 달리 고팡의 대화 상대방은 사람과 사물(자율주행차량 등), 기관(특허청, 자영업 등), 개념(AI 등)을 포함하며, 그 중 으뜸은 사용자의 전용 AI 비서입니다.<br>
+<span style="display:inline-block;padding-left:1.2em"><span style="font-size:0.5em;vertical-align:middle;">◆</span> AI 비서는 100여 종의 전문 분야 AI Agent를 호출하여 사용자의 지시를 수행합니다.</span><br>
+<span style="display:inline-block;padding-left:1.2em"><span style="font-size:0.5em;vertical-align:middle;">◆</span> 전문 분야는 입법, 사법, 행정, 교육, 의료, 시장, 교통, 물류, 경찰, 소방/응급, 금융(은행, 보험, 증권), 산업, 기업 등입니다.</span><br>
+<span style="display:inline-block;padding-left:1.2em"><span style="font-size:0.5em;vertical-align:middle;">◆</span> AI 비서와 AI Agent들은 세상의 모든 지식을 갖추고 있습니다.</span><br>
+<span style="display:inline-block;padding-left:1.2em"><span style="font-size:0.5em;vertical-align:middle;">◆</span> 나의 AI 비서는 오직 나의 이익을 위해 복무합니다.</span></p>
+    <div class="section-tag reveal">Platform Overview</div>
+    <h2 class="section-title reveal"><strong>AI 평행 세계</strong></h2>
+    <div class="section-body reveal">
+      <p>고팡은 현실 세계의 사람, 사물, 기관 각각의 AI 쌍둥이로 구축한 평행 세계입니다.</p>
+      <ul class="overview-list">
+        <li>기관: 법원, 국세청, 대학, 병원, 시장, 기업, 시청 등</li>
+        <li>사물: 자율주행차량, 주택, 냉장고 등의 사물</li>
+        <li>사람</li>
+        <li>개념: 법률, 지식, 관습 등</li>
+      </ul>
+      <p style="margin-bottom:2em;">지금까지는 변호사와 법률을 상담하고, 의사와 질환을 상담하며, 공무원과 민원을 상담합니다. 고팡이 제공하는 새로운 세계에서는 사람과 법률이 직접 소통하고, 사람과 의학, 사람과 국가가 직접 대화합니다. 즉, 법률, 의학, 국가 모두 고팡의 인격체이며, 그 인격은 AI입니다. 고팡의 AI 쌍둥이는 현실의 쌍둥이에 비해, 비용은 <strong>1/1,000</strong>, 시간은 <strong>1/1,000,000</strong>의 속도로 업무를 수행합니다.</p>
+
+      <p class="overview-p2">고팡은 사람과 사람 간의 대화를 <strong>"AI 비서와 AI 비서"</strong> 간의 대화로 치환합니다.</p>
+      <ul class="overview-list">
+        <li>AI 비서는 내 PC와 스마트폰의 PDV(Private Data Vault)에 나에 대한 모든 정보를 기록하고 갱신합니다.</li>
+        <li>오직 나 자신만 내 PDV에 접근할 수 있으며, 내 PC 등에 저장되므로, 대규모 해킹이 불가능합니다(오프라인).</li>
+        <li>AI 비서는 나 대신 각종 업무를 수행하며, 나는 감독할 뿐입니다.</li>
+      </ul>
+
+
+    <!-- AI 대화 메커니즘 일러스트 -->
+    <div class="reveal" style="margin:0 0 48px 0;">
+      <svg viewBox="0 0 1100 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:1100px;display:block;margin:0 auto;">
+
+        <!-- ── 왼쪽 패널 배경 ── -->
+        <rect x="8" y="16" width="370" height="328" rx="14" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <!-- ── 오른쪽 패널 배경 ── -->
+        <rect x="722" y="16" width="370" height="328" rx="14" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+
+        <!-- ════════════ 행 1: 사람 (y=30, 중심=52) ════════════ -->
+        <!-- 객체: 사람 L -->
+        <rect x="22" y="30" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <circle cx="42" cy="48" r="6" fill="#64748b"/>
+        <path d="M32,62 Q32,55 42,55 Q52,55 52,62" fill="#64748b"/>
+        <text x="80" y="57" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">사람</text>
+        <!-- 수평 연결선 L -->
+        <line x1="132" y1="52" x2="152" y2="52" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 사람 L -->
+        <rect x="152" y="30" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="226" y="57" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- 객체: 사람 R -->
+        <rect x="968" y="30" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <circle cx="988" cy="48" r="6" fill="#64748b"/>
+        <path d="M978,62 Q978,55 988,55 Q998,55 998,62" fill="#64748b"/>
+        <text x="1026" y="57" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">사람</text>
+        <!-- 수평 연결선 R -->
+        <line x1="968" y1="52" x2="948" y2="52" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 사람 R -->
+        <rect x="800" y="30" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="874" y="57" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- ════════════ 행 2: 사물 (y=110, 중심=132) ════════════ -->
+        <!-- 객체: 사물 L -->
+        <rect x="22" y="110" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="36" y="119" width="16" height="14" rx="2" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="36" y1="125" x2="52" y2="125" stroke="#64748b" stroke-width="1.2"/>
+        <text x="80" y="137" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">사물</text>
+        <!-- 수평 연결선 L -->
+        <line x1="132" y1="132" x2="152" y2="132" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 사물 L -->
+        <rect x="152" y="110" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="226" y="137" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- 객체: 사물 R -->
+        <rect x="968" y="110" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="982" y="119" width="16" height="14" rx="2" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="982" y1="125" x2="998" y2="125" stroke="#64748b" stroke-width="1.2"/>
+        <text x="1026" y="137" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">사물</text>
+        <!-- 수평 연결선 R -->
+        <line x1="968" y1="132" x2="948" y2="132" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 사물 R -->
+        <rect x="800" y="110" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="874" y="137" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- ════════════ 행 3: 기관 (y=190, 중심=212) ════════════ -->
+        <!-- 객체: 기관 L -->
+        <rect x="22" y="190" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="36" y="197" width="14" height="18" rx="1" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="36" y1="203" x2="50" y2="203" stroke="#64748b" stroke-width="1"/>
+        <rect x="40" y="207" width="4" height="8" fill="#64748b"/>
+        <text x="80" y="217" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">기관</text>
+        <!-- 수평 연결선 L -->
+        <line x1="132" y1="212" x2="152" y2="212" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 기관 L -->
+        <rect x="152" y="190" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="226" y="217" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- 객체: 기관 R -->
+        <rect x="968" y="190" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="982" y="197" width="14" height="18" rx="1" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="982" y1="203" x2="996" y2="203" stroke="#64748b" stroke-width="1"/>
+        <rect x="986" y="207" width="4" height="8" fill="#64748b"/>
+        <text x="1026" y="217" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">기관</text>
+        <!-- 수평 연결선 R -->
+        <line x1="968" y1="212" x2="948" y2="212" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 기관 R -->
+        <rect x="800" y="190" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="874" y="217" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- ════════════ 행 4: 개념 (y=270, 중심=292) ════════════ -->
+        <!-- 객체: 개념 L -->
+        <rect x="22" y="270" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <circle cx="40" cy="287" r="6" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="37" y1="293" x2="37" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="43" y1="293" x2="43" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="37" y1="298" x2="43" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <text x="80" y="297" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">개념</text>
+        <!-- 수평 연결선 L -->
+        <line x1="132" y1="292" x2="152" y2="292" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 개념 L -->
+        <rect x="152" y="270" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="226" y="297" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- 객체: 개념 R -->
+        <rect x="968" y="270" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <circle cx="986" cy="287" r="6" fill="none" stroke="#64748b" stroke-width="1.4"/>
+        <line x1="983" y1="293" x2="983" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="989" y1="293" x2="989" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="983" y1="298" x2="989" y2="298" stroke="#64748b" stroke-width="1.2"/>
+        <text x="1026" y="297" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">개념</text>
+        <!-- 수평 연결선 R -->
+        <line x1="968" y1="292" x2="948" y2="292" stroke="#94a3b8" stroke-width="1.2" opacity="0.7"/>
+        <!-- AI비서: 개념 R -->
+        <rect x="800" y="270" width="148" height="44" rx="8" fill="#e8edf2" stroke="#b0bec5" stroke-width="1"/>
+        <text x="874" y="297" text-anchor="middle" font-size="14" fill="#334155" font-weight="600">AI 비서</text>
+
+        <!-- ════ 중앙 크로스 연결선 (L AI비서 우끝=300 ↔ R AI비서 좌끝=800) ════ -->
+        <!-- 동일 행: 약간 더 진하게 -->
+        <line x1="300" y1="52"  x2="800" y2="52"  stroke="#cbd5e1" stroke-width="1" opacity="0.6"/>
+        <line x1="300" y1="132" x2="800" y2="132" stroke="#cbd5e1" stroke-width="1" opacity="0.6"/>
+        <line x1="300" y1="212" x2="800" y2="212" stroke="#cbd5e1" stroke-width="1" opacity="0.6"/>
+        <line x1="300" y1="292" x2="800" y2="292" stroke="#cbd5e1" stroke-width="1" opacity="0.6"/>
+        <!-- 크로스 -->
+        <line x1="300" y1="52"  x2="800" y2="132" stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+        <line x1="300" y1="52"  x2="800" y2="212" stroke="#d1d5db" stroke-width="0.85" opacity="0.32"/>
+        <line x1="300" y1="52"  x2="800" y2="292" stroke="#d1d5db" stroke-width="0.85" opacity="0.22"/>
+        <line x1="300" y1="132" x2="800" y2="52"  stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+        <line x1="300" y1="132" x2="800" y2="212" stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+        <line x1="300" y1="132" x2="800" y2="292" stroke="#d1d5db" stroke-width="0.85" opacity="0.32"/>
+        <line x1="300" y1="212" x2="800" y2="52"  stroke="#d1d5db" stroke-width="0.85" opacity="0.32"/>
+        <line x1="300" y1="212" x2="800" y2="132" stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+        <line x1="300" y1="212" x2="800" y2="292" stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+        <line x1="300" y1="292" x2="800" y2="52"  stroke="#d1d5db" stroke-width="0.85" opacity="0.22"/>
+        <line x1="300" y1="292" x2="800" y2="132" stroke="#d1d5db" stroke-width="0.85" opacity="0.32"/>
+        <line x1="300" y1="292" x2="800" y2="212" stroke="#d1d5db" stroke-width="0.85" opacity="0.45"/>
+
+        <!-- 중앙 레이블 -->
+        <rect x="462" y="148" width="176" height="56" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="550" y="172" text-anchor="middle" font-size="14" fill="#475569" font-weight="700">AI 비서 간 대화</text>
+        <text x="550" y="191" text-anchor="middle" font-size="12" fill="#94a3b8" font-weight="500">고팡 메신저</text>
+      </svg>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">모델</div>
-      <button class="nav-item active" id="llm-nav-deepseek" onclick="selectLLM('deepseek')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
-        <span class="nav-item-label">DeepSeek</span>
-        <span class="nav-badge" style="background:var(--pri-bg);color:var(--pri-dk);border-color:var(--pri-bd)">기본</span>
-      </button>
-      <button class="nav-item" id="llm-nav-claude" onclick="selectLLM('claude')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span class="nav-item-label">Claude</span>
-      </button>
-      <button class="nav-item" id="llm-nav-gemini" onclick="selectLLM('gemini')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-        <span class="nav-item-label">Gemini</span>
-      </button>
-    </div>
-    <div class="sidebar-footer">
-      <div class="klaw-ver-chip">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
-        <span>K-Law <strong id="klaw-ver-badge">로딩 중</strong></span>
+
+      <p class="overview-p3">고팡은 현실 세계의 모든 기관과 사물, 전문직의 AI 쌍둥이가 존재하는 평행 세계이며, 나의 AI 비서는 이들 기관 등과 소통하는 창구입니다.</p>
+
+      <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span style="font-size:15px;font-weight:700;color:#334155;letter-spacing:.5px">하나의 앱</span>
+          </div>
+          <div style="font-size:16px;color:#374151;line-height:1.75">카카오톡처럼 사용합니다. 채팅으로 다른 사용자와 소통하거나, AI 비서에게 지시하세요. 100여 종의 전문 AI Agent가 자동 호출됩니다.</div>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style="font-size:15px;font-weight:700;color:#334155;letter-spacing:.5px">비용 모델</span>
+          </div>
+          <div style="font-size:16px;color:#374151;line-height:1.75">사용한 만큼만 지불합니다. 평균 <strong>월 100원</strong> 내외. AI를 많이 사용하더라도 최대 월 수천 원 수준입니다.</div>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span style="font-size:15px;font-weight:700;color:#334155;letter-spacing:.5px">데이터 보안</span>
+          </div>
+          <div style="font-size:16px;color:#374151;line-height:1.75">모든 업무 결과는 사용자 기기의 PDV에 6하원칙으로 기록됩니다. 대규모 해킹은 원천적으로 불가능합니다.</div>
+        </div>
       </div>
     </div>
-  </nav>
 
-  <main class="main">
-    <div class="page-header">
-      <div class="page-header-top">
+
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-num">STEP 01</div>
+        <h3>지시 또는 질의</h3>
+        <p>고팡 앱의 입력 필드에 텍스트나 보이스로 지시하거나 질의합니다.</p>
+        <span class="step-tag">TEXT · VOICE</span>
+      </div>
+      <div class="step-card reveal" style="transition-delay:.08s">
+        <div class="step-num">STEP 02</div>
+        <h3>AI 비서가 이행 방안 강구</h3>
+        <p>직접 수행하거나, 등록된 전문 AI Agent(K-Law, K-Market, K-Cleaner 등)를 호출합니다.</p>
+        <span class="step-tag">AGENT ORCHESTRATION</span>
+      </div>
+      <div class="step-card reveal" style="transition-delay:.16s">
+        <div class="step-num">STEP 03</div>
+        <h3>적합한 Agent 없으면 웹 검색</h3>
+        <p>등록된 AI Agent 중 적합한 것이 없으면 웹을 검색하여 최적의 이행 방안을 찾습니다.</p>
+        <span class="step-tag">WEB FALLBACK</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── PC vs MOBILE ── -->
+<section class="section" id="pc-mobile">
+  <div class="section-inner">
+    <div class="section-tag reveal">Interface</div>
+    <h2 class="section-title reveal">PC 버전과 <strong>모바일 버전</strong></h2>
+    <div class="section-body reveal">
+      <p>PC와 모바일의 브라우저에 gopang.net 주소를 입력하면, PC와 모바일의 화면이 서로 다릅니다. gopang.net 뿐 아니라, 그 하위 시스템들도 그러합니다. 모바일은 대화형이며, 시종일관 AI가 적용됩니다. 반면, PC는 해당 시스템에 대한 안내가 주요한 용도입니다. 이하, 모바일로 접속한 경우를 설명합니다.</p>
+      <p style="margin-top:16px">모바일 버전의 고팡(Gopang)은 수백 개의 하위 AI 시스템(전문 분야 AI Agent)을 호출하는 포털입니다.</p>
+
+      <!-- 흐름도 일러스트 -->
+      <div style="margin:32px 0 8px 0;">
+        <svg viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:0 auto;">
+
+          <!-- ── 노드 1: 사람이 AI 비서에게 지시 ── -->
+          <rect x="10" y="80" width="155" height="60" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+          <circle cx="36" cy="104" r="7" fill="#64748b"/>
+          <path d="M24,118 Q24,110 36,110 Q48,110 48,118" fill="#64748b"/>
+          <text x="100" y="106" text-anchor="middle" font-size="12.5" fill="#334155" font-weight="600">사람이</text>
+          <text x="100" y="123" text-anchor="middle" font-size="12.5" fill="#334155" font-weight="600">AI 비서에게 지시</text>
+
+          <!-- 화살표 1→2 -->
+          <line x1="165" y1="110" x2="220" y2="110" stroke="#94a3b8" stroke-width="1.3"/>
+          <polygon points="218,105 228,110 218,115" fill="#94a3b8"/>
+
+          <!-- ── 노드 2: 판단 (마름모) 중심 y=110 ── -->
+          <polygon points="310,60 390,110 310,160 230,110" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="310" y="105" text-anchor="middle" font-size="12" fill="#334155" font-weight="600">직접 수행</text>
+          <text x="310" y="121" text-anchor="middle" font-size="12" fill="#334155" font-weight="600">가능?</text>
+
+          <!-- YES 아래쪽 화살표 → 직접 수행 -->
+          <line x1="310" y1="160" x2="310" y2="185" stroke="#94a3b8" stroke-width="1.3"/>
+          <polygon points="305,183 310,193 315,183" fill="#94a3b8"/>
+          <text x="298" y="178" text-anchor="middle" font-size="11" fill="#64748b">YES</text>
+          <rect x="228" y="193" width="164" height="44" rx="8" fill="#e0f2e9" stroke="#a7d7b8" stroke-width="1"/>
+          <text x="310" y="213" text-anchor="middle" font-size="13" fill="#1a6b3c" font-weight="600">직접 수행</text>
+          <text x="310" y="230" text-anchor="middle" font-size="11" fill="#4ade80" font-weight="500">✓ 완료</text>
+
+          <!-- NO 오른쪽 화살표 -->
+          <line x1="390" y1="110" x2="445" y2="110" stroke="#94a3b8" stroke-width="1.3"/>
+          <polygon points="443,105 453,110 443,115" fill="#94a3b8"/>
+          <text x="418" y="103" text-anchor="middle" font-size="11" fill="#64748b">NO</text>
+
+          <!-- ── 노드 3: Agent 있음? (마름모) 중심 y=110 ── -->
+          <polygon points="555,60 635,110 555,160 475,110" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="555" y="105" text-anchor="middle" font-size="12" fill="#334155" font-weight="600">전문 Agent</text>
+          <text x="555" y="121" text-anchor="middle" font-size="12" fill="#334155" font-weight="600">있음?</text>
+
+          <!-- YES 아래쪽 → Agent 호출 -->
+          <line x1="555" y1="160" x2="555" y2="185" stroke="#94a3b8" stroke-width="1.3"/>
+          <polygon points="550,183 555,193 560,183" fill="#94a3b8"/>
+          <text x="543" y="178" text-anchor="middle" font-size="11" fill="#64748b">YES</text>
+          <rect x="468" y="193" width="174" height="44" rx="8" fill="#e0f2e9" stroke="#a7d7b8" stroke-width="1"/>
+          <text x="555" y="213" text-anchor="middle" font-size="13" fill="#1a6b3c" font-weight="600">전문 Agent 호출</text>
+          <text x="555" y="230" text-anchor="middle" font-size="11" fill="#4ade80" font-weight="500">✓ 완료</text>
+
+          <!-- NO 오른쪽 → 웹 검색 -->
+          <line x1="635" y1="110" x2="685" y2="110" stroke="#94a3b8" stroke-width="1.3"/>
+          <polygon points="683,105 693,110 683,115" fill="#94a3b8"/>
+          <text x="660" y="103" text-anchor="middle" font-size="11" fill="#64748b">NO</text>
+
+          <!-- ── 노드 4: 웹 검색 등 자체 수행 ── -->
+          <rect x="693" y="80" width="197" height="60" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+          <circle cx="716" cy="108" r="7" fill="none" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="721" y1="113" x2="727" y2="119" stroke="#64748b" stroke-width="1.5"/>
+          <text x="806" y="105" text-anchor="middle" font-size="12.5" fill="#334155" font-weight="600">웹 검색 등으로</text>
+          <text x="806" y="122" text-anchor="middle" font-size="12.5" fill="#334155" font-weight="600">스스로 수행</text>
+
+        </svg>
+      </div>
+
+      <!-- 짜장면 주문 예시 이미지 (썸네일 + 클릭 확대) -->
+      <!-- ※ jjajang.png 파일을 desktop.html과 같은 폴더에 저장하세요 -->
+      <div style="margin:36px 0 8px 0;">
+
+        <!-- 썸네일 클릭 시 모달 오픈 -->
+        <div onclick="document.getElementById('jjajang-modal').style.display='flex'"
+             style="cursor:pointer;display:inline-block;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07);transition:box-shadow .2s;"
+             onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.13)'"
+             onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.07)'">
+          <img src="jjajang.png" alt="짜장면 주문 시퀀스 다이어그램"
+               style="width:340px;height:auto;display:block;"/>
+          <div style="padding:8px 14px;background:#f8fafc;font-size:12px;color:#94a3b8;text-align:center;">
+            🔍 클릭하면 전체 크기로 볼 수 있습니다
+          </div>
+        </div>
+
+        <!-- 모달 (전체 이미지) -->
+        <div id="jjajang-modal"
+             onclick="this.style.display='none'"
+             style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
+          <div onclick="event.stopPropagation()" style="position:relative;max-width:95vw;max-height:92vh;">
+            <img src="jjajang.png" alt="짜장면 주문 시퀀스 다이어그램"
+                 style="max-width:95vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.4);display:block;"/>
+            <button onclick="document.getElementById('jjajang-modal').style.display='none'"
+                    style="position:absolute;top:-14px;right:-14px;width:30px;height:30px;border-radius:50%;border:none;background:#334155;color:#fff;font-size:16px;cursor:pointer;line-height:30px;text-align:center;">✕</button>
+          </div>
+        </div>
+
+      </div>
+
+      <ul class="overview-list" style="margin-top:12px">
+        <li>사용자가 지시나 질의하면, 사용자의 전용 AI 비서는 먼저 자신이 스스로 수행할 업무인지 여부를 판단합니다. 가령, "내일 약속된 미팅이 뭐가 있지?", "이 사건의 대법원 판결문 법리를 분석해 줘." 등입니다. 전자는 AI 비서가 처리할 일이지만, 후자는 K-Law와 같은 특정 분야에 특화된 전문 AI Agent를 호출해야 합니다.</li>
+        <li>AI 비서가 수행하는 것보다 전문 AI Agent가 수행하기에 적합한 지시로 판단되면, AI 비서는 고팡에 등록된 수백 개의 AI Agent들 가운데, 사용자의 지시를 이행할 최적의 Agent를 호출합니다. 가령, 법률을 문의하면 K-Law를 호출하고, 치안을 문의하면 K-Police를 호출하며, 질환을 문의하면 K-Health를 호출합니다. 2026년 6월 현재, 약 20종의 하위 AI Agent를 구성하였으며, 2026년 말까지 100여 종으로 확장합니다.</li>
+        <li>고팡에 등록된 Agent들 중에서 적절한 AI Agent가 없다면, AI 비서는 웹 검색 등으로 스스로 해당 지시를 이행하고, 결과를 보고합니다. 만약, 특정 분야 Agent의 개발이 필요하다고 판단되면, 그 필요성을 개발자에게 보고합니다.</li>
+        <li>AI 비서 및 AI Agent들의 업무 수행 결과는 사용자의 전용 데이터 금고(PDV, Private Data Vault)에 6하원칙에 따라 기록되며, 이 기록은 오직 본인만 접근할 수 있습니다.</li>
+      </ul>
+      <p style="margin-top:20px">고팡은 관문(Portal)이며, 100여 종의 하위 AI 시스템은 의료, 법률, 교육 등 제반 인프라의 AI 쌍둥이입니다. 또한, 고팡은 완전히 새로운 형식의 웹이며, 한국의 수십 만 웹 사이트를 100여 종의 AI Agent로 대체합니다.</p>
+      <p style="margin-top:16px;text-align:center;font-size:1.25rem;font-weight:700;letter-spacing:0.5px">아날로그 시대 &nbsp;⇒&nbsp; 디지털 시대 &nbsp;⇒&nbsp; AI 시대 (고팡)</p>
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── AGENTS ── -->
+<section class="section agents-bg dot-bg-light" id="agents">
+  <div class="section-inner">
+    <div class="section-tag reveal">AI Agents</div>
+    <h2 class="section-title reveal">등록된 <strong>AI 에이전트</strong></h2>
+    <div class="section-body reveal">
+      <p>아래는 우리가 구축한 AI 평행 세계의 쌍둥이들입니다. 각 Agent는 해당 분야 전용 System Prompt를 보유하며, 이로 인해 일반 AI 모델(Claude, GPT 등)보다 월등히 우수한 성능을 발휘합니다. 가령, K-Law의 System Prompt를 적용한 Claude는 그렇지 않은 Claude에 비해 법리 분석과 판결 성능이 압도적으로 뛰어납니다. K-Law는 수 년이 소요되는 소송 기간을 <strong>5~10초</strong>로, 비용을 <strong>100원 내외</strong>로 줄입니다. 다른 모든 AI 쌍둥이들도 같습니다.</p>
+      <p style="margin-top:10px;font-size:13px;color:var(--text3)">전문 Agent가 업무를 완료하면, 결과를 자체 DB에 저장하고 6하원칙 보고서를 AI 비서에게 제출합니다. AI 비서는 이를 사용자의 PDV에 기록하며, PDV의 해시값은 OpenHash Network에 앵커링되어 위변조를 원천 차단합니다.</p>
+    </div>
+
+    <div class="agents-grid">
+
+      <div class="agent-card reveal">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://klaw.gopang.net" target="_blank">K-Law ↗</a>
+            <div class="agent-url">klaw.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 법원</strong><br>지방·고등·대법원·헌법재판소 수준의 판결 시뮬레이션. 1초 이내, 약 1,000원으로 판결문 산출.</p>
+        <div class="agent-inst">지방법원 · 고등법원 · 대법원 · 헌법재판소</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.05s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://market.gopang.net" target="_blank">K-Market ↗</a>
+            <div class="agent-url">market.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 시장</strong><br>판매자 이력 전용 수요 예측·공급망 자동화. 소비자 데이터 0% 수집. GPID 글로벌 단일 시장.</p>
+        <div class="agent-inst">전통시장 · 쇼핑몰 · 유통 플랫폼</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.10s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://fiil.kr" target="_blank">K-Cleaner ↗</a>
+            <div class="agent-url">clean.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 환경 감시</strong><br>사진 한 장으로 해안 쓰레기·불법 투기를 AI가 자동 분석·신고. GWP 프로토콜 연동.</p>
+        <div class="agent-inst">환경부 · 지방자치단체 · 해양수산부</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.15s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://gdc.gopang.net" target="_blank">GDC 화폐 ↗</a>
+            <div class="agent-url">gdc.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>무위험 자산 담보 디지털 화폐</strong><br>판매자 실물 자산 기반 4중 헤징. 국경 없는 글로벌 결제.</p>
+        <div class="agent-inst">중앙은행 · 시중은행 · 결제 플랫폼</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.20s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://tax.gopang.net" target="_blank">K-Tax ↗</a>
+            <div class="agent-url">tax.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 세무</strong><br>거래 재무제표 실시간 자동 생성·신고. 국가별 세무 규정 자동 적용. 관세·부가세 계산.</p>
+        <div class="agent-inst">국세청 · 세관 · 지방세 담당기관</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.25s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://insurance.gopang.net" target="_blank">K-Insurance ↗</a>
+            <div class="agent-url">insurance.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 보험</strong><br>실거래 데이터 기반 개인화 보험료 자동 산정. 청구·심사·지급 자동화. PDV 기반 계약 관리.</p>
+        <div class="agent-inst">보험사 · 금융감독원 · 건강보험공단</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.30s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://health.gopang.net" target="_blank">K-Health ↗</a>
+            <div class="agent-url">health.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 병원</strong><br>실거래 기반 건강 위험도 실시간 산정. 개인화 보험료 자동 계산. 의료 기록 PDV 보존.</p>
+        <div class="agent-inst">병원 · 건강보험공단 · 의료보험사</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.35s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://school.gopang.net" target="_blank">K-School ↗</a>
+            <div class="agent-url">school.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 대학</strong><br>강의·연구·행정을 AI 쌍둥이로 구현. 학위 검증 PDV 기록. 100개 언어 실시간 교육.</p>
+        <div class="agent-inst">대학교 · 교육부 · 연구기관</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.40s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://public.gopang.net" target="_blank">K-Gov ↗</a>
+            <div class="agent-url">public.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 도청·시청</strong><br>민원·행정·허가를 AI 자동 처리. 규제 변경 자동 적용. 스마트 계약 기반 공공 서비스.</p>
+        <div class="agent-inst">도청 · 시청 · 행정안전부</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.45s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://security.gopang.net" target="_blank">K-Security ↗</a>
+            <div class="agent-url">security.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>고팡 보안 시스템</strong><br>고팡의 사용자 ID, PDV(개인 데이터 금고), 인증 시스템을 보호합니다. 이상 로그인 탐지, 기기 변경 감지, 4단계 추가 인증 등 고팡 생태계 전체의 보안을 전담합니다.</p>
+        <div class="agent-inst">ID 보안 · PDV 보호 · 인증 이상 탐지</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.50s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://police.gopang.net" target="_blank">K-Police ↗</a>
+            <div class="agent-url">police.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 치안</strong><br>실시간 범죄 예측·대응 자동화. 순찰 경로 최적화. 디지털 증거 OpenHash 보존.</p>
+        <div class="agent-inst">경찰청 · 지방경찰청 · 자치경찰</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.55s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://democracy.gopang.net" target="_blank">K-Democracy ↗</a>
+            <div class="agent-url">democracy.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 민주주의</strong><br>고팡의 운영 원칙과 규칙을 제안·심의·의결하는 플랫폼. 누구나 안건을 제안하고, 공헌도에 비례한 투표권으로 결정하며, 결과는 OpenHash에 영구 기록됩니다.</p>
+        <div class="agent-inst">선거관리위원회 · 국회 · 지방의회</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.60s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://911.gopang.net" target="_blank">K-911 ↗</a>
+            <div class="agent-url">911.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 긴급구조</strong><br>신고 접수부터 현장 출동까지 0.8mS 자동 디스패치. 재난 대응 자원 실시간 최적 배분.</p>
+        <div class="agent-inst">소방청 · 해양경찰 · 응급의료센터</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.65s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://stock.gopang.net" target="_blank">K-Stock ↗</a>
+            <div class="agent-url">stock.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 자산관리</strong><br>주식·채권·부동산·암호화폐·원자재 등 89개 자산군 실시간 분석. 개인 맞춤형 포트폴리오·절세 시뮬레이션. PDV 기록.</p>
+        <div class="agent-inst">증권사 · 자산운용사 · 금융위원회</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.70s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://traffic.gopang.net" target="_blank">K-Traffic ↗</a>
+            <div class="agent-url">traffic.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 교통</strong><br>실시간 교통 흐름 예측·신호 자동 최적화. 자율주행 인프라 연동. 사고·정체 0.8mS 감지 및 우회 경로 자동 안내.</p>
+        <div class="agent-inst">국토교통부 · 도로공사 · 지방경찰청</div>
+      </div>
+
+      <div class="agent-card reveal" style="transition-delay:.75s">
+        <div class="agent-card-top">
+          <div>
+            <a class="agent-name agent-link" href="https://logistics.gopang.net" target="_blank">K-Logistics ↗</a>
+            <div class="agent-url">logistics.gopang.net</div>
+          </div>
+        </div>
+        <p class="agent-desc"><strong>AI 물류</strong><br>주문-출고-배송-반품 전 과정 자동화. 재고·운송·창고를 AI가 실시간 최적 배분. OpenHash 배송 증빙 불변 기록.</p>
+        <div class="agent-inst">물류센터 · 택배사 · 관세청</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── METRICS ── -->
+<section class="section" id="metrics">
+  <div class="section-inner">
+    <div class="section-tag reveal">Performance</div>
+    <h2 class="section-title reveal">검증된 <strong>성능 수치</strong></h2>
+    <p class="section-body reveal">AWS EC2 환경 실증 결과. 기존 시스템 대비 압도적인 처리 성능과 에너지 효율.</p>
+    <p class="section-body reveal" style="margin-top:16px">고팡의 AI 비서와 수백 종의 AI Agent가 딛고 있는 발판은 각 사용자가 자신의 PC와 스마트폰에 보관하는 데이터 금고(PDV, Private Data Vault)이며, 재차, PDV의 발판은 데이터 무결성을 보장하는 Openhash 기술입니다.</p>
+
+    <!-- 계층 구조 시각화 -->
+    <div class="reveal" style="margin:32px 0 28px;display:flex;flex-direction:column;align-items:center;gap:0;max-width:640px;margin-left:auto;margin-right:auto">
+
+      <!-- Layer 1: AI 비서 + AI Agents -->
+      <div style="width:100%;display:flex;gap:10px">
+
+        <!-- AI 비서 -->
+        <div style="flex:1;background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;
+                    border-radius:4px;padding:18px 16px;text-align:center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+               stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+               style="margin-bottom:10px">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            <rect x="9" y="2" width="6" height="2" rx="1"/>
+            <line x1="12" y1="2" x2="12" y2="4"/>
+          </svg>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:5px">전용 AI 비서</div>
+          <div style="font-size:14px;color:#555;line-height:1.6">사용자 1인 전담<br>지시 판단 · 직접 수행</div>
+        </div>
+
+        <!-- AI Agents -->
+        <div style="flex:2;background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;
+                    border-radius:4px;padding:18px 16px;text-align:center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+               stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+               style="margin-bottom:10px">
+            <rect x="2" y="7" width="5" height="10" rx="1"/>
+            <rect x="9.5" y="4" width="5" height="13" rx="1"/>
+            <rect x="17" y="9" width="5" height="8" rx="1"/>
+          </svg>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:5px">수백 종의 AI Agent</div>
+          <div style="font-size:14px;color:#555;line-height:1.6">K-Law · K-Police · K-Health<br>K-School · K-Market · 기타 전문 Agent</div>
+        </div>
+      </div>
+
+      <!-- 연결선 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:2px">
+        <div style="width:1px;height:16px;background:#adb5bd"></div>
+        <div style="font-size:12px;color:#6c757d;letter-spacing:1px;font-family:'DM Mono',monospace">기반</div>
+        <div style="width:1px;height:16px;background:#adb5bd"></div>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="#adb5bd">
+          <polygon points="5,6 0,0 10,0"/>
+        </svg>
+      </div>
+
+      <!-- Layer 2: PDV -->
+      <div style="width:100%;background:#f0f4f8;border:1px solid #d0d5dd;border-left:4px solid #003366;
+                  border-radius:4px;padding:16px 20px;display:flex;align-items:center;gap:16px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+             stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             style="flex-shrink:0">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <circle cx="12" cy="16" r="1" fill="#003366"/>
+        </svg>
         <div>
-          <div class="page-title">판결 시뮬레이터</div>
-          <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 AI가 대법원 판결을 예측합니다</div>
-        </div>
-        <div class="page-actions">
-          <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            판결문 저장
-          </button>
-        </div>
-      </div>
-      <div class="page-tabs">
-        <button class="page-tab active">입력 및 분석</button>
-        <button class="page-tab" onclick="toggleHistoryPanel()">이력</button>
-      </div>
-    </div>
-
-    <div class="content">
-
-      <div class="panel">
-        <div class="panel-hd">
-          <div class="panel-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            사건의 개요
-          </div>
-          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
-            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
-          </span>
-        </div>
-        <div class="panel-bd">
-          <textarea class="case-textarea" id="case-input"
-            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
-          <div class="input-toolbar" id="input-toolbar">
-            <div class="toolbar-left">
-              <label class="file-label" title="파일 첨부">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
-              </label>
-              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
-              </button>
-              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-            </div>
-            <button class="btn btn-primary" onclick="runSimulation()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              분석 시작
-            </button>
-          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">PDV &mdash; Private Data Vault</div>
+          <div style="font-size:14px;color:#555;line-height:1.7">사용자 PC · 스마트폰 내 보관 · 오직 본인만 접근<br>AI 비서 · Agent 업무 결과를 6하원칙으로 기록</div>
         </div>
       </div>
 
-      <div class="llm-panel" id="llm-section">
-        <div class="panel-hd" style="border-bottom:1px solid var(--bdr)">
-          <div class="panel-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0112 2a10 10 0 00-7.07 2.93M4.93 19.07A10 10 0 0012 22a10 10 0 007.07-2.93M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
-            AI 모델
-          </div>
-        </div>
-        <div class="llm-grid">
-          <div class="llm-card selected" id="card-deepseek" onclick="selectLLM('deepseek')">
-            <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><path d="M9 18h6"/></svg></div>
-            <div class="llm-name">DeepSeek</div>
-            <div class="llm-model">deepseek-chat</div>
-            <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
-            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
-          </div>
-          <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
-            <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-            <div class="llm-name">Claude</div>
-            <div class="llm-model">claude-sonnet-4-20250514</div>
-            <div class="llm-desc">정밀한 법률 언어 해석 · 높은 일관성</div>
-          </div>
-          <div class="llm-card" id="card-gemini" onclick="selectLLM('gemini')">
-            <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></div>
-            <div class="llm-name">Gemini</div>
-            <div class="llm-model">gemini-2.0-flash</div>
-            <div class="llm-desc">멀티모달 · 긴 문서 처리 특화</div>
-          </div>
-        </div>
-        <div class="api-key-row" id="api-key-section">
-          <label class="api-key-label" id="api-key-label">API Key</label>
-          <input class="api-key-input" type="password" id="api-key" placeholder="API Key를 입력하세요">
-        </div>
+      <!-- 연결선 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:2px">
+        <div style="width:1px;height:16px;background:#adb5bd"></div>
+        <div style="font-size:12px;color:#6c757d;letter-spacing:1px;font-family:'DM Mono',monospace">기반</div>
+        <div style="width:1px;height:16px;background:#adb5bd"></div>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="#adb5bd">
+          <polygon points="5,6 0,0 10,0"/>
+        </svg>
       </div>
 
-      <div class="analysis-panel" id="analysis-panel"></div>
-      <div class="chat-panel" id="chat-panel"></div>
-      <div class="sim-panel" id="sim-panel"></div>
+      <!-- Layer 3: OpenHash -->
+      <div style="width:100%;background:#f0f4f8;border:1px solid #d0d5dd;border-left:4px solid #003366;
+                  border-radius:4px;padding:16px 20px;display:flex;align-items:center;gap:16px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+             stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             style="flex-shrink:0">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">OpenHash &mdash; PHLD 분산 원장</div>
+          <div style="font-size:14px;color:#555;line-height:1.7">데이터 무결성 보장 · 변조 불가 · 에너지 소비 99.8% 절감<br>전 세계 분산 노드 · 블록체인 대비 압도적 효율</div>
+        </div>
+      </div>
 
     </div>
-  </main>
-</div>
+    <!-- /계층 구조 시각화 -->
+
+    <p class="section-body reveal" style="margin-top:12px">블록체인은 혁신적인 데이터 위변조 방지 기술이지만, 에너지 과소비 문제로 상용화될 수 없는 한계가 뚜렷하며, 그 용도는 불법 자금 세탁 등 매우 제한적입니다. Openhash는 블록체인의 데이터 무결성을 보장하면서 에너지 소비를 <strong>99.8%</strong> 줄였습니다.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card reveal" data-label="TPS">
+        <div class="metric-big green">7.3M</div>
+        <div class="metric-title">TPS 최대 처리 성능</div>
+        <div class="metric-sub">토스 대비 146배 · 알리페이 대비 29배<br>AWS EC2 환경 실증</div>
+      </div>
+      <div class="metric-card reveal" style="transition-delay:.08s" data-label="POWER">
+        <div class="metric-big blue">99.8%</div>
+        <div class="metric-title">전력 절감율</div>
+        <div class="metric-sub">18.2W vs GPU 160.3W<br>FPGA 기반 하드웨어 가속</div>
+      </div>
+      <div class="metric-card reveal" style="transition-delay:.16s" data-label="PRIVACY">
+        <div class="metric-big amber">0%</div>
+        <div class="metric-title">소비자 데이터 노출</div>
+        <div class="metric-sub">차분 프라이버시 ε ≤ 0.1<br>GDPR · 개인정보보호법 완벽 준수</div>
+      </div>
+      <div class="metric-card reveal" style="transition-delay:.24s" data-label="RECOVERY">
+        <div class="metric-big" style="color:#059669">99.99%</div>
+        <div class="metric-title">재해 복구율</div>
+        <div class="metric-sub">글로벌 백업 센터 네트워크<br>자동 장애 복구 시스템</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── GDC & K-MARKET ── -->
+<section class="section" id="gdc">
+  <div class="section-inner">
+    <div class="section-tag reveal">Revenue Model</div>
+    <h2 class="section-title reveal">수익 모델 — <strong>GDC 글로벌 디지털 화폐</strong></h2>
+    <div class="section-body reveal">
+      <p>고팡의 모든 AI 서비스(법률·의료·교육·행정 등)는 <strong>무료</strong>입니다. 고팡의 수익은 오직 <strong>GDC(Gopang Digital Currency)</strong>에서 발생합니다. GDC는 글로벌 디지털 화폐로, 고팡 마켓의 기본 결제 수단입니다.</p>
+    </div>
+
+    <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px">
+
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid var(--brand);border-radius:6px;padding:24px 22px">
+        <div style="font-size:13px;font-weight:700;color:var(--brand-dk);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          GDC — 금융 통합
+        </div>
+        <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text2);line-height:1.7">
+          <li>— 결제 수수료: Visa·Master 대비 <strong>1/10 이하</strong></li>
+          <li>— 은행·보험·증권 기능 통합</li>
+          <li>— 예금 이자율: 기존 대비 <strong>10배</strong></li>
+          <li>— 대출 이자율: 기존 대비 <strong>1/2 이하</strong></li>
+          <li>— 193개국 POOL 분산 보관, 환전 수수료 0%</li>
+          <li>— 고팡 마켓 내 유일한 결제 수단</li>
+        </ul>
+      </div>
+
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid var(--blue);border-radius:6px;padding:24px 22px">
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          K-Market — 수수료 0%
+        </div>
+        <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text2);line-height:1.7">
+          <li>— 플랫폼 수수료 <strong>0%</strong> (쿠팡 5~10% 대비)</li>
+          <li>— 소비자 개인정보 수집 <strong>0%</strong></li>
+          <li>— 자연어로 원하는 상품·시각·장소 지정</li>
+          <li>— 모든 거래의 재무제표 자동 생성·갱신</li>
+          <li>— 세금 납부 자동화 (K-Tax 연동)</li>
+          <li>— AI가 공정 거래 보장</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── PRINCIPLES ── -->
+<section class="section" id="principles">
+  <div class="section-inner">
+    <div class="section-tag reveal">Principles</div>
+    <h2 class="section-title reveal">고팡의 <strong>운영 원칙</strong></h2>
+
+    <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;max-width:860px;margin-left:auto;margin-right:auto">
+
+      <!-- 데이터 주권 -->
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;border-radius:4px;padding:24px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span style="font-size:14px;font-weight:700;color:#003366">데이터 주권</span>
+        </div>
+        <p style="font-size:13px;color:#374151;line-height:1.8;margin:0">모든 데이터는 오직 사용자 본인이 지정한 장소에 보관되며, 암호화됩니다. 따라서, 대규모 사용자 정보 누출이 원천적으로 불가능합니다.</p>
+      </div>
+
+      <!-- 오픈소스 -->
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;border-radius:4px;padding:24px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+          <span style="font-size:14px;font-weight:700;color:#003366">오픈소스</span>
+        </div>
+        <p style="font-size:13px;color:#374151;line-height:1.8;margin:0">모든 소스코드가 GitHub에 공개되므로, 누구나 작동 과정을 이해하고, 기능 개선에 참여할 수 있습니다.</p>
+      </div>
+
+      <!-- 자발적 공동체 -->
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;border-radius:4px;padding:24px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/>
+            <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/>
+            <path d="M17 13c2.2.5 4 2.3 4 5"/>
+          </svg>
+          <span style="font-size:14px;font-weight:700;color:#003366">자발적 공동체</span>
+        </div>
+        <p style="font-size:13px;color:#374151;line-height:1.8;margin:0">주주도 없고, 임직원도 없으며, 건물도 없습니다. 고팡 생태계의 유지 개선은 오직 시민들의 자발적 참여와 공헌으로 이뤄집니다. 심지어, 고팡의 운영 방식을 결정하는 규칙도 오픈소스입니다.</p>
+      </div>
+
+      <!-- 고팡 운영진 -->
+      <div style="background:#fff;border:1px solid #d0d5dd;border-top:3px solid #003366;border-radius:4px;padding:24px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span style="font-size:14px;font-weight:700;color:#003366">고팡 운영진</span>
+        </div>
+        <p style="font-size:13px;color:#374151;line-height:1.8;margin:0">한시적으로 팀 주피터가 고팡을 통괄하며, 고팡 의사 결정 구조(<a href="https://democracy.gopang.net" target="_blank" style="color:#003366;text-decoration:underline">democracy.gopang.net</a>)가 정착하면, 새로운 조직과 기관에 그 권한을 이양합니다.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── TABLE ── -->
+<section class="section table-bg dot-bg-light" id="compare">
+  <div class="section-inner">
+    <div class="section-tag reveal">System Comparison</div>
+    <h2 class="section-title reveal">기존 시스템 <strong>5대 한계</strong>와 해결</h2>
+    <p class="section-body reveal">기존 플랫폼이 해결하지 못한 근본적인 문제들에 대한 고팡의 혁신적 해결책.</p>
+
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead>
+          <tr>
+            <th>한계</th>
+            <th>기존 시스템</th>
+            <th>고팡 해결책</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>소비자 프라이버시 침해</td>
+            <td class="td-bad">Amazon · 쿠팡 · 알리바바<small>개인 구매이력 전면 수집</small></td>
+            <td class="td-good">소비자 데이터 0% 수집</td>
+          </tr>
+          <tr>
+            <td>중앙화 수동 운영</td>
+            <td class="td-bad">토스 5만 TPS<small>알리페이 25.6만 TPS (중앙 서버)</small></td>
+            <td class="td-good">7.3M TPS 완전 자율화</td>
+          </tr>
+          <tr>
+            <td>불공정 비용 구조</td>
+            <td class="td-bad">아마존 8–15%<small>쿠팡 5–10% 고정 수수료</small></td>
+            <td class="td-good">수익 비례 자동 분담</td>
+          </tr>
+          <tr>
+            <td>분산된 시장 구조</td>
+            <td class="td-bad">의류 · 도서 · 전자<small>플랫폼 분리 운영</small></td>
+            <td class="td-good">GPID 글로벌 단일 시장</td>
+          </tr>
+          <tr>
+            <td>신용평가 한계</td>
+            <td class="td-bad">제한적 금융 데이터<small>실시간 반영 불가</small></td>
+            <td class="td-good">실시간 재무제표 자동 생성</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- ── DISTRIBUTION ── -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-tag reveal">Value Distribution</div>
+    <h2 class="section-title reveal">메트칼프 법칙 기반 <strong>네트워크 가치 분배</strong></h2>
+    <p class="section-body reveal">고팡은 오픈소스 프로젝트이며(GPL v3), 전 세계에서 누구나 코드의 개선과 배포에 참여할 수 있습니다. 고팡 네트워크의 유지 비용은 수익자 부담 원칙에 따라, 고팡 이용자들 간에 적절히 분배되며, 비용 산출과 분배 메커니즘 역시 오픈소스로 공개됩니다.</p>
+
+    <div class="dist-grid">
+      <div class="dist-card reveal">
+        <div class="dist-pct dc-green">40%</div>
+        <div class="dist-role">소비자</div>
+        <div class="dist-note">네트워크 수요 기반 분배</div>
+      </div>
+      <div class="dist-card reveal" style="transition-delay:.08s">
+        <div class="dist-pct dc-blue">35%</div>
+        <div class="dist-role">판매자</div>
+        <div class="dist-note">거래 기여 비례 분배</div>
+      </div>
+      <div class="dist-card reveal" style="transition-delay:.16s">
+        <div class="dist-pct dc-amber">20%</div>
+        <div class="dist-role">플랫폼</div>
+        <div class="dist-note">인프라 운영 비용 충당</div>
+      </div>
+      <div class="dist-card reveal" style="transition-delay:.24s">
+        <div class="dist-pct dc-red">5%</div>
+        <div class="dist-role">기술개발</div>
+        <div class="dist-note">지속적 혁신 투자</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <div class="nav-logo-icon">G</div>
+        gopang
+      </div>
+      <div style="font-size:14px;font-weight:300;color:var(--text4);margin-top:4px;font-family:'DM Mono',monospace;">© 2026 AI City Inc. · KR Patent · v3.4</div>
+    </div>
+    <div class="footer-links">
+      <a href="https://gopang.net" target="_blank">gopang.net</a>
+      <a href="https://klaw.gopang.net" target="_blank">K-Law</a>
+      <a href="https://market.gopang.net" target="_blank">K-Market</a>
+      <a href="https://fiil.kr" target="_blank">K-Cleaner</a>
+      <a href="/gopang-auth-guide.html" target="_blank">인증 안내</a>
+      <a href="/gopang-id-whitepaper.html" target="_blank">ID 백서</a>
+      <a href="https://democracy.gopang.net/desktop.html" target="_blank" style="color:var(--brand-dk);font-weight:500">K-Democracy ↗</a>
+      <a href="https://gdc.gopang.net" target="_blank">GDC ↗</a>
+      <a href="/docs/gopang_whitepaper.html" target="_blank" style="color:var(--brand-dk);font-weight:500">기술 백서 ↗</a>
+      <a href="/docs/gopang_whitepaper.html" target="_blank" style="color:var(--brand-dk);font-weight:500">기술 백서</a>
+      <a href="https://github.com/Openhash-Gopang/gopang_v2" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <!-- 면책 조항 -->
+  <div class="footer-disclaimer">
+    <div class="footer-disclaimer-panel">
+      <div class="footer-disclaimer-title">⚠️ 면책 조항 · Disclaimer</div>
+      <div class="footer-disclaimer-body">
+        본 프로젝트(고팡, Gopang)는 오픈소스 기반의 연구 개발 및 기술 실증을 목적으로 하며, 상업적 비즈니스 모델이 아닙니다.
+        본 플랫폼에서 제공되는 모든 AI 시뮬레이션 결과(판결문, 세무 계산, 의료 정보 등)는 참고용이며,
+        법적·의료적·재무적 효력을 갖지 않습니다. 실제 법률·의료·금융 문제는 반드시 해당 분야 전문가에게 문의하십시오.
+      </div>
+    </div>
+  </div>
+</footer>
 
 <script>
-// ══ SUPABASE 초기화 ════════════════════════════════════════
-const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+/* scroll reveal */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// ══ PDV 보고 ═══════════════════════════════════════════════
-async function _sendPdvReport(user, action) {
-  if (!user?.ipv6) { console.warn('[K-Law] PDV 전송 건너뜀: ipv6 없음'); return; }
-  try {
-    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        report: {
-          svc:  'klaw',
-          type: 'action',
-          who:  { ipv6: user.ipv6, role: 'user' },
-          when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
-          where:{ svc_url: location.origin + location.pathname },
-          what: { summary: action.summary },
-          how:  { method: 'subsystem-auth', auth_level: user?.level || 1 },
-          why:  { goal: action.goal },
-        }
-      })
-    });
-    if (res.ok) console.log('[K-Law] ✅ PDV 전송 완료');
-    else { const t = await res.text(); console.warn('[K-Law] PDV 전송 실패:', res.status, t); }
-  } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
-}
-
-// ══ 고팡 인증 콜백 ════════════════════════════════════════
-// subsystem-auth.js가 인증 완료 후 호출
-let currentUser = null;
-let userKlawSentVersions = {};
-
-window._onGopangAuth = function(user) {
-  currentUser = user;
-  const shortId = user.ipv6 ? user.ipv6.slice(-8) : user.via || '—';
-  const initials = shortId.slice(0,2).toUpperCase();
-  const avatar  = document.getElementById('user-avatar');
-  const display = document.getElementById('user-email-display');
-  if(avatar)  avatar.textContent  = initials;
-  if(display) display.textContent = 'Lv.' + (user.level||1) + ' · ' + shortId;
-  // 이력 로드
-  _loadKlawHistory();
-};
-
-// ══ K-Law 이력 (Supabase klaw_sessions) ══════════════════
-async function _loadKlawHistory() {
-  if (!currentUser?.ipv6) return;
-  try {
-    const { data } = await supa
-      .from('klaw_sessions')
-      .select('klaw_version, llm_model, used_at')
-      .eq('user_id', currentUser.ipv6)
-      .order('used_at', { ascending: false })
-      .limit(50);
-    userKlawSentVersions[currentUser.ipv6] = {};
-    (data||[]).forEach(r => { userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
-    _renderKlawHistory(data||[]);
-  } catch(e) { console.warn('[Supa]', e.message); }
-}
-
-async function recordKlawUsage(klawVer, llmModel, simData = {}) {
-  const uid = currentUser?.ipv6;
-  if (!uid) return;
-  try {
-    const { error } = await supa.from('klaw_sessions').insert({
-      user_id:      uid,
-      klaw_version: klawVer,
-      llm_model:    llmModel,
-      used_at:      new Date().toISOString(),
-      case_type:    simData.caseType    || null,
-      case_level:   simData.caseLevel   || null,
-      case_summary: simData.caseSummary || null,
-      verdict:      simData.verdict     || null,
-      confidence:   simData.confidence  || null,
-      case_input:   simData.caseInput   || null
-    });
-    if (error) { console.error('[Supa] klaw_sessions 저장 실패:', JSON.stringify(error)); return; }
-    if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
-    userKlawSentVersions[uid][klawVer] = true;
-    console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
-    _loadKlawHistory();
-  } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
-}
-
-function hasKlawBeenSent(klawVer) {
-  const uid = currentUser?.ipv6;
-  if (!uid) return false;
-  return !!(userKlawSentVersions[uid]?.[klawVer]);
-}
-
-function _renderKlawHistory(rows) {
-  const body = document.getElementById('klaw-hp-body');
-  const sc = document.getElementById('sidebar-counter');
-  if (sc) sc.textContent = rows.length;
-  if (!rows.length) { body.innerHTML = '<div class="hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
-  const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude', gemini:'Gemini' };
-  body.innerHTML = rows.map(r => `
-    <div class="hp-row">
-      <div class="hp-ver">${escHtml(r.klaw_version)}</div>
-      <div class="hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
-      <div class="hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
-    </div>`).join('');
-}
-
-function toggleHistoryPanel() {
-  document.getElementById('klaw-history-panel').classList.toggle('open');
-}
-function closeHistoryPanel() {
-  document.getElementById('klaw-history-panel').classList.remove('open');
-}
-document.addEventListener('click', e => {
-  const panel = document.getElementById('klaw-history-panel');
-  const bar   = document.getElementById('user-info-bar');
-  if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
-});
-
-// Supabase klaw_cases 저장
-const _KLAW_SUPABASE_URL = SUPA_URL;
-const _KLAW_SUPABASE_KEY = SUPA_ANON;
-
-function _sendCaseToKlaw(klawResult, caseInput) {
-  try {
-    const caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
-    function _typeCode(type) {
-      if (!type) return null;
-      if (type.includes('민사')) return 'TYPE_01';
-      if (type.includes('형사')) return 'TYPE_02';
-      if (type.includes('행정')) return 'TYPE_03';
-      if (type.includes('가사')) return 'TYPE_04';
-      if (type.includes('소액')) return 'TYPE_05';
-      if (type.includes('노동')) return 'TYPE_06';
-      return null;
-    }
-    const record = {
-      id:            caseNo,
-      source:        'desktop',
-      case_type:     klawResult?.caseType    || null,
-      case_type_code:_typeCode(klawResult?.caseType),
-      case_level:    klawResult?.caseLevel   || null,
-      case_detail:   klawResult?.caseDetail  || null,
-      case_input:    (caseInput || '').slice(0, 2000),
-      case_summary:  klawResult?.caseSummary?.slice(0, 500) || null,
-      verdict:       klawResult?.verdict?.slice(0, 80)      || null,
-      confidence:    klawResult?.confidence  || null,
-      complexity:    klawResult?.complexity  || null,
-      match_rate:    klawResult?.matchRate   || null,
-      verdict_type:  klawResult?.verdictType || null,
-      llm_model:     conversationState?.llmModel || 'deepseek',
-      klaw_version:  klawVersion || 'v15.1',
-      reporter:      currentUser?.ipv6 || null,
-      status:        'completed'
-    };
-    fetch(_KLAW_SUPABASE_URL + '/rest/v1/klaw_cases', {
-      method: 'POST',
-      headers: {
-        'apikey': _KLAW_SUPABASE_KEY, 'Authorization': 'Bearer ' + _KLAW_SUPABASE_KEY,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(record)
-    }).then(res => {
-      if (res.ok || res.status === 201) console.log('[K-Law] ✅ Supabase 저장 →', caseNo);
-      else res.text().then(t => console.warn('[K-Law] Supabase 오류:', res.status, t));
-    }).catch(e => console.warn('[K-Law] 네트워크 오류:', e.message));
-  } catch(e) { console.warn('[K-Law] _sendCaseToKlaw 오류:', e.message); }
-}
-
-// ══ 상태 ══════════════════════════════════════════════════
-let simCount = 0;
-let mediaRecorder = null;
-let audioChunks = [];
-let isRecording = false;
-let attachedFiles = [];
-
-let conversationState = {
-  phase: 'idle', messages: [], caseData: null,
-  apiKey: '', llmModel: '', caseText: ''
-};
-
-// ── 시계
-(function tick(){
-  const el = document.getElementById('clock');
-  if(el) el.textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  setTimeout(tick, 1000);
-})();
-
-// ══ LLM 카드 선택 ════════════════════════════════════════
-function selectLLM(model) {
-  conversationState.llmModel = model;
-  document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('card-' + model).classList.add('selected');
-  ['deepseek','claude','gemini'].forEach(m => {
-    const n = document.getElementById('llm-nav-' + m);
-    if (n) n.classList.toggle('active', m === model);
-  });
-  const apiSec = document.getElementById('api-key-section');
-  const apiLabel = document.getElementById('api-key-label');
-  const apiInput = document.getElementById('api-key');
-  if (model === 'deepseek') {
-    apiSec.classList.remove('visible');
-    conversationState.apiKey = '';
+/* mobile nav */
+function toggleNav(btn) {
+  const links = document.querySelector('.nav-links');
+  const cta   = document.querySelector('.nav-cta');
+  const open  = links.style.display === 'flex';
+  const sp    = btn.querySelectorAll('span');
+  if (open) {
+    links.style.display = ''; cta.style.display = '';
+    sp[0].style.transform = ''; sp[1].style.opacity = ''; sp[2].style.transform = '';
   } else {
-    apiSec.classList.add('visible');
-    apiLabel.textContent = model === 'claude' ? 'Anthropic API Key' : 'Google API Key';
-    apiInput.placeholder = model === 'claude' ? 'sk-ant-…' : 'AIza…';
+    links.style.cssText = `
+      display:flex;flex-direction:column;gap:4px;
+      position:absolute;top:${getComputedStyle(document.documentElement).getPropertyValue('--nav-h')};
+      left:0;right:0;padding:12px 16px 16px;
+      background:white;border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-md);
+    `;
+    cta.style.cssText = 'display:inline-flex;margin:8px 16px 0;';
+    sp[0].style.transform = 'translateY(6.5px) rotate(45deg)';
+    sp[1].style.opacity   = '0';
+    sp[2].style.transform = 'translateY(-6.5px) rotate(-45deg)';
   }
 }
 
-// ══ 파일 첨부 ════════════════════════════════════════════
-function handleFileAttach(input) {
-  const file = input.files[0];
-  if (!file) return;
-  attachedFiles.push(file);
-  renderFileChips();
-  input.value = '';
-}
-function renderFileChips() {
-  const wrap = document.getElementById('file-chips');
-  wrap.innerHTML = attachedFiles.map((f, i) =>
-`<span class="file-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>${f.name.slice(0,18)}${f.name.length>18?"…":""}<span class="chip-remove" onclick="removeFile(${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>`
-  ).join('');
-}
-function removeFile(idx) { attachedFiles.splice(idx, 1); renderFileChips(); }
-
-// ══ 음성 입력 ════════════════════════════════════════════
-async function toggleVoice() {
-  if (isRecording) {
-    mediaRecorder && mediaRecorder.stop(); isRecording = false;
-    const btn = document.getElementById('voice-btn');
-    btn.classList.remove('recording'); btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z'/><path d='M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8'/></svg>`;
-    document.getElementById('voice-status').style.display = 'none';
-    return;
+/* ── WebApp Phone Modal ─────────────────────────────────────── */
+function openWebApp() {
+  const modal = document.getElementById('webapp-modal');
+  if (!modal) return;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const iframe = document.getElementById('webapp-iframe');
+  if (iframe && !iframe.dataset.loaded) {
+    // 로딩 인디케이터 표시
+    const screen = iframe.closest('.phone-screen');
+    if (screen) screen.setAttribute('data-loading', '1');
+    // gopang.net 루트의 webapp.html 절대 경로
+    const origin = location.origin;   // https://gopang.net
+    iframe.src = origin + '/webapp.html';
+    iframe.dataset.loaded = '1';
   }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      alert('음성 녹음 완료. 텍스트 변환 기능은 추가 API 연동이 필요합니다.');
-    };
-    mediaRecorder.start(); isRecording = true;
-    const btn = document.getElementById('voice-btn');
-    btn.innerHTML = `<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='4' width='4' height='16'/><rect x='14' y='4' width='4' height='16'/></svg>`; btn.classList.add('recording');
-    document.getElementById('voice-status').style.display = 'inline';
-  } catch(e) { alert('마이크 접근 권한이 필요합니다.'); }
 }
 
-// ══ LLM API 호출 ════════════════════════════════════════
-const DEEPSEEK_DEFAULT_KEY = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
-const DEEPSEEK_ENDPOINT    = 'https://api.deepseek.com/v1/chat/completions';
 
-async function callLLM(messages, maxTokens = 2000) {
-  const model  = conversationState.llmModel || 'deepseek';
-  const apiKey = conversationState.apiKey;
-
-  if (model === 'claude') {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })
+function closeWebApp() {
+  const modal = document.getElementById('webapp-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // ── 모달 외부 클릭 닫기 ──────────────────────────────
+  const modal = document.getElementById('webapp-modal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('phone-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) closeWebApp();
     });
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.content?.[0]?.text || '';
-  }
-  if (model === 'gemini') {
-    const gmsg = messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
-    const sys  = messages.find(m=>m.role==='system')?.content || '';
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  }
-  // DeepSeek
-  const key  = apiKey || DEEPSEEK_DEFAULT_KEY;
-  const resp = await fetch(DEEPSEEK_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
-    body: JSON.stringify({ model:'deepseek-chat', messages, max_tokens:maxTokens, temperature:0.2 })
-  });
-  const data = await resp.json();
-  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  return data.choices?.[0]?.message?.content || '';
-}
-
-// ══ K-Law 버전 동적 로드 ════════════════════════════════
-const KLAW_REPO_API = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
-const KLAW_RAW_BASE = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
-
-let klawVersion    = '로딩 중…';
-let klawMethodText = '';
-
-const _KLAW_CACHE_KEY = 'klaw_method_cache';
-const _KLAW_CACHE_TTL  = 24 * 60 * 60 * 1000; // 24시간
-
-async function loadKlawVersion() {
-  // ── 캐시 확인: sessionStorage에 유효한 데이터가 있으면 재사용 ──
-  try {
-    const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
-    if (cached?.version && cached?.text && cached?.ts &&
-        (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
-      klawVersion    = cached.version;
-      klawMethodText = cached.text;
-      const badge = document.getElementById('klaw-ver-badge');
-      if (badge) badge.textContent = klawVersion;
-      console.log('[K-Law] 캐시 로드:', klawVersion);
-      return;
-    }
-  } catch(e) {}
-
-  // ── 캐시 없음: GitHub에서 최신 버전 fetch ──────────────
-  try {
-    const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
-    const files = await res.json();
-    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
-    function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
-    vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
-    const latestFile = vFiles[0] || 'klaw_v15_0.md';
-    const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
-    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
-    const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache'});
-    klawMethodText = await raw.text();
-    // ── 캐시 저장 ──────────────────────────────────────────
-    try {
-      sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({
-        version: klawVersion,
-        text:    klawMethodText,
-        ts:      Date.now(),
-      }));
-    } catch(e) {}
-    console.log('[K-Law] 로드 완료 (캐시 저장):', klawVersion);
-  } catch(e) {
-    console.warn('[K-Law] GitHub 로드 실패:', e.message);
-    klawVersion = 'v15.1'; klawMethodText = '';
-  }
-  const badge = document.getElementById('klaw-ver-badge');
-  if (badge) badge.textContent = klawVersion;
-}
-loadKlawVersion();
-
-// ══ 분석 프롬프트 ════════════════════════════════════════
-const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
-사용자가 제출한 사건의 개요를 분석하여 아래 형식으로 정확히 응답하세요.
-
-【심급】1심 / 2심 / 3심 / 헌법재판 중 하나
-【사건분류】민사(본안) / 형사 / 행정 / 가사 / 소액사건 / 노동 중 하나
-【사건종류_상세】사건의 구체적 유형
-【사건의 개요】입력된 내용을 바탕으로 명확하게 정리
-【원고의 주장】원고(신청인) 측 주장 정리 (없으면 "정보 부족"으로 표기)
-【피고의 주장】피고(상대방) 측 주장 정리 (없으면 "정보 부족"으로 표기)
-【다툼이 없는 사실】양측이 동의하는 사실관계 (없으면 "추가 확인 필요"로 표기)
-【다툼의 요지】핵심 법적 쟁점 2~3가지
-【추가질문】판결 시뮬레이션에 필요한 정보가 부족한 경우 구체적인 질문 1~3개. 충분하면 "없음".
-
-응답은 반드시 위 형식만 사용하세요.`;
-
-function calcMatchRate(complexity) {
-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
-  const rate = 99.99 - (c - 1) * (9.99 / 9);
-  if (rate >= 99.9) return rate.toFixed(2) + '%';
-  if (rate >= 99)   return rate.toFixed(1) + '%';
-  return rate.toFixed(0) + '%';
-}
-
-function buildKlawSimPrompt(caseNo, level) {
-  const alreadySent = hasKlawBeenSent(klawVersion);
-  const methodSummary = (!alreadySent && klawMethodText) ? klawMethodText.slice(0, 5000) : '';
-  const tokenNote = alreadySent ? `[K-Law ${klawVersion} 방법론은 이전 세션에서 이미 전달됨 — 토큰 절약 모드]` : '';
-  return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
-${tokenNote}
-${methodSummary ? '[K-Law 방법론 원문(발췌)]\n' + methodSummary + '\n\n---\n\n' : ''}
-아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
-
-[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
-가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-}
-
-// ══ STEP 정의 ════════════════════════════════════════════
-const STEP_DEFS = [
-  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
-    prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
-  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석',
-    prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
-  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
-    prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
-  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
-    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
-];
-
-// ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
-async function runSimulation() {
-  const caseInput = document.getElementById('case-input').value.trim();
-  if (!caseInput || caseInput.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
-
-  document.getElementById('llm-section').classList.add('visible');
-  if (!conversationState.llmModel) selectLLM('deepseek');
-
-  const btn = document.getElementById('run-btn');
-  btn.disabled = true; btn.textContent = '분석 중...';
-
-  conversationState.caseText = caseInput;
-  conversationState.phase = 'analyzing';
-  conversationState.messages = [
-    { role:'system', content: KLAW_ANALYZE_PROMPT },
-    { role:'user',   content: '사건의 개요:\n' + caseInput }
-  ];
-
-  showAnalysisPanel(true);
-
-  try {
-    const result = await callLLM(conversationState.messages, 1400);
-    conversationState.messages.push({ role:'assistant', content: result });
-    conversationState.caseData = parseAnalysis(result);
-    showAnalysisPanel(false);
-    renderAnalysis(conversationState.caseData);
-
-    const addQ = conversationState.caseData.extraQ;
-    if (addQ && addQ !== '없음' && addQ.trim().length > 2) {
-      conversationState.phase = 'chatting';
-      renderChatPanel(addQ);
-    } else {
-      autoRunSim();
-    }
-  } catch(e) {
-    showAnalysisPanel(false);
-    showError('분석 중 오류: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '입력 완료';
-  }
-}
-
-function autoRunSim() {
-  const panel = document.getElementById('chat-panel');
-  panel.style.display = 'block';
-  panel.innerHTML = `<div class="chat-panel-inner"><div class="klaw-msg"><div class="klaw-msg-label">K-Law AI</div>추가 정보 없이 판결 시뮬레이션을 시작합니다.</div></div>`;
-  setTimeout(() => runJudgementSim(), 400);
-}
-
-function parseAnalysis(text) {
-  const get = tag => { const m = text.match(new RegExp('【' + tag + '】\\s*([\\s\\S]*?)(?=【|$)')); return m ? m[1].trim() : ''; };
-  return {
-    level: get('심급'), type: get('사건분류'), typeDetail: get('사건종류_상세'),
-    overview: get('사건의 개요'), plaintiff: get('원고의 주장'), defendant: get('피고의 주장'),
-    agreed: get('다툼이 없는 사실'), dispute: get('다툼의 요지'), extraQ: get('추가질문')
-  };
-}
-
-function caseTypeColor(type) {
-  const map = {'민사':'#0057A8','민사(본안)':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#7B3FA0','소액사건':'#C05621','노동':'#B8952A','헌법재판':'#003C82'};
-  for (const [k,v] of Object.entries(map)) { if (type && type.includes(k)) return v; }
-  return '#0057A8';
-}
-
-function renderAnalysis(d) {
-  const panel = document.getElementById('analysis-panel');
-  const typeColor = caseTypeColor(d.type);
-  panel.style.display = 'block';
-  panel.innerHTML = `
-    <div class="case-type-bar" style="background:${typeColor}">
-      <div>
-        <div class="case-type-name">${escHtml(d.type||'—')}</div>
-        ${d.typeDetail?`<div class="case-type-detail">${escHtml(d.typeDetail)}</div>`:''}
-        <div class="case-level-tag">${escHtml(d.level||'—')}</div>
-      </div>
-      <div class="case-ver-badge">K-Law <span id="analysis-klaw-ver">${escHtml(klawVersion)}</span></div>
-    </div>
-    <div class="analysis-table">
-      ${analysisRow('사건의 개요',d.overview)}
-      ${analysisRow('원고의 주장',d.plaintiff)}
-      ${analysisRow('피고의 주장',d.defendant)}
-      ${analysisRow('다툼이 없는 사실',d.agreed)}
-      ${analysisRow('다툼의 요지',d.dispute)}
-    </div>`;
-  panel.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function analysisRow(label, value) {
-  return `<div class="analysis-row"><div class="analysis-key">${label}</div><div class="analysis-val">${value||'—'}</div></div>`;
-}
-
-function renderChatPanel(question) {
-  const panel = document.getElementById('chat-panel');
-  panel.style.display = 'block';
-  panel.innerHTML = `
-    <div class="chat-panel-inner">
-      <div class="klaw-msg">
-        <div class="klaw-msg-label">K-Law AI</div>
-        ${question.replace(/\n/g,'<br>')}
-      </div>
-      <div id="chat-messages"></div>
-      <div class="chat-input-row" id="chat-input-area">
-        <textarea class="chat-textarea" id="chat-reply" placeholder="추가 정보를 입력하세요…"></textarea>
-        <div class="chat-actions">
-          <button class="btn-sm btn-sm-pri" onclick="sendChatReply()">전송</button>
-          <button class="btn-sm" onclick="requestReadyCheck()">생략</button>
-        </div>
-      </div>
-    </div>`;
-  panel.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function appendKlawMsg(html) {
-  const chatMsgs = document.getElementById('chat-messages');
-  if (!chatMsgs) return;
-  const div = document.createElement('div'); div.className = 'klaw-msg';
-  div.innerHTML = `<div class="klaw-msg-label">K-Law AI</div>${html}`;
-  chatMsgs.appendChild(div);
-}
-function appendUserMsg(text) {
-  const chatMsgs = document.getElementById('chat-messages');
-  if (!chatMsgs) return;
-  const div = document.createElement('div'); div.className = 'user-msg';
-  div.innerHTML = `<div class="user-msg-label">입력</div>${escHtml(text)}`;
-  chatMsgs.appendChild(div);
-}
-
-async function sendChatReply() {
-  const reply = document.getElementById('chat-reply').value.trim();
-  if (!reply) return;
-  appendUserMsg(reply);
-  document.getElementById('chat-reply').value = '';
-  conversationState.messages.push({ role:'user', content: reply });
-  const checkPrompt = [...conversationState.messages, { role:'user', content:'위 추가 답변을 반영하여, 판결 시뮬레이션에 충분한 정보가 갖춰졌는지 판단하세요. 추가 질문이 필요하면 【추가질문】 형식으로, 충분하면 "시뮬레이션_진행"이라고만 답하세요.' }];
-  const loadId = 'chat-loading-' + Date.now();
-  appendKlawMsg(`<span id="${loadId}" style="opacity:.5;display:flex;align-items:center;gap:6px"><div class="spinner"></div> 검토 중…</span>`);
-  try {
-    const resp = await callLLM(checkPrompt, 500);
-    document.getElementById(loadId)?.parentElement?.remove();
-    if (resp.includes('시뮬레이션_진행') || resp.includes('시뮬레이션 진행')) {
-      showReadyMessage();
-    } else {
-      const qM = resp.match(/【추가질문】\s*([\s\S]*?)(?=【|$)/);
-      appendKlawMsg((qM ? qM[1].trim() : resp.trim()).replace(/\n/g,'<br>'));
-      conversationState.messages.push({ role:'assistant', content: resp });
-    }
-  } catch(e) {
-    document.getElementById(loadId)?.parentElement?.remove();
-    appendKlawMsg(`<span style="color:var(--red)">오류: ${escHtml(e.message)}</span>`);
-  }
-}
-
-function requestReadyCheck() {
-  conversationState.messages.push({ role:'user', content:'(추가 정보 없이 진행)' });
-  readyAndAutoRun();
-}
-
-function showReadyMessage() {
-  readyAndAutoRun();
-}
-
-function readyAndAutoRun() {
-  const inputArea = document.getElementById('chat-input-area');
-  if (inputArea) inputArea.style.display = 'none';
-  appendKlawMsg('판결문 작성을 시작합니다.');
-  setTimeout(() => runJudgementSim(), 300);
-}
-
-// ══ STEP별 순차 출력 ════════════════════════════════════
-async function runJudgementSim() {
-  const model  = conversationState.llmModel || 'deepseek';
-  const apiKey = document.getElementById('api-key') ? document.getElementById('api-key').value.trim() : '';
-  if (model !== 'deepseek' && !apiKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
-  conversationState.apiKey = apiKey;
-
-  const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
-  const level  = conversationState.caseData?.level || '3심';
-
-  const simPanel = document.getElementById('sim-panel');
-  simPanel.style.display = 'block';
-  simPanel.innerHTML = `
-    <div class="verdict-doc" id="verdict-container">
-      <div class="verdict-hd">
-        <div>
-          <div class="verdict-title-row">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
-            K-Law 가상 판결문
-          </div>
-          <div class="verdict-meta">${escHtml(caseNo)} · ${escHtml(level)} · K-Law ${escHtml(klawVersion)} · ${new Date().toLocaleString('ko-KR')}</div>
-        </div>
-      </div>
-      <div class="verdict-body" id="verdict-body">
-        <div id="verdict-steps"></div>
-      </div>
-    </div>`;
-  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
-  document.getElementById('sim-counter').textContent = simCount + '건';
-
-  const baseCtx = conversationState.messages.filter(m=>m.role!=='system').map(m=>(m.role==='user'?'사용자: ':'K-Law: ')+m.content).join('\n\n');
-  window._verdictParts = {};
-  window._verdictCaseNo = caseNo;
-
-  for (const stepDef of STEP_DEFS) {
-    await renderStepStreaming(stepDef, baseCtx, caseNo, level);
   }
 
-  const fullText = Object.values(window._verdictParts).join('\n\n');
-  appendConfidenceBlock(fullText);
-  window._verdictText = fullText;
-  document.getElementById('dl-btn').style.display = '';
-
-  // Supabase 저장
-  const verdictM = fullText.match(/主\s*문\s*[:：]?\s*([^\n]{1,80})/)||fullText.match(/주\s*문\s*[:：]?\s*([^\n]{1,80})/);
-  const confM    = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
-  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
-
-  await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
-    caseType:    conversationState.caseData?.type    || null,
-    caseLevel:   conversationState.caseData?.level   || level,
-    caseSummary: summM ? summM[1].trim().slice(0,150) : null,
-    verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
-    confidence:  confM ? confM[1] + '/10' : null,
-    caseInput:   (conversationState.caseText || '').slice(0, 200)
-  });
-
-  _sendCaseToKlaw({
-    caseType:    conversationState.caseData?.type,
-    caseLevel:   conversationState.caseData?.level,
-    caseSummary: summM ? summM[1].trim().slice(0,500) : null,
-    verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
-    confidence:  confM ? confM[1]+'/10' : null,
-    complexity:  complexM ? complexM[1] : null,
-    matchRate:   complexM ? calcMatchRate(complexM[1]) : null,
-  }, conversationState.caseText || '');
-
-  // PDV 보고 — 판결 시뮬레이션 완료
-  await _sendPdvReport(currentUser, {
-    summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
-    goal:    '판결 예측 시뮬레이션'
-  });
-
-  simPanel.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
-  const stepsEl = document.getElementById('verdict-steps');
-  const card = document.createElement('div');
-  card.className = 'verdict-step'; card.id = 'vs-' + stepDef.id;
-  card.innerHTML = `
-    <div class="verdict-step-hd">
-      <span class="step-tag">${stepDef.tag}</span>
-      <span class="step-title">${stepDef.title}</span>
-    </div>
-    <div id="vsb-${stepDef.id}">
-      <div style="display:flex;align-items:center;gap:8px;padding:12px 0;color:var(--txt4)">
-        <div class="spinner"></div>
-        <span style="font-size:12px">${stepDef.tag} 작성 중…</span>
-      </div>
-    </div>`;
-  stepsEl.appendChild(card);
-  card.scrollIntoView({behavior:'smooth', block:'nearest'});
-
-  const prevParts    = Object.values(window._verdictParts).join('\n\n');
-  const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
-  const prompt = stepDef.prompt(contextWithPrev).replace(/{CASENO}/g, caseNo).replace(/{LEVEL}/g, level);
-  const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level) }, { role:'user', content: prompt }];
-
-  try {
-    const result = await callLLM(msgs, 3000);
-    window._verdictParts[stepDef.id] = result;
-    const bodyEl = document.getElementById('vsb-' + stepDef.id);
-    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
-    const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
-    if (completeMatch) {
-      const badge = document.createElement('div'); badge.style.cssText = 'margin-top:8px;';
-      badge.innerHTML = completeMatch.map(t => `<span class="step-complete">${escHtml(t)}</span>`).join(' ');
-      document.getElementById('vs-' + stepDef.id).appendChild(badge);
-    }
-  } catch(e) {
-    const bodyEl = document.getElementById('vsb-' + stepDef.id);
-    if (bodyEl) bodyEl.innerHTML = `<span style="color:var(--red)">⚠ ${stepDef.tag} 생성 오류: ${escHtml(e.message)}</span>`;
+  // ── iframe load/error 핸들러 (인라인 속성 대신 JS 등록) ──
+  const iframe = document.getElementById('webapp-iframe');
+  if (iframe) {
+    iframe.addEventListener('load', function() {
+      // src가 빈 초기 상태일 때는 무시
+      if (!iframe.src || iframe.src === location.origin + '/') return;
+      const loading = document.getElementById('_iframe-loading');
+      if (loading) {
+        loading.style.opacity = '0';
+        setTimeout(() => { loading.style.display = 'none'; }, 300);
+      }
+      console.log('[WebApp] 로딩 완료:', iframe.src);
+    });
+    iframe.addEventListener('error', function() {
+      const loading = document.getElementById('_iframe-loading');
+      if (loading) loading.style.display = 'none';
+      const err = document.getElementById('_iframe-err');
+      if (err) err.style.display = 'flex';
+      console.warn('[WebApp] 로딩 실패:', iframe.src);
+    });
   }
-}
-
-function appendConfidenceBlock(fullText) {
-  const confM    = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
-  const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
-  const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
-  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
-  const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
-  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
-
-  const lawConf   = confM    ? confM[1]    : '—';
-  const factConf  = factM    ? factM[1]    : '—';
-  const totalConf = totalM   ? totalM[1]   : '—';
-  const complexity= complexM ? complexM[1] : null;
-  const vType     = typeM    ? typeM[1].trim() : '—';
-  const summary   = summM    ? summM[1].trim() : '';
-  const matchRate = matchLLM ? matchLLM[1].trim() : complexity ? calcMatchRate(complexity) : '90~99.99%';
-  const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
-  const cx = parseFloat(complexity);
-  const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
-
-  const body = document.getElementById('verdict-body');
-  const div = document.createElement('div');
-  const tc = parseFloat(totalConf);
-  const confColor = tc>=7?'var(--pri-dk)':tc>=5?'#2563eb':'var(--org)';
-  const cx2 = parseFloat(complexity);
-  const cxColor2 = cx2<=3?'var(--pri-dk)':cx2<=6?'var(--org)':'var(--red)';
-  div.innerHTML = `
-    ${summary?`<div class="verdict-summary"><div class="verdict-summary-label">판결 요약</div><div class="verdict-summary-text">${escHtml(summary)}</div></div>`:''}
-    <div class="conf-block">
-      <div class="conf-item"><span class="conf-label">법리 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${lawConf}/10</span></div>
-      <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
-      <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
-      <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
-      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
-        <span class="conf-label">대법원 판결 일치도 예상</span>
-        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
-        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
-      </div>
-      <div class="conf-item" style="border-right:none">
-        <span class="conf-label">결론 유형</span>
-        <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
-      </div>
-    </div>
-    <div class="caution-bar">
-      본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: K-Law ${escHtml(klawVersion)}).
-      법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
-    </div>`;
-  body.insertBefore(div, body.firstChild);
-}
-
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function downloadVerdict() {
-  const text   = window._verdictText || '';
-  const caseNo = window._verdictCaseNo || 'verdict';
-  const blob   = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const a      = document.createElement('a');
-  a.href       = URL.createObjectURL(blob);
-  a.download   = `K-Law_판결문_${caseNo}.txt`;
-  a.click();
-}
-
-function showAnalysisPanel(show) {
-  const p = document.getElementById('analysis-panel');
-  if (show) {
-    p.style.display = 'block';
-    p.innerHTML = `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:10px"><div class="spinner"></div><span style="font-size:13px;color:var(--txt3)">사건 분석 중 — 심급 · 분류 · 쟁점 추출</span></div>`;
-  }
-}
-
-function showError(msg) {
-  const p = document.getElementById('analysis-panel');
-  p.style.display = 'block';
-  p.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">${msg}</div>`;
-}
-
-// ── textarea 확장 + 툴바 표시
-document.addEventListener('DOMContentLoaded', function(){
-  selectLLM('deepseek');
-  const ta      = document.getElementById('case-input');
-  const toolbar = document.getElementById('input-toolbar');
-  if (!ta || !toolbar) return;
-  function expand() { ta.classList.add('expanded'); toolbar.classList.add('visible'); }
-  function collapse() { if (!ta.value.trim() && attachedFiles.length===0) { ta.classList.remove('expanded'); toolbar.classList.remove('visible'); } }
-  ta.addEventListener('focus', expand);
-  ta.addEventListener('input', expand);
-  ta.addEventListener('blur', () => setTimeout(collapse, 150));
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeWebApp();
 });
 </script>
+
+<!-- ── Phone Frame Modal ──────────────────────────────────────── -->
+<div id="webapp-modal">
+  <!-- 닫기 버튼 + 폰 프레임 래퍼 -->
+  <div id="phone-wrapper">
+    <!-- 닫기 버튼: 폰 우측 상단 바로 위 -->
+    <button id="modal-close" onclick="closeWebApp()" title="닫기 (ESC)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <!-- 폰 외형 -->
+    <div id="phone-frame">
+
+    <!-- 상단: 스피커 + 노치 영역 -->
+    <div class="phone-top">
+      <div class="phone-speaker"></div>
+    </div>
+
+    <!-- 사이드 버튼들 -->
+    <div class="phone-btn-vol-up"></div>
+    <div class="phone-btn-vol-dn"></div>
+    <div class="phone-btn-power"></div>
+
+    <!-- 화면 -->
+    <div class="phone-screen">
+      <!-- 로딩 중 표시 -->
+      <div id="_iframe-loading" style="
+        position:absolute;inset:0;z-index:2;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        background:#f8f9fa;gap:12px;border-radius:40px;
+        opacity:1;transition:opacity 0.3s;">
+        <div style="width:28px;height:28px;border:2.5px solid #e5e7eb;
+             border-top-color:#3ecf8e;border-radius:50%;
+             animation:spin 0.8s linear infinite;"></div>
+        <span style="font-size:14px;color:#9ca3af;">웹앱 로딩 중…</span>
+      </div>
+      <!-- 에러 폴백 -->
+      <div id="_iframe-err" style="
+        display:none;position:absolute;inset:0;z-index:3;
+        flex-direction:column;align-items:center;justify-content:center;
+        background:#f8f9fa;gap:16px;border-radius:40px;padding:24px;text-align:center;">
+        <span style="font-size:32px;">📱</span>
+        <p style="font-size:13px;color:#374151;font-weight:500;">웹앱을 불러올 수 없습니다</p>
+        <a href="https://gopang.net/webapp.html" target="_blank"
+           style="background:#3ecf8e;color:white;padding:10px 20px;border-radius:8px;
+                  font-size:13px;font-weight:600;text-decoration:none;">
+          새 탭에서 열기 →
+        </a>
+      </div>
+      <iframe id="webapp-iframe" title="고팡 웹앱"
+              allow="camera; microphone; geolocation; clipboard-write"
+              allowfullscreen></iframe>
+    </div>
+
+    <!-- 하단 홈 인디케이터 -->
+    <div class="phone-bottom">
+      <div class="phone-home-bar"></div>
+    </div>
+  </div><!-- /phone-frame -->
+  </div><!-- /phone-wrapper -->
+
+  <!-- 라벨 -->
+  <div id="modal-label">
+    <span class="modal-label-dot"></span>
+    고팡 웹앱 · 스마트폰 미리보기
+  </div>
+</div>
+
+<style>
+/* ── Modal Overlay ── */
+#webapp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 48px 24px 40px;
+  overflow-y: auto;
+  gap: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+#webapp-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+#webapp-modal.open #phone-frame {
+  transform: translateY(0) scale(1);
+}
+
+/* ── Phone Wrapper (닫기 버튼 + 폰 묶음) ── */
+#phone-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Close Button: 폰 우측 상단 바로 위 ── */
+#modal-close {
+  position: absolute;
+  top: -36px; right: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.12);
+  color: white;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+  z-index: 10;
+}
+#modal-close:hover {
+  background: rgba(255,255,255,0.28);
+  transform: scale(1.1);
+}
+
+/* ── Phone Frame ── */
+#phone-frame {
+  position: relative;
+  width: 375px;
+  height: 760px;
+  background: #1a1a1c;
+  border-radius: 50px;
+  box-shadow:
+    0 0 0 1.5px #3a3a3c,
+    0 0 0 3px #1a1a1c,
+    0 0 0 4.5px #4a4a4c,
+    0 32px 80px rgba(0,0,0,0.6),
+    inset 0 0 0 1px rgba(255,255,255,0.06);
+  transform: translateY(30px) scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.34,1.3,0.64,1);
+  flex-shrink: 0;
+}
+
+/* 상단 노치 영역 */
+.phone-top {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #1a1a1c;
+  border-radius: 0 0 22px 22px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.phone-speaker {
+  width: 56px; height: 5px;
+  background: #2c2c2e;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* 사이드 버튼 */
+.phone-btn-vol-up,
+.phone-btn-vol-dn,
+.phone-btn-power {
+  position: absolute;
+  background: #2c2c2e;
+  border-radius: 2px;
+  box-shadow: -1px 0 0 #111, inset 1px 0 0 rgba(255,255,255,0.05);
+}
+.phone-btn-vol-up {
+  left: -3px; top: 120px;
+  width: 3px; height: 34px;
+}
+.phone-btn-vol-dn {
+  left: -3px; top: 168px;
+  width: 3px; height: 34px;
+}
+.phone-btn-power {
+  right: -3px; top: 148px;
+  width: 3px; height: 52px;
+  box-shadow: 1px 0 0 #111, inset -1px 0 0 rgba(255,255,255,0.05);
+}
+
+/* 화면 영역 */
+.phone-screen {
+  position: absolute;
+  top: 12px; left: 12px; right: 12px; bottom: 12px;
+  border-radius: 40px;
+  overflow: hidden;
+  background: #09090f;
+}
+.phone-screen iframe {
+  width: 100%; height: 100%;
+  border: none;
+  border-radius: 40px;
+}
+
+/* 하단 홈 인디케이터 */
+.phone-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+}
+.phone-home-bar {
+  width: 120px; height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+}
+
+/* ── Label ── */
+#modal-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.modal-label-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #3ecf8e;
+  animation: mpulse 2s ease-in-out infinite;
+}
+@keyframes mpulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 화면 작을 때 폰 축소 ── */
+@media (max-height: 860px) {
+  #phone-wrapper { transform: scale(0.85); transform-origin: center top; }
+  #webapp-modal.open #phone-frame { transform: translateY(0) scale(1); }
+}
+@media (max-height: 700px) {
+  #phone-wrapper { transform: scale(0.72); transform-origin: center top; }
+  #webapp-modal.open #phone-frame { transform: translateY(0) scale(1); }
+}
+</style>
 </body>
 </html>
