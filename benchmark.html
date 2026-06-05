@@ -768,16 +768,21 @@ async function callLLM(messages, maxTokens = 2000) {
     if (data.error) throw new Error(data.error.message);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
-  // DeepSeek
-  const key  = apiKey || DEEPSEEK_DEFAULT_KEY;
-  const resp = await fetch(DEEPSEEK_ENDPOINT, {
+  // DeepSeek — Worker 경유 (CORS + 키 보안 + Context Cache)
+  const resp = await fetch('https://gopang-proxy.tensor-city.workers.dev/ai/chat', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
-    body: JSON.stringify({ model:'deepseek-chat', messages, max_tokens:maxTokens, temperature:0.2 })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provider:   'deepseek',
+      model:      'deepseek-v4-pro',
+      max_tokens: maxTokens,
+      messages:   messages.filter(m => m.role !== 'system'),
+      system:     messages.find(m => m.role === 'system')?.content || '',
+    })
   });
   const data = await resp.json();
-  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  return data.choices?.[0]?.message?.content || '';
+  if (data.error) throw new Error(data.error);
+  return data.content || '';
 }
 
 // ══ K-Law 버전 동적 로드 ════════════════════════════════
