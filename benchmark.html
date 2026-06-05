@@ -329,7 +329,7 @@ button{font-family:var(--font);cursor:pointer}
       </div>
     </div>
     <div style="margin:16px 28px 4px;padding:14px 18px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;line-height:1.8">
-      대법원이 공개한 최신 판례에서 판결 내용을 제거하고, 사건 개요만 입력한 뒤, 가상 판결을 생성합니다.
+      <a href="https://portal.scourt.go.kr/pgp/index.on?c=900&l=N&m=PGP1011M01" target="_blank" style="color:#1e40af;font-weight:600;text-decoration:underline;text-underline-offset:2px">대법원이 공개한 최신 판례</a>에서 판결 내용을 제거하고, 사건 개요만 입력한 뒤, 가상 판결을 생성합니다.
       생성된 가상 판결을 실제 판결과 비교하여, 그 일치도를 누적 평가하는 목적입니다.
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0">
       <strong style="color:#111827">"사건의 개요" 작성 방법</strong><br>
@@ -1475,6 +1475,7 @@ const STEP_DEFS = [
 // ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
 async function runSimulation() {
   const caseInput = document.getElementById('case-input').value.trim();
+  window._lastCaseInput = caseInput || '';  // Supabase 저장용
   if (!caseInput || caseInput.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
 
   document.getElementById('llm-section').classList.add('visible');
@@ -1939,16 +1940,68 @@ function _bhSave(arr) {
 }
 
 // 평가 완료 시 호출 — runMatchEval에서 연결
-function saveBenchRecord(record) {
+// localStorage + Supabase klaw_benchmark 동시 저장
+async function saveBenchRecord(record) {
+  // ── 1. localStorage 저장 (즉시, 오프라인 대비) ──────────
   const arr = _bhLoad();
-  arr.unshift(record); // 최신순
+  arr.unshift(record);
   if (arr.length > 200) arr.length = 200;
   _bhSave(arr);
+
+  // ── 2. Supabase klaw_benchmark 저장 ────────────────────
+  try {
+    const row = {
+      case_no:          record.caseNo       || '—',
+      case_type:        record.caseType     || null,
+      case_input:       (window._lastCaseInput || '').slice(0, 2000) || null,
+      virtual_verdict:  (window._verdictText  || '').slice(0, 8000) || null,
+      real_verdict:     (window._lastRealVerdict || '').slice(0, 8000) || null,
+      score_conclusion: record.conclusion   ?? null,
+      score_law_logic:  record.lawLogic     ?? null,
+      score_detail:     record.detail       ?? null,
+      score_total:      record.total        ?? null,
+      grade:            record.grade        || null,
+      eval_raw:         (window._lastEvalRaw || '').slice(0, 4000) || null,
+      klaw_version:     record.klawVersion  || klawVersion || 'v15.3',
+      llm_model:        'deepseek-v4-pro',
+      reporter:         currentUser?.ipv6   || null,
+    };
+    const res = await fetch(SUPA_URL + '/rest/v1/klaw_benchmark', {
+      method:  'POST',
+      headers: {
+        'apikey':        SUPA_ANON,
+        'Authorization': 'Bearer ' + SUPA_ANON,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify(row),
+    });
+    if (res.ok || res.status === 201) {
+      console.log('[Benchmark] ✅ Supabase 저장 완료 —', record.caseNo);
+    } else {
+      const t = await res.text();
+      console.warn('[Benchmark] Supabase 저장 실패:', res.status, t);
+    }
+  } catch(e) {
+    console.warn('[Benchmark] Supabase 네트워크 오류:', e.message);
+    // localStorage에는 이미 저장됐으므로 데이터 손실 없음
+  }
 }
 
-function clearBenchHistory() {
+async function clearBenchHistory() {
   if (!confirm('이력을 모두 삭제하시겠습니까?')) return;
   localStorage.removeItem(BH_KEY);
+  // Supabase 본인 기록도 삭제
+  if (currentUser?.ipv6) {
+    try {
+      await fetch(
+        SUPA_URL + '/rest/v1/klaw_benchmark?reporter=eq.' + encodeURIComponent(currentUser.ipv6),
+        { method: 'DELETE',
+          headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
+      );
+      console.log('[Benchmark] Supabase 이력 삭제 완료');
+    } catch(e) { console.warn('[Benchmark] Supabase 삭제 실패:', e.message); }
+  }
   renderBenchHistory();
 }
 
@@ -1978,7 +2031,38 @@ function switchBenchTab(tab) {
 }
 
 // ── 이력 렌더링 ───────────────────────────────────────────
-function renderBenchHistory() {
+async function _loadBenchHistoryFromSupabase() {
+  if (!currentUser?.ipv6) return;
+  try {
+    const res = await fetch(
+      SUPA_URL + '/rest/v1/klaw_benchmark?order=created_at.desc&limit=200',
+      { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON,
+                   'x-gopang-ipv6': currentUser.ipv6 } }
+    );
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) return;
+    const converted = rows.map(r => ({
+      caseNo:      r.case_no,
+      caseType:    r.case_type,
+      conclusion:  r.score_conclusion !== null ? parseFloat(r.score_conclusion) : null,
+      lawLogic:    r.score_law_logic  !== null ? parseFloat(r.score_law_logic)  : null,
+      detail:      r.score_detail     !== null ? parseFloat(r.score_detail)     : null,
+      total:       r.score_total      !== null ? parseFloat(r.score_total)      : null,
+      grade:       r.grade,
+      klawVersion: r.klaw_version,
+      createdAt:   r.created_at,
+    }));
+    _bhSave(converted);
+    console.log('[Benchmark] ✅ Supabase 이력 로드 —', converted.length, '건');
+  } catch(e) {
+    console.warn('[Benchmark] Supabase 이력 로드 실패:', e.message);
+  }
+}
+
+async function renderBenchHistory() {
+  // Supabase에서 최신 데이터 로드 후 렌더링
+  await _loadBenchHistoryFromSupabase();
   const arr = _bhLoad();
   _renderStats(arr);
   _renderTrend(arr);
@@ -2195,6 +2279,9 @@ async function runMatchEval() {
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'API 오류');
     const rawText = data.content || '(결과 없음)';
+    window._lastRealVerdict = realVerdict;
+    window._lastEvalRaw     = rawText;
+    window._lastEvalRaw     = rawText;       // Supabase 저장용
     const scores  = parseMatchResult(rawText);
     renderMatchCards(scores);
     document.getElementById('match-detail-text').textContent = rawText;
