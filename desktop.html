@@ -703,7 +703,25 @@ const KLAW_RAW_BASE = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/ma
 let klawVersion    = '로딩 중…';
 let klawMethodText = '';
 
+const _KLAW_CACHE_KEY = 'klaw_method_cache';
+const _KLAW_CACHE_TTL  = 24 * 60 * 60 * 1000; // 24시간
+
 async function loadKlawVersion() {
+  // ── 캐시 확인: sessionStorage에 유효한 데이터가 있으면 재사용 ──
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
+    if (cached?.version && cached?.text && cached?.ts &&
+        (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
+      klawVersion    = cached.version;
+      klawMethodText = cached.text;
+      const badge = document.getElementById('klaw-ver-badge');
+      if (badge) badge.textContent = klawVersion;
+      console.log('[K-Law] 캐시 로드:', klawVersion);
+      return;
+    }
+  } catch(e) {}
+
+  // ── 캐시 없음: GitHub에서 최신 버전 fetch ──────────────
   try {
     const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
     const files = await res.json();
@@ -715,7 +733,15 @@ async function loadKlawVersion() {
     klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
     const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache'});
     klawMethodText = await raw.text();
-    console.log('[K-Law] 로드 완료:', klawVersion);
+    // ── 캐시 저장 ──────────────────────────────────────────
+    try {
+      sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({
+        version: klawVersion,
+        text:    klawMethodText,
+        ts:      Date.now(),
+      }));
+    } catch(e) {}
+    console.log('[K-Law] 로드 완료 (캐시 저장):', klawVersion);
   } catch(e) {
     console.warn('[K-Law] GitHub 로드 실패:', e.message);
     klawVersion = 'v15.1'; klawMethodText = '';
