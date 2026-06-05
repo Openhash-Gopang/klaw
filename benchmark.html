@@ -323,8 +323,8 @@ button{font-family:var(--font);cursor:pointer}
         </div>
       </div>
       <div class="page-tabs" style="display:flex;align-items:center;gap:8px">
-        <button class="page-tab active" id="tab-sim" onclick="switchBenchTab('sim')">입력 및 분석</button>
-        <button id="tab-history" onclick="switchBenchTab('history')"
+        <button class="page-tab active" id="tab-sim" onclick="window.switchBenchTab&&window.switchBenchTab('sim')">입력 및 분석</button>
+        <button id="tab-history" onclick="window.switchBenchTab&&window.switchBenchTab('history')"
           style="display:inline-flex;align-items:center;gap:6px;
             padding:7px 16px;border-radius:6px;border:none;cursor:pointer;
             background:#374151;color:#fff;font-size:13px;font-weight:700;
@@ -2070,7 +2070,7 @@ async function clearBenchHistory() {
 }
 
 // ── 탭 전환 ───────────────────────────────────────────────
-function switchBenchTab(tab) {
+window.switchBenchTab = function(tab) {
   const simTab  = document.getElementById('tab-sim');
   const histTab = document.getElementById('tab-history');
   const content = document.querySelector('.content');
@@ -2489,9 +2489,7 @@ async function runMatchEval() {
       klawVersion: klawVersion,
       createdAt:   new Date().toISOString(),
       summary:     (() => {
-        const m = (window._verdictText || '').match(/판결 요약:\s*([\s\S]{1,200}?)(?:
-
-|\[━|$)/);
+        const m = (window._verdictText || '').match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
         return m ? m[1].trim().slice(0, 200) : null;
       })(),
     });
