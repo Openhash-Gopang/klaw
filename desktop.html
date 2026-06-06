@@ -285,16 +285,16 @@ button{font-family:var(--font);cursor:pointer}
     <div class="sidebar-section">
       <div class="sidebar-label">모델</div>
       <button class="nav-item active" id="llm-nav-deepseek" onclick="selectLLM('deepseek')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+        <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" fill="#4D6BFE"/><path d="M72 38c-4-8-12-13-22-13-14 0-25 11-25 25s11 25 25 25c7 0 13-3 18-7" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="68" cy="58" r="6" fill="#fff"/></svg>
         <span class="nav-item-label">DeepSeek</span>
         <span class="nav-badge" style="background:var(--pri-bg);color:var(--pri-dk);border-color:var(--pri-bd)">기본</span>
       </button>
       <button class="nav-item" id="llm-nav-claude" onclick="selectLLM('claude')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#CC785C"/><path d="M35 68l15-36 15 36M40 56h20" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="nav-item-label">Claude</span>
       </button>
       <button class="nav-item" id="llm-nav-gemini" onclick="selectLLM('gemini')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C50 10 60 40 90 50 C60 60 50 90 50 90 C50 90 40 60 10 50 C40 40 50 10 50 10Z" fill="url(#ggrad2)"/><defs><linearGradient id="ggrad2" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B72CB"/><stop offset="100%" stop-color="#EA4335"/></linearGradient></defs></svg>
         <span class="nav-item-label">Gemini</span>
       </button>
     </div>
@@ -312,6 +312,31 @@ button{font-family:var(--font);cursor:pointer}
         <div>
           <div class="page-title">판결 시뮬레이터</div>
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 AI가 대법원 판결을 예측합니다</div>
+          <!-- ── 모델 선택 드롭다운 ── -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <!-- LLM 선택 -->
+            <select id="hdr-llm-select" onchange="onHdrLLMChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer">
+              <option value="deepseek">DeepSeek</option>
+              <option value="claude">Claude</option>
+              <option value="gemini">Gemini</option>
+            </select>
+            <!-- 모델 세부 선택 -->
+            <select id="hdr-model-select" onchange="onHdrModelChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer;min-width:200px">
+              <option value="deepseek-v4-pro" selected>deepseek-v4-pro (기본)</option>
+            </select>
+            <!-- API Key (Claude/Gemini 선택 시) -->
+            <input id="hdr-api-key" type="password" placeholder="API Key 입력"
+              style="display:none;padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
+                outline:none;width:200px"
+              oninput="conversationState.apiKey=this.value">
+          </div>
         </div>
         <div class="page-actions">
           <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
@@ -370,22 +395,22 @@ button{font-family:var(--font);cursor:pointer}
         <div class="llm-grid">
           <div class="llm-card selected" id="card-deepseek" onclick="selectLLM('deepseek')">
             <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a4 4 0 018 0v2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><path d="M9 18h6"/></svg></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" fill="#4D6BFE"/><path d="M72 38c-4-8-12-13-22-13-14 0-25 11-25 25s11 25 25 25c7 0 13-3 18-7" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="68" cy="58" r="5" fill="#fff"/><circle cx="50" cy="72" r="3" fill="#fff"/></svg></div>
             <div class="llm-name">DeepSeek</div>
-            <div class="llm-model">deepseek-chat</div>
+            <div class="llm-model">deepseek-v4-pro</div>
             <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
             <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
           </div>
           <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
             <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#CC785C"/><path d="M35 68l15-36 15 36M40 56h20" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="llm-name">Claude</div>
             <div class="llm-model">claude-sonnet-4-20250514</div>
             <div class="llm-desc">정밀한 법률 언어 해석 · 높은 일관성</div>
           </div>
           <div class="llm-card" id="card-gemini" onclick="selectLLM('gemini')">
             <div class="llm-sel-dot"></div>
-            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C50 10 60 40 90 50 C60 60 50 90 50 90 C50 90 40 60 10 50 C40 40 50 10 50 10Z" fill="url(#ggrad)"/><defs><linearGradient id="ggrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B72CB"/><stop offset="100%" stop-color="#EA4335"/></linearGradient></defs></svg></div>
             <div class="llm-name">Gemini</div>
             <div class="llm-model">gemini-2.0-flash</div>
             <div class="llm-desc">멀티모달 · 긴 문서 처리 특화</div>
@@ -595,6 +620,62 @@ let conversationState = {
 })();
 
 // ══ LLM 카드 선택 ════════════════════════════════════════
+
+// ══ 헤더 모델 선택 드롭다운 ══════════════════════════════════
+const HDR_MODELS = {
+  'deepseek': [
+    {value:'deepseek-v4-pro', label:'deepseek-v4-pro (기본)'},
+    {value:'deepseek-v4-flash', label:'deepseek-v4-flash (빠름)'},
+    {value:'deepseek-r2', label:'deepseek-r2 (추론)'},
+  ],
+  'claude': [
+    {value:'claude-sonnet-4-20250514', label:'Claude Sonnet 4 (권장)'},
+    {value:'claude-opus-4-5', label:'Claude Opus 4.5 (고성능)'},
+    {value:'claude-opus-4-20250514', label:'Claude Opus 4 (최고)'},
+  ],
+  'gemini': [
+    {value:'gemini-2.5-pro', label:'Gemini 2.5 Pro (최고)'},
+    {value:'gemini-2.5-flash', label:'Gemini 2.5 Flash (빠름)'},
+    {value:'gemini-2.0-flash', label:'Gemini 2.0 Flash'},
+    {value:'gemini-1.5-pro', label:'Gemini 1.5 Pro'},
+  ],
+};
+
+function onHdrLLMChange() {
+  const llm    = document.getElementById('hdr-llm-select').value;
+  const modSel = document.getElementById('hdr-model-select');
+  const apiKey = document.getElementById('hdr-api-key');
+
+  // 모델 옵션 갱신
+  modSel.innerHTML = HDR_MODELS[llm].map((m, i) =>
+    `<option value="${m.value}"${i===0?' selected':''}>${m.label}</option>`
+  ).join('');
+
+  // API Key 표시
+  apiKey.style.display = llm === 'deepseek' ? 'none' : '';
+  apiKey.placeholder   = llm === 'claude' ? 'Anthropic API Key (sk-ant-…)' : 'Google API Key (AIza…)';
+
+  // selectLLM 연동
+  selectLLM(llm);
+  onHdrModelChange();
+}
+
+function onHdrModelChange() {
+  const llm   = document.getElementById('hdr-llm-select').value;
+  const model = document.getElementById('hdr-model-select').value;
+  // callLLM에서 사용할 선택 모델 저장
+  conversationState.selectedModel = model;
+  // 사이드바 카드 모델명 동기화
+  const cardModel = document.getElementById('card-' + llm)?.querySelector('.llm-model');
+  if (cardModel) cardModel.textContent = model;
+}
+
+// 초기화: DeepSeek v4 pro 기본 선택
+document.addEventListener('DOMContentLoaded', () => {
+  onHdrLLMChange();
+  conversationState.selectedModel = 'deepseek-v4-pro';
+});
+
 function selectLLM(model) {
   conversationState.llmModel = model;
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
@@ -669,7 +750,7 @@ async function callLLM(messages, maxTokens = 2000) {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })
+      body: JSON.stringify({ model: conversationState.selectedModel || 'claude-sonnet-4-20250514', max_tokens:maxTokens, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
@@ -678,7 +759,7 @@ async function callLLM(messages, maxTokens = 2000) {
   if (model === 'gemini') {
     const gmsg = messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
     const sys  = messages.find(m=>m.role==='system')?.content || '';
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${conversationState.selectedModel||'gemini-2.5-pro'}:generateContent?key=${apiKey}`,
       {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
@@ -689,7 +770,7 @@ async function callLLM(messages, maxTokens = 2000) {
   const resp = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
-    body: JSON.stringify({ model:'deepseek-chat', messages, max_tokens:maxTokens, temperature:0.2 })
+    body: JSON.stringify({ model: conversationState.selectedModel || 'deepseek-v4-pro', messages, max_tokens:maxTokens, temperature:0.2 })
   });
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
@@ -1125,7 +1206,7 @@ function appendConfidenceBlock(fullText) {
       <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
         <span class="conf-label">대법원 판결 일치도 예상</span>
         <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
-        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law ${klawVersion} 기준 (복잡 판례 실측 약 90%)</span>
+        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
       </div>
       <div class="conf-item" style="border-right:none">
         <span class="conf-label">결론 유형</span>
