@@ -104,7 +104,7 @@ button{font-family:var(--font)}
 /* ── 입력 영역 ── */
 .inp-wrap{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;margin-bottom:10px}
 textarea.inp{
-  width:100%;padding:12px 44px 12px 44px;
+  width:100%;padding:12px 44px 48px 128px;
   border:1.5px solid var(--bdr);border-radius:var(--r);
   font-family:var(--font);font-size:15px;color:var(--txt);
   background:#fff;resize:none;outline:none;
@@ -115,28 +115,85 @@ textarea.inp{
 textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,87,168,.09)}
 textarea.inp::placeholder{color:var(--hint)}
 
-/* 마이크 버튼 — SVG 아이콘 단색 */
-.mic-btn{
-  position:absolute;right:10px;bottom:10px;
+/* ── 입력 영역 하단 버튼 공통 ── */
+.attach-btn,.cam-btn,.mic-btn,.submit-btn{
+  position:absolute;bottom:10px;
   width:30px;height:30px;border-radius:50%;
-  border:1.5px solid var(--bdr);background:#fff;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:border-color .15s,background .15s;
-  color:var(--sub);
+  transition:border-color .15s,background .15s,opacity .15s;
 }
-.mic-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
+/* 좌측 3버튼 — 파일·카메라·마이크 */
+.attach-btn,.cam-btn,.mic-btn{
+  border:1.5px solid var(--bdr);background:#fff;color:var(--sub);
+}
+.attach-btn{left:10px; font-size:17px;font-weight:300;line-height:1;}
+.cam-btn   {left:48px;}
+.mic-btn   {left:86px;}
+.attach-btn:hover,.cam-btn:hover,.mic-btn:hover{
+  border-color:var(--pri);color:var(--pri);background:var(--pri-bg)
+}
 .mic-btn.recording{border-color:var(--red);color:var(--red);background:var(--rbg);animation:pulse 1s infinite}
+.cam-btn svg,.mic-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── 파일 첨부 버튼 ── */
-.attach-btn{
-  position:absolute;left:10px;bottom:10px;
-  width:30px;height:30px;border-radius:50%;
-  border:1.5px solid var(--bdr);background:#fff;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:border-color .15s,background .15s;color:var(--sub);
-  font-size:17px;font-weight:300;line-height:1;
+/* 우측 1버튼 — 입력 완료 */
+.submit-btn{
+  right:10px;
+  border:none;background:var(--pri);color:#fff;
+  opacity:.3;pointer-events:none;
 }
-.attach-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
+.submit-btn.active{opacity:1;pointer-events:auto;}
+.submit-btn:hover{background:var(--nav)}
+/* 음성 입력 완료 후 입력 완료 버튼 강조 */
+@keyframes submitPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,87,168,.5)}60%{box-shadow:0 0 0 7px rgba(0,87,168,0)}}
+.submit-btn.mic-done{animation:submitPulse .9s ease-out 3;}
+
+/* ── 카메라 모달 ── */
+.cam-modal{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.72);align-items:center;justify-content:center;
+}
+.cam-modal.open{display:flex;}
+.cam-box{
+  background:#fff;border-radius:10px;overflow:hidden;
+  width:min(96vw,460px);box-shadow:0 8px 32px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;
+}
+.cam-header{
+  background:var(--nav);color:#fff;padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;font-weight:700;
+}
+.cam-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0 2px;}
+.cam-close:hover{opacity:.7}
+.cam-preview-wrap{position:relative;background:#000;aspect-ratio:4/3;width:100%}
+#cam-video,#cam-canvas{width:100%;height:100%;object-fit:cover;display:block;}
+#cam-canvas{display:none;position:absolute;inset:0;}
+.cam-footer{padding:12px 14px;display:flex;gap:8px;align-items:center;justify-content:center;background:#f8f9fb;border-top:1px solid var(--bdr)}
+.cam-snap-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--pri);border:3px solid #fff;
+  box-shadow:0 0 0 2px var(--pri);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;flex-shrink:0;
+}
+.cam-snap-btn:hover{background:var(--nav)}
+.cam-snap-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cam-action-btn{
+  padding:9px 18px;border-radius:var(--r);font-family:var(--font);
+  font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;
+}
+.cam-use-btn{background:var(--pri);color:#fff;}
+.cam-use-btn:hover{background:var(--nav)}
+.cam-retake-btn{background:transparent;border:1.5px solid var(--bdr);color:var(--sub);}
+.cam-retake-btn:hover{background:var(--bg)}
+.cam-switch-btn{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bdr);
+  background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--sub);transition:all .15s;position:absolute;top:8px;right:8px;z-index:10;
+}
+.cam-switch-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
+.cam-switch-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 .attach-file-input{display:none}
 .file-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0}
 .file-chip{
@@ -147,7 +204,6 @@ textarea.inp::placeholder{color:var(--hint)}
 }
 .chip-x{cursor:pointer;opacity:.6;font-size:12px;flex-shrink:0;margin-left:2px}
 .chip-x:hover{opacity:1}
-.mic-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── LLM 드롭다운 ── */
 .llm-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -301,7 +357,7 @@ textarea.inp::placeholder{color:var(--hint)}
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-title">법률 자문 입력 — <em>AI 판결 시뮬레이션</em></div>
+  <div class="hero-title"><em>AI 판결 시뮬레이션</em></div>
 </div>
 
 <!-- BODY -->
@@ -312,7 +368,7 @@ textarea.inp::placeholder{color:var(--hint)}
     <div class="phase-step active" id="phase-1">사건 입력</div>
     <div class="phase-step" id="phase-2">AI 분석</div>
     <div class="phase-step" id="phase-3">추가 질의</div>
-    <div class="phase-step" id="phase-4">판결 생성</div>
+    <div class="phase-step" id="phase-4">가상 판결 생성</div>
     <div class="phase-step" id="phase-5">기록 완료</div>
   </div>
 
@@ -321,21 +377,22 @@ textarea.inp::placeholder{color:var(--hint)}
 
     <div class="file-chips" id="file-chips"></div>
     <div class="inp-wrap">
-      <!-- 파일 첨부 버튼 -->
+      <!-- 좌측 버튼: 파일 첨부 / 카메라 / 마이크 -->
       <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="파일 첨부">+</button>
       <input type="file" id="file-input" class="attach-file-input" multiple accept=".txt,.pdf,.docx,.jpg,.jpeg,.png" onchange="handleFiles(this)">
+      <button class="cam-btn" id="cam-btn" onclick="openCamera()" title="카메라 촬영">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="음성 입력">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+      </button>
       <textarea class="inp" id="case-input"
         placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.
 
 예) 상가 임대차 보증금 3,000만원을 지급했으나 임대인이 계약 만료 후 반환을 거부합니다."></textarea>
-      <!-- 마이크 버튼 — 단색 SVG -->
-      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="음성 입력">
-        <svg viewBox="0 0 24 24">
-          <rect x="9" y="2" width="6" height="11" rx="3"/>
-          <path d="M5 11a7 7 0 0014 0"/>
-          <line x1="12" y1="22" x2="12" y2="18"/>
-          <line x1="8" y1="22" x2="16" y2="22"/>
-        </svg>
+      <!-- 우측 버튼: 입력 완료 -->
+      <button class="submit-btn" id="submit-btn" onclick="startAnalysis()" title="입력 완료 — 분석 시작">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
     </div>
 
@@ -343,13 +400,17 @@ textarea.inp::placeholder{color:var(--hint)}
     <div class="llm-row">
       <span class="llm-label">AI 모델</span>
       <select class="llm-select" id="llm-select" onchange="selectLLM(this.value)">
-        <option value="deepseek">DeepSeek — 무료 · 내장 프록시</option>
+        <option value="deepseek-free">DeepSeek v4 Flash — 무료 · 내장 프록시</option>
+        <option value="deepseek-pro">DeepSeek v4 Pro — API Key 필요</option>
         <option value="claude">Claude — API Key 필요</option>
         <option value="gemini">Gemini — API Key 필요</option>
       </select>
     </div>
     <div id="api-key-wrap" style="display:none">
-      <input id="api-key" type="password" class="api-key-inp" placeholder="API Key를 입력하세요…">
+      <input id="api-key" type="password" class="api-key-inp" placeholder="API Key를 입력하세요…" autocomplete="off">
+      <div id="api-key-notice" style="font-size:11px;color:var(--hint);margin-top:4px;padding:0 2px;line-height:1.6">
+        🔒 입력된 API Key는 이 페이지 세션 메모리에만 보관되며, 브라우저 저장소(localStorage · sessionStorage · Cookie)에 저장되지 않습니다. 페이지를 닫거나 새로고침하면 즉시 삭제됩니다.
+      </div>
     </div>
 
     <div class="btn-run-spacer"></div>
@@ -369,14 +430,42 @@ textarea.inp::placeholder{color:var(--hint)}
 
 </div>
 
+<!-- ── 카메라 모달 ── -->
+<div class="cam-modal" id="cam-modal">
+  <div class="cam-box">
+    <div class="cam-header">
+      <span>📷 카메라 촬영</span>
+      <button class="cam-close" onclick="closeCamera()" title="닫기">×</button>
+    </div>
+    <div class="cam-preview-wrap">
+      <video id="cam-video" autoplay playsinline muted></video>
+      <canvas id="cam-canvas"></canvas>
+      <button class="cam-switch-btn" id="cam-switch-btn" onclick="switchCamera()" title="전/후면 전환">
+        <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+      </button>
+    </div>
+    <div class="cam-footer" id="cam-footer-shoot">
+      <button class="cam-snap-btn" onclick="snapPhoto()" title="촬영">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/></svg>
+      </button>
+    </div>
+    <div class="cam-footer" id="cam-footer-confirm" style="display:none">
+      <button class="cam-action-btn cam-retake-btn" onclick="retakePhoto()">다시 찍기</button>
+      <button class="cam-action-btn cam-use-btn" onclick="usePhoto()">이 사진 사용</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══ 설정 ══════════════════════════════════════════════════════
 // 새 Supabase 프로젝트 생성 후 아래 값을 교체하세요
 const _KLAW_SB_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
 const _KLAW_SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
 
-const DEEPSEEK_KEY      = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
-const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_KEY           = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
+const DEEPSEEK_ENDPOINT      = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_MODEL_FREE    = 'deepseek-v4-flash';   // 무료 내장 프록시
+const DEEPSEEK_MODEL_PRO     = 'deepseek-v4';         // 사용자 API Key 필요
 
 // ══ URL 파라미터 파싱 ════════════════════════════════════════
 const urlParams  = new URLSearchParams(window.location.search);
@@ -384,6 +473,18 @@ const initCase   = urlParams.get('case') || urlParams.get('q') || '';
 if (initCase) document.getElementById('case-input').value = decodeURIComponent(initCase);
 
 const fromGopang = urlParams.get('from') === 'gopang';
+
+// ══ 입력 완료 버튼 활성화 ════════════════════════════════════
+function _updateSubmitBtn() {
+  const val = document.getElementById('case-input')?.value.trim() || '';
+  const btn = document.getElementById('submit-btn');
+  if (!btn) return;
+  if (val.length >= 1) btn.classList.add('active');
+  else btn.classList.remove('active');
+}
+document.getElementById('case-input').addEventListener('input', _updateSubmitBtn);
+// initCase로 미리 채워졌을 때도 활성화
+if (initCase) _updateSubmitBtn();
 
 // ══ 고팡 공통 인증 콜백 ══════════════════════════════════════
 // subsystem-auth.js가 인증 완료 후 window._onGopangAuth(user) 호출
@@ -419,8 +520,8 @@ async function _sendPdvReport(action) {
 
 // ══ 상태 ══════════════════════════════════════════════════════
 let state = {
-  llm: 'deepseek',
-  apiKey: '',
+  llm: 'deepseek-free',
+  apiKey: '',           // 사용하지 않음 — API Key는 callLLM에서 직접 읽음 (캐시 금지)
   caseInput: '',
   caseData: null,       // parseAnalysis 결과
   messages: [],         // LLM 대화 이력
@@ -459,7 +560,13 @@ function selectLLM(model) {
   state.llm = model;
   const sel = document.getElementById('llm-select');
   if (sel && sel.value !== model) sel.value = model;
-  document.getElementById('api-key-wrap').style.display = model==='deepseek'?'none':'block';
+  const needsKey = model !== 'deepseek-free';
+  document.getElementById('api-key-wrap').style.display = needsKey ? 'block' : 'none';
+  // API Key 입력란 초기화 — 모델 전환 시 이전 키 잔류 방지
+  if (!needsKey) {
+    const inp = document.getElementById('api-key');
+    if (inp) { inp.value = ''; state.apiKey = ''; }
+  }
 }
 
 // ══ 파일 첨부 ═══════════════════════════════════════════════
@@ -486,7 +593,7 @@ function removeFile(i) {
   renderChips();
 }
 
-// ══ 음성 입력 (Web Speech API + getUserMedia 권한 선행 확보) ══
+// ══ 음성 입력 (Web Speech API — v3.6 패턴 적용) ══
 
 let isRecording = false;
 let recognition = null;
@@ -597,29 +704,7 @@ async function toggleVoice() {
     return;
   }
 
-  // ── getUserMedia 선행 호출로 권한 팝업 강제 표시 ──
-  // SpeechRecognition.start()만 호출하면 Chrome이 팝업을 띄우지 않는 경우가 있음
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop()); // 즉시 해제, SpeechRecognition이 별도로 관리
-  } catch(err) {
-    console.warn('[K-Law Mic] getUserMedia:', err.name);
-    _micSetIdle(btn);
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      _micShowMsg(
-        `<strong>🎙️ 마이크 권한을 거부하셨습니다.</strong><br>
-         주소창 왼쪽 🔒 아이콘 → <strong>사이트 설정</strong> → 마이크 → <strong>허용</strong> 후 새로고침하세요.`,
-        'error'
-      );
-    } else if (err.name === 'NotFoundError') {
-      _micShowMsg('🎙️ 마이크를 찾을 수 없습니다. 마이크가 연결되어 있는지 확인하세요.', 'error');
-    } else {
-      _micShowMsg('🎙️ 마이크 오류: ' + err.message, 'error');
-    }
-    return;
-  }
-
-  // ── SpeechRecognition 시작 ──
+  // ── SpeechRecognition 시작 (★ getUserMedia() 선행 호출 없음 — v3.6) ──
   recognition = new SR();
   recognition.lang            = 'ko-KR';
   recognition.continuous      = true;
@@ -641,13 +726,16 @@ async function toggleVoice() {
       else interim += e.results[i][0].transcript;
     }
     ta.value = finalText + interim;
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+    _micAutoResize(ta);   // ★ 직접 호출 (dispatchEvent 절대 사용 금지 — v3.6)
   };
 
   recognition.onend = () => {
     _micSetIdle(btn);
     ta.value = finalText;
+    _micAutoResize(ta);   // ★ 직접 호출
+    // 음성 입력 완료 → 입력 완료 버튼 활성화 + 강조
+    _updateSubmitBtn();
+    _micPulseSubmit();
   };
 
   recognition.onerror = (e) => {
@@ -666,11 +754,153 @@ async function toggleVoice() {
   };
 
   recognition.start();
+  isRecording = true;
+  _micSetActive(btn);
 }
 
-// ══ LLM API 호출 ═════════════════════════════════════════════
+// ── textarea 높이 자동 조절 (v3.6 직접 호출용) ───────────────
+function _micAutoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+// ── 음성 입력 완료 후 입력 완료 버튼 강조 ───────────────────
+function _micPulseSubmit() {
+  const btn = document.getElementById('submit-btn');
+  if (!btn || !btn.classList.contains('active')) return;
+  btn.classList.remove('mic-done');
+  // reflow 강제로 애니메이션 재시작
+  void btn.offsetWidth;
+  btn.classList.add('mic-done');
+  btn.addEventListener('animationend', () => btn.classList.remove('mic-done'), { once: true });
+}
+
+// ══ 카메라 촬영 ═══════════════════════════════════════════════
+let _camStream   = null;
+let _camFacing   = 'environment'; // 'environment'=후면, 'user'=전면
+let _camPhotoBlob = null;
+
+async function openCamera() {
+  const env = _detectMicEnv();
+  if (env.isArtifact || env.inIframe) {
+    _micShowMsg(
+      `<strong>📷 미리보기 환경에서는 카메라를 사용할 수 없습니다.</strong><br>
+       실제 배포 URL <code>klaw.openhash.kr/webapp.html</code> 에서 사용하세요.`,
+      'info'
+    );
+    return;
+  }
+  if (!env.isSecure) {
+    _micShowMsg(
+      '<strong>📷 HTTPS 환경에서만 카메라를 사용할 수 있습니다.</strong>', 'error'
+    );
+    return;
+  }
+  document.getElementById('cam-modal').classList.add('open');
+  await _camStart(_camFacing);
+}
+
+async function _camStart(facing) {
+  // 기존 스트림 정리
+  if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
+  const video  = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  video.style.display  = 'block';
+  canvas.style.display = 'none';
+  document.getElementById('cam-footer-shoot').style.display   = 'flex';
+  document.getElementById('cam-footer-confirm').style.display = 'none';
+  _camPhotoBlob = null;
+
+  try {
+    _camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false
+    });
+    video.srcObject = _camStream;
+  } catch(err) {
+    closeCamera();
+    const msg = err.name === 'NotAllowedError'
+      ? '카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라를 허용하세요.'
+      : err.name === 'NotFoundError'
+        ? '카메라를 찾을 수 없습니다.'
+        : '카메라 오류: ' + err.message;
+    _micShowMsg('📷 ' + msg, 'error');
+  }
+}
+
+async function switchCamera() {
+  _camFacing = _camFacing === 'environment' ? 'user' : 'environment';
+  await _camStart(_camFacing);
+}
+
+function snapPhoto() {
+  const video  = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  canvas.width  = video.videoWidth  || 1280;
+  canvas.height = video.videoHeight || 960;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  // 스트림 일시 정지 (preview 유지)
+  if (_camStream) _camStream.getTracks().forEach(t => t.enabled = false);
+  video.style.display  = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('cam-footer-shoot').style.display   = 'none';
+  document.getElementById('cam-footer-confirm').style.display = 'flex';
+  // Blob으로 저장
+  canvas.toBlob(blob => { _camPhotoBlob = blob; }, 'image/jpeg', 0.92);
+}
+
+function retakePhoto() {
+  _camPhotoBlob = null;
+  if (_camStream) _camStream.getTracks().forEach(t => t.enabled = true);
+  const video  = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  video.style.display  = 'block';
+  canvas.style.display = 'none';
+  document.getElementById('cam-footer-shoot').style.display   = 'flex';
+  document.getElementById('cam-footer-confirm').style.display = 'none';
+}
+
+function usePhoto() {
+  if (!_camPhotoBlob) return;
+  // 파일 첨부 목록에 추가 (기존 handleFiles 흐름 재사용)
+  const now  = new Date();
+  const name = `사진_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}.jpg`;
+  const file = new File([_camPhotoBlob], name, { type: 'image/jpeg' });
+  if (!attachedFiles.find(x => x.name === file.name)) attachedFiles.push(file);
+  renderChips();
+  closeCamera();
+  // 입력 필드에 안내 텍스트 추가 (비어있을 때만)
+  const ta = document.getElementById('case-input');
+  if (!ta.value.trim()) {
+    ta.value = '(첨부된 사진을 참고하여 분석해 주세요)';
+    _micAutoResize(ta);
+  }
+}
+
+function closeCamera() {
+  if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
+  _camPhotoBlob = null;
+  _camFacing = 'environment';
+  document.getElementById('cam-modal').classList.remove('open');
+  const video  = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  if (video)  { video.srcObject = null; video.style.display = 'block'; }
+  if (canvas) { canvas.style.display = 'none'; }
+}
+
+// 모달 배경 클릭 시 닫기
+document.getElementById('cam-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCamera();
+});
+// ESC 키로 닫기
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCamera();
+});
+
+
 async function callLLM(messages, maxTokens=2000) {
-  const key = state.apiKey;
+  // API Key는 호출 시점에만 읽고 변수에 저장하지 않음 (캐시 금지)
+  const key = document.getElementById('api-key')?.value.trim() || '';
   if (state.llm==='claude') {
     const r = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -693,11 +923,22 @@ async function callLLM(messages, maxTokens=2000) {
     if(d.error) throw new Error(d.error.message);
     return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
   }
-  // DeepSeek
+  if (state.llm==='deepseek-pro') {
+    // DeepSeek v4 Pro — 사용자 API Key 사용 (저장 안 함)
+    const r=await fetch(DEEPSEEK_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:DEEPSEEK_MODEL_PRO,messages,max_tokens:maxTokens,temperature:0.2})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+    return d.choices?.[0]?.message?.content||'';
+  }
+  // deepseek-free — DeepSeek v4 Flash, 내장 프록시 키 사용
   const r=await fetch(DEEPSEEK_ENDPOINT,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages,max_tokens:maxTokens,temperature:0.2})
+    body:JSON.stringify({model:DEEPSEEK_MODEL_FREE,messages,max_tokens:maxTokens,temperature:0.2})
   });
   const d=await r.json();
   if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
@@ -737,14 +978,18 @@ const ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
 async function startAnalysis() {
   const input = document.getElementById('case-input').value.trim();
   if (!input || input.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
-  state.apiKey = document.getElementById('api-key').value.trim();
-  if (state.llm !== 'deepseek' && !state.apiKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
+  // API Key는 state에 저장하지 않음 — callLLM이 직접 읽음 (캐시 금지)
+  const needsKey = state.llm !== 'deepseek-free';
+  const enteredKey = document.getElementById('api-key').value.trim();
+  if (needsKey && !enteredKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
   state.caseInput = input;
   state.caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
 
-  // 고정 버튼 숨기기
+  // 고정 버튼 및 입력 완료 버튼 숨기기
   const fixedWrap = document.getElementById('fixed-btn-wrap');
   if(fixedWrap) fixedWrap.style.display='none';
+  const submitBtn = document.getElementById('submit-btn');
+  if(submitBtn) submitBtn.style.display='none';
   setPhase(2);
   const btn = document.getElementById('btn-analyze');
   btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>&nbsp;분석 중';
