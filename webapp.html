@@ -270,6 +270,15 @@ textarea.inp::placeholder{color:var(--hint)}
 .chat-input-row{display:flex;gap:7px;align-items:flex-end;margin-top:10px}
 .chat-ta{flex:1;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:14px;resize:none;outline:none;height:72px;line-height:1.6;background:#fff}
 .chat-ta:focus{border-color:var(--pri)}
+.chat-mic-btn{
+  width:32px;height:32px;border-radius:50%;
+  border:1.5px solid var(--bdr);background:#fff;color:var(--sub);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .15s,background .15s;flex-shrink:0;align-self:flex-end;
+}
+.chat-mic-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
+.chat-mic-btn.recording{border-color:var(--red);color:var(--red);background:var(--rbg);animation:pulse 1s infinite}
+.chat-mic-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .chat-actions{display:flex;flex-direction:column;gap:5px;align-self:flex-end}
 
 /* ── 판결문 스텝 ── */
@@ -469,8 +478,24 @@ const DEEPSEEK_MODEL_PRO     = 'deepseek-v4';         // 사용자 API Key 필�
 
 // ══ URL 파라미터 파싱 ════════════════════════════════════════
 const urlParams  = new URLSearchParams(window.location.search);
-const initCase   = urlParams.get('case') || urlParams.get('q') || '';
-if (initCase) document.getElementById('case-input').value = decodeURIComponent(initCase);
+
+// ctx 표준 분기 (ctx_enc=b64 지원) — 고팡 GWP 연동
+(function initCtx() {
+  const ctxRaw = urlParams.get('ctx') || '';
+  const ctxEnc = urlParams.get('ctx_enc');
+  if (ctxRaw) {
+    const ctx = ctxEnc === 'b64'
+      ? decodeURIComponent(escape(atob(ctxRaw)))
+      : decodeURIComponent(ctxRaw);
+    if (ctx) {
+      document.getElementById('case-input').value = ctx;
+      return;
+    }
+  }
+  // ctx 없을 때 기존 case/q 파라미터 폴백
+  const initCase = urlParams.get('case') || urlParams.get('q') || '';
+  if (initCase) document.getElementById('case-input').value = decodeURIComponent(initCase);
+})();
 
 const fromGopang = urlParams.get('from') === 'gopang';
 
@@ -483,8 +508,8 @@ function _updateSubmitBtn() {
   else btn.classList.remove('active');
 }
 document.getElementById('case-input').addEventListener('input', _updateSubmitBtn);
-// initCase로 미리 채워졌을 때도 활성화
-if (initCase) _updateSubmitBtn();
+// ctx/case/q로 미리 채워졌을 때도 활성화
+if (document.getElementById('case-input').value) _updateSubmitBtn();
 
 // ══ 고팡 공통 인증 콜백 ══════════════════════════════════════
 // subsystem-auth.js가 인증 완료 후 window._onGopangAuth(user) 호출
@@ -496,28 +521,32 @@ window._onGopangAuth = function(user) {
   console.info('[K-Law Auth] 고팡 인증 완료 — Lv.' + user.level + ' / ' + user.via);
 };
 
-// ══ PDV 보고 ════════════════════════════════════════════════
+// ══ PDV 보고 — 표준 { user_guid, source, report: { pdv_6w } } ════
+const PROXY = 'https://gopang-proxy.tensor-city.workers.dev';
 async function _sendPdvReport(action) {
   try {
-    await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+    const user_guid = klawUser?.ipv6 || 'anonymous';
+    const payload = {
+      user_guid,
+      source: 'klaw',
+      report: {
+        pdv_6w: {
+          who:   user_guid,
+          when:  new Date().toISOString(),
+          where: location.href,
+          what:  action.summary,
+          how:   'subsystem-auth Lv.' + (klawUser?.level || 1),
+          why:   action.goal,
+        },
+      },
+    };
+    await fetch(`${PROXY}/pdv_log`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        report: {
-          svc:  'klaw',
-          type: 'action',
-          who:  { ipv6: klawUser?.ipv6 || 'unknown', role: 'user' },
-          when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
-          where:{ svc_url: location.href },
-          what: { summary: action.summary },
-          how:  { method: 'subsystem-auth', auth_level: klawUser?.level || 1 },
-          why:  { goal: action.goal },
-        }
-      })
+      body: JSON.stringify(payload),
     });
   } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
 }
-
 // ══ 상태 ══════════════════════════════════════════════════════
 let state = {
   llm: 'deepseek-free',
@@ -762,6 +791,75 @@ async function toggleVoice() {
 function _micAutoResize(ta) {
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight + 'px';
+}
+
+// ── chat-ta 전용 마이크 (STEP 3 추가 질의) — v3.6 패턴 ───────
+let _chatMicActive = false;
+let _chatRecognition = null;
+
+function toggleChatMic() {
+  const btn = document.getElementById('chat-mic-btn');
+  const ta  = document.getElementById('chat-reply');
+  if (!btn || !ta) return;
+
+  // 중지
+  if (_chatMicActive) {
+    if (_chatRecognition) { try { _chatRecognition.stop(); } catch(e) {} _chatRecognition = null; }
+    _chatMicActive = false;
+    btn.classList.remove('recording');
+    return;
+  }
+
+  const env = _detectMicEnv();
+  if (env.isArtifact || env.inIframe) {
+    _micShowMsg('<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'info');
+    return;
+  }
+  if (!env.isSecure) {
+    _micShowMsg('<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'error');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    _micShowMsg('⚠️ 이 브라우저는 음성 인식을 지원하지 않습니다. Chrome 또는 Edge를 사용해 주세요.', 'warn');
+    return;
+  }
+
+  // ★ getUserMedia() 선행 호출 없음 — v3.6
+  _chatRecognition = new SR();
+  _chatRecognition.lang           = 'ko-KR';
+  _chatRecognition.continuous     = false;
+  _chatRecognition.interimResults = false;
+  _chatRecognition.maxAlternatives = 1;
+
+  _chatRecognition.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    if (t) {
+      ta.value += (ta.value ? ' ' : '') + t;
+      _micAutoResize(ta);   // ★ 직접 호출 (dispatchEvent 절대 사용 금지 — v3.6)
+    }
+    _chatMicActive = false;
+    btn.classList.remove('recording');
+    _chatRecognition = null;
+  };
+
+  _chatRecognition.onerror = (e) => {
+    _chatMicActive = false;
+    btn.classList.remove('recording');
+    _chatRecognition = null;
+    console.warn('[K-Law ChatMic] 오류:', e.error);
+    if (e.error !== 'aborted') _micShowMsg('🎙️ 음성 인식 오류: ' + e.error, 'warn');
+  };
+
+  _chatRecognition.onend = () => {
+    _chatMicActive = false;
+    btn.classList.remove('recording');
+    _chatRecognition = null;
+  };
+
+  _chatRecognition.start();
+  _chatMicActive = true;
+  btn.classList.add('recording');
 }
 
 // ── 음성 입력 완료 후 입력 완료 버튼 강조 ───────────────────
@@ -1067,6 +1165,9 @@ function renderChat(question) {
       </div>
       <div class="chat-input-row" id="chat-input-row">
         <textarea class="chat-ta" id="chat-reply" placeholder="추가 정보를 입력하세요…"></textarea>
+        <button class="chat-mic-btn" id="chat-mic-btn" onclick="toggleChatMic()" title="음성 입력">
+          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        </button>
         <div class="chat-actions">
           <button class="btn-sm btn-pri" onclick="sendReply()">전송</button>
           <button class="btn-sm btn-out" onclick="skipToSim()">생략</button>
