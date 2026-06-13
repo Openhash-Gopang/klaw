@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script src="/gopang-wallet.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — 판결 시뮬레이터</title>
@@ -145,10 +146,51 @@ button{font-family:var(--font);cursor:pointer}
 .llm-desc{font-size:11px;color:var(--txt3);line-height:1.5}
 .llm-free{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 6px;margin-top:4px}
 .api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
-.api-key-row.visible{max-height:60px}
+.api-key-row.visible{max-height:60px;overflow:visible}
 .api-key-label{font-size:12px;font-weight:500;color:var(--txt3);white-space:nowrap}
 .api-key-input{flex:1;padding:6px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--txt);background:var(--bg);outline:none}
 .api-key-input:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.12);background:var(--sur)}
+
+/* ── API Key 발급 안내 모달 ── */
+.apikey-modal-bg{
+  display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.45);
+  align-items:center;justify-content:center;padding:16px;
+}
+.apikey-modal-bg.open{display:flex}
+.apikey-modal{
+  background:var(--sur);border-radius:14px;max-width:480px;width:100%;
+  max-height:85vh;overflow-y:auto;color:var(--txt);
+  box-shadow:0 12px 40px rgba(0,0,0,.3);
+}
+.apikey-modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--bdr);
+  position:sticky;top:0;background:var(--sur);border-radius:14px 14px 0 0;
+}
+.apikey-modal-header h3{margin:0;font-size:16px;font-weight:800;color:var(--txt)}
+.apikey-modal-close{
+  border:none;background:none;font-size:18px;cursor:pointer;
+  color:var(--txt3);line-height:1;padding:4px;
+}
+.apikey-modal-close:hover{color:var(--txt)}
+.apikey-modal-body{padding:16px 18px}
+.apikey-modal-intro{font-size:13px;color:var(--txt);line-height:1.6;margin:0 0 14px}
+.apikey-provider{
+  border:1px solid var(--bdr);border-radius:10px;
+  padding:12px 14px;margin-bottom:10px;
+}
+.apikey-provider-name{font-size:14px;font-weight:800;color:var(--txt);margin-bottom:4px}
+.apikey-provider p{font-size:12.5px;color:var(--txt3);line-height:1.6;margin:0 0 6px}
+.apikey-link{
+  display:inline-block;font-size:12.5px;font-weight:700;
+  color:var(--pri);text-decoration:none;margin-right:10px;
+}
+.apikey-link:hover{text-decoration:underline}
+.apikey-modal-note{
+  font-size:11.5px;color:var(--txt3);line-height:1.6;
+  margin:14px 0 0;padding-top:10px;border-top:1px solid var(--bdr);
+}
 
 .analysis-panel{margin-bottom:16px;display:none}
 .case-type-bar{border-radius:var(--r) var(--r) 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -230,6 +272,7 @@ button{font-family:var(--font);cursor:pointer}
 </div>
 
 <header class="topbar">
+    <script src="/gopang-wallet.js"></script>
   <div class="topbar-brand">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
     <a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a>
@@ -287,7 +330,6 @@ button{font-family:var(--font);cursor:pointer}
       <button class="nav-item active" id="llm-nav-deepseek" onclick="selectLLM('deepseek')">
         <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" fill="#4D6BFE"/><path d="M72 38c-4-8-12-13-22-13-14 0-25 11-25 25s11 25 25 25c7 0 13-3 18-7" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="68" cy="58" r="6" fill="#fff"/></svg>
         <span class="nav-item-label">DeepSeek</span>
-        <span class="nav-badge" style="background:var(--pri-bg);color:var(--pri-dk);border-color:var(--pri-bd)">기본</span>
       </button>
       <button class="nav-item" id="llm-nav-claude" onclick="selectLLM('claude')">
         <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#CC785C"/><path d="M35 68l15-36 15 36M40 56h20" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -296,6 +338,16 @@ button{font-family:var(--font);cursor:pointer}
       <button class="nav-item" id="llm-nav-gemini" onclick="selectLLM('gemini')">
         <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C50 10 60 40 90 50 C60 60 50 90 50 90 C50 90 40 60 10 50 C40 40 50 10 50 10Z" fill="url(#ggrad2)"/><defs><linearGradient id="ggrad2" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B72CB"/><stop offset="100%" stop-color="#EA4335"/></linearGradient></defs></svg>
         <span class="nav-item-label">Gemini</span>
+      </button>
+      <button class="nav-item" id="llm-nav-groq" onclick="selectLLM('groq')">
+        <svg width="15" height="15" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#F55036"/><path d="M30 50 L50 30 L70 50 L50 70 Z" fill="#fff"/></svg>
+        <span class="nav-item-label">Groq</span>
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <button class="nav-item" id="apikey-help-nav" onclick="openApiKeyHelp()" style="color:var(--pri)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg>
+        <span class="nav-item-label">무료 API Key 발급 방법</span>
       </button>
     </div>
     <div class="sidebar-footer">
@@ -312,6 +364,7 @@ button{font-family:var(--font);cursor:pointer}
         <div>
           <div class="page-title">판결 시뮬레이터</div>
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 AI가 대법원 판결을 예측합니다</div>
+          <div class="page-subtitle" style="margin-top:2px">좌측 하단의 LLM 페이지에서 무료 API Key를 발급받으세요.</div>
           <!-- ── 모델 선택 드롭다운 ── -->
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
             <!-- LLM 선택 -->
@@ -322,6 +375,7 @@ button{font-family:var(--font);cursor:pointer}
               <option value="deepseek">DeepSeek</option>
               <option value="claude">Claude</option>
               <option value="gemini">Gemini</option>
+              <option value="groq">Groq</option>
             </select>
             <!-- 모델 세부 선택 -->
             <select id="hdr-model-select" onchange="onHdrModelChange()"
@@ -399,7 +453,6 @@ button{font-family:var(--font);cursor:pointer}
             <div class="llm-name">DeepSeek</div>
             <div class="llm-model">deepseek-v4-pro</div>
             <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
-            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
           </div>
           <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
             <div class="llm-sel-dot"></div>
@@ -415,10 +468,18 @@ button{font-family:var(--font);cursor:pointer}
             <div class="llm-model">gemini-2.0-flash</div>
             <div class="llm-desc">멀티모달 · 긴 문서 처리 특화</div>
           </div>
+          <div class="llm-card" id="card-groq" onclick="selectLLM('groq')">
+            <div class="llm-sel-dot"></div>
+            <div class="llm-icon"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#F55036"/><path d="M30 50 L50 30 L70 50 L50 70 Z" fill="#fff"/></svg></div>
+            <div class="llm-name">Groq</div>
+            <div class="llm-model">llama-3.3-70b-versatile</div>
+            <div class="llm-desc">매우 빠른 추론 속도 · 오픈소스 모델</div>
+          </div>
         </div>
-        <div class="api-key-row" id="api-key-section">
-          <label class="api-key-label" id="api-key-label">API Key</label>
-          <input class="api-key-input" type="password" id="api-key" placeholder="API Key를 입력하세요">
+        <div class="api-key-row visible" id="api-key-section">
+          <label class="api-key-label" id="api-key-label">DeepSeek API Key</label>
+          <input class="api-key-input" type="password" id="api-key" placeholder="sk-…">
+          <button type="button" onclick="openApiKeyHelp()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:none;color:var(--pri);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">무료 API Key 발급 방법</button>
         </div>
       </div>
 
@@ -624,12 +685,12 @@ let conversationState = {
 // ══ 헤더 모델 선택 드롭다운 ══════════════════════════════════
 const HDR_MODELS = {
   'deepseek': [
-    {value:'deepseek-v4-pro', label:'deepseek-v4-pro (기본)'},
+    {value:'deepseek-v4-pro', label:'deepseek-v4-pro'},
     {value:'deepseek-v4-flash', label:'deepseek-v4-flash (빠름)'},
     {value:'deepseek-r2', label:'deepseek-r2 (추론)'},
   ],
   'claude': [
-    {value:'claude-sonnet-4-20250514', label:'Claude Sonnet 4 (권장)'},
+    {value:'claude-sonnet-4-20250514', label:'Claude Sonnet 4'},
     {value:'claude-opus-4-5', label:'Claude Opus 4.5 (고성능)'},
     {value:'claude-opus-4-20250514', label:'Claude Opus 4 (최고)'},
   ],
@@ -638,6 +699,10 @@ const HDR_MODELS = {
     {value:'gemini-2.5-flash', label:'Gemini 2.5 Flash (빠름)'},
     {value:'gemini-2.0-flash', label:'Gemini 2.0 Flash'},
     {value:'gemini-1.5-pro', label:'Gemini 1.5 Pro'},
+  ],
+  'groq': [
+    {value:'llama-3.3-70b-versatile', label:'Llama 3.3 70B'},
+    {value:'llama-3.1-8b-instant', label:'Llama 3.1 8B (빠름)'},
   ],
 };
 
@@ -651,9 +716,15 @@ function onHdrLLMChange() {
     `<option value="${m.value}"${i===0?' selected':''}>${m.label}</option>`
   ).join('');
 
-  // API Key 표시
-  apiKey.style.display = llm === 'deepseek' ? 'none' : '';
-  apiKey.placeholder   = llm === 'claude' ? 'Anthropic API Key (sk-ant-…)' : 'Google API Key (AIza…)';
+  // API Key 표시 — 모든 제공자가 키 필요
+  apiKey.style.display = '';
+  const placeholders = {
+    deepseek: 'DeepSeek API Key (sk-…)',
+    claude:   'Anthropic API Key (sk-ant-…)',
+    gemini:   'Google API Key (AIza…)',
+    groq:     'Groq API Key (gsk_…)',
+  };
+  apiKey.placeholder = placeholders[llm] || 'API Key 입력';
 
   // selectLLM 연동
   selectLLM(llm);
@@ -679,23 +750,41 @@ document.addEventListener('DOMContentLoaded', () => {
 function selectLLM(model) {
   conversationState.llmModel = model;
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('card-' + model).classList.add('selected');
-  ['deepseek','claude','gemini'].forEach(m => {
+  document.getElementById('card-' + model)?.classList.add('selected');
+  ['deepseek','claude','gemini','groq'].forEach(m => {
     const n = document.getElementById('llm-nav-' + m);
     if (n) n.classList.toggle('active', m === model);
   });
   const apiSec = document.getElementById('api-key-section');
   const apiLabel = document.getElementById('api-key-label');
   const apiInput = document.getElementById('api-key');
-  if (model === 'deepseek') {
-    apiSec.classList.remove('visible');
-    conversationState.apiKey = '';
-  } else {
-    apiSec.classList.add('visible');
-    apiLabel.textContent = model === 'claude' ? 'Anthropic API Key' : 'Google API Key';
-    apiInput.placeholder = model === 'claude' ? 'sk-ant-…' : 'AIza…';
-  }
+  apiSec.classList.add('visible');
+  const labels = {
+    deepseek: 'DeepSeek API Key',
+    claude:   'Anthropic API Key',
+    gemini:   'Google API Key',
+    groq:     'Groq API Key',
+  };
+  const phs = {
+    deepseek: 'sk-…',
+    claude:   'sk-ant-…',
+    gemini:   'AIza…',
+    groq:     'gsk_…',
+  };
+  apiLabel.textContent = labels[model] || 'API Key';
+  apiInput.placeholder = phs[model] || 'API Key를 입력하세요';
 }
+
+// ══ API Key 발급 안내 모달 ════════════════════════════════════
+function openApiKeyHelp() {
+  document.getElementById('apikey-help-modal').classList.add('open');
+}
+function closeApiKeyHelp() {
+  document.getElementById('apikey-help-modal').classList.remove('open');
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeApiKeyHelp();
+});
 
 // ══ 파일 첨부 ════════════════════════════════════════════
 function handleFileAttach(input) {
@@ -739,7 +828,6 @@ async function toggleVoice() {
 }
 
 // ══ LLM API 호출 ════════════════════════════════════════
-const DEEPSEEK_DEFAULT_KEY = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
 const DEEPSEEK_ENDPOINT    = 'https://api.deepseek.com/v1/chat/completions';
 
 async function callLLM(messages, maxTokens = 2000) {
@@ -765,11 +853,20 @@ async function callLLM(messages, maxTokens = 2000) {
     if (data.error) throw new Error(data.error.message);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
-  // DeepSeek
-  const key  = apiKey || DEEPSEEK_DEFAULT_KEY;
+  if (model === 'groq') {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+      body: JSON.stringify({ model: conversationState.selectedModel || 'llama-3.3-70b-versatile', messages, max_tokens:maxTokens, temperature:0.2 })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    return data.choices?.[0]?.message?.content || '';
+  }
+  // DeepSeek — 사용자 본인 API Key 필요
   const resp = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
     body: JSON.stringify({ model: conversationState.selectedModel || 'deepseek-v4-pro', messages, max_tokens:maxTokens, temperature:0.2 })
   });
   const data = await resp.json();
@@ -1057,7 +1154,7 @@ function readyAndAutoRun() {
 async function runJudgementSim() {
   const model  = conversationState.llmModel || 'deepseek';
   const apiKey = document.getElementById('api-key') ? document.getElementById('api-key').value.trim() : '';
-  if (model !== 'deepseek' && !apiKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
+  if (!apiKey) { alert('선택한 LLM의 API Key를 입력해 주세요.\n(아직 키가 없다면 "무료 API Key 발급 방법" 버튼을 참고하세요)'); return; }
   conversationState.apiKey = apiKey;
 
   const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
@@ -1261,5 +1358,55 @@ document.addEventListener('DOMContentLoaded', function(){
   ta.addEventListener('blur', () => setTimeout(collapse, 150));
 });
 </script>
+  <!-- API Key 발급 안내 모달 -->
+  <div id="apikey-help-modal" class="apikey-modal-bg" onclick="if(event.target===this) closeApiKeyHelp()">
+    <div class="apikey-modal">
+      <div class="apikey-modal-header">
+        <h3>무료 API Key 발급 방법</h3>
+        <button type="button" class="apikey-modal-close" onclick="closeApiKeyHelp()" aria-label="닫기">✕</button>
+      </div>
+      <div class="apikey-modal-body">
+        <p class="apikey-modal-intro">
+          K-Law는 자체 LLM 서버를 운영하지 않습니다. 아래 제공자 중 하나를 선택해 무료(또는 평가용) API Key를 발급받아 입력하면 바로 이용할 수 있습니다.
+        </p>
+
+        <div class="apikey-provider">
+          <div class="apikey-provider-name">🟦 Google Gemini</div>
+          <p>Google AI Studio에서 가입 후 무료 등급(Free Tier)으로 API Key를 즉시 발급받을 수 있습니다.</p>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="apikey-link">aistudio.google.com/app/apikey ↗</a>
+        </div>
+
+        <div class="apikey-provider">
+          <div class="apikey-provider-name">🟧 DeepSeek</div>
+          <p>DeepSeek 플랫폼에 가입 후 신규 계정에 제공되는 무료 크레딧으로 API Key를 발급받을 수 있습니다.</p>
+          <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" class="apikey-link">platform.deepseek.com/api_keys ↗</a>
+        </div>
+
+        <div class="apikey-provider">
+          <div class="apikey-provider-name">🟪 Anthropic Claude</div>
+          <p>Anthropic Console에서 가입 후 API Key를 발급받을 수 있습니다. 신규 계정에는 평가용 크레딧이 제공됩니다.</p>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" class="apikey-link">console.anthropic.com/settings/keys ↗</a>
+        </div>
+
+        <div class="apikey-provider">
+          <div class="apikey-provider-name">🟩 Groq</div>
+          <p>Groq Cloud는 Llama 등 오픈소스 모델을 매우 빠른 속도로 무료 제공합니다. 가입 후 즉시 API Key 발급이 가능합니다.</p>
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="apikey-link">console.groq.com/keys ↗</a>
+        </div>
+
+        <div class="apikey-provider">
+          <div class="apikey-provider-name">⬜ 기타 무료/저비용 제공자</div>
+          <p>OpenRouter는 여러 모델의 무료(:free) 엔드포인트를 통합 제공하며, Cloudflare Workers AI도 일정량을 무료로 제공합니다.</p>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="apikey-link">openrouter.ai/keys ↗</a>
+          <a href="https://dash.cloudflare.com/?to=/:account/ai/workers-ai" target="_blank" rel="noopener" class="apikey-link">Cloudflare Workers AI ↗</a>
+        </div>
+
+        <p class="apikey-modal-note">
+          ⚠️ 발급받은 API Key는 본인의 브라우저에만 임시로 보관되며 K-Law 서버로 전송되거나 저장되지 않습니다. 각 제공자의 요금 정책 및 무료 한도는 변경될 수 있으니 발급 페이지에서 최신 정보를 확인하세요.
+        </p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
+
