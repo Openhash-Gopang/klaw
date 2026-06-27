@@ -412,6 +412,41 @@ button{font-family:var(--font);cursor:pointer}
       <div class="panel">
         <div class="panel-hd">
           <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            사건의 개요
+          </div>
+          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
+            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
+          </span>
+        </div>
+        <div class="panel-bd">
+          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:8px 12px;margin-bottom:10px;line-height:1.7">
+            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
+          </div>
+          <textarea class="case-textarea" id="case-input"
+            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
+          <div class="input-toolbar" id="input-toolbar">
+            <div class="toolbar-left">
+              <label class="file-label" title="파일 첨부">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
+              </label>
+              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+            </div>
+            <button class="btn btn-primary" id="run-btn" onclick="runSimulation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              분석 시작
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             K-Law는 어떻게 동작하나요
           </div>
@@ -496,41 +531,33 @@ button{font-family:var(--font);cursor:pointer}
             웹 검색을 허용하면 일치도가 상승하겠지만, 실제 사건 정보를 획득할 수 있게 되어 <b>순수한 법리 추론 능력을 검증하려는 목적이 훼손될 수 있습니다.</b>
           </div>
 
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-hd">
-          <div class="panel-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            사건의 개요
-          </div>
-          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
-            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
-          </span>
-        </div>
-        <div class="panel-bd">
-          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:8px 12px;margin-bottom:10px;line-height:1.7">
-            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
-          </div>
-          <textarea class="case-textarea" id="case-input"
-            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
-          <div class="input-toolbar" id="input-toolbar">
-            <div class="toolbar-left">
-              <label class="file-label" title="파일 첨부">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
-              </label>
-              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
-              </button>
-              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+          <!-- 입력 완전성 주의 -->
+          <div style="background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#92400e;line-height:1.8">
+            ⚠️ <b>주의 — 입력 완전성에 대하여</b><br>
+            본 시뮬레이터는 <b>K-Law 방법론 원문 · 일치도 평가 기준 · 가상판결 출력형식</b> 문서를 매 STEP마다 LLM에 전달합니다.
+            다만 LLM마다 컨텍스트 윈도우 크기가 다르고, 모델에 따라 긴 입력을 받아도 끝까지 반영하지 못하거나 일부를 누락할 수 있습니다.
+            <b>확실하고 완전한 입력</b>을 원하시면:
+            <ul style="margin:6px 0 8px 18px;padding:0">
+              <li>충분히 큰 컨텍스트 윈도우를 지원하는 모델을 권장합니다.</li>
+              <li>결과에 <code style="background:#fff;padding:1px 4px;border-radius:3px">[STEP-0-COMPLETE]</code> 등 완료 태그가 모두 출력됐는지 확인하세요 — 누락 시 입력이 온전히 처리되지 않았을 가능성이 있습니다.</li>
+              <li>아래에서 원문을 직접 내려받아 사용 중인 LLM에 직접 검증해보실 수 있습니다.</li>
+            </ul>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v15_1.md" download
+                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #fcd34d;border-radius:var(--r);background:#fff;color:#92400e;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                ⬇ K-Law 방법론 원문 (v15.1)
+              </a>
+              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download
+                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #fcd34d;border-radius:var(--r);background:#fff;color:#92400e;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                ⬇ 가상판결 출력형식 (v13.3)
+              </a>
+              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" download
+                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #fcd34d;border-radius:var(--r);background:#fff;color:#92400e;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                ⬇ 일치도 평가 기준 (v1.6)
+              </a>
             </div>
-            <button class="btn btn-primary" id="run-btn" onclick="runSimulation()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              분석 시작
-            </button>
           </div>
+
         </div>
       </div>
 
