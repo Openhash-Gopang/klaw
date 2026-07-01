@@ -3,11 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <script>
-// 화면 크기·UA로 모바일/PC 분기 → 각 전용 페이지로 즉시 이동
+// 루트 접속 시 인트로 페이지로 이동 (기존: 기기별로 desktop/webapp로 즉시 우회하던 오류 수정)
 (function(){
-  var mobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-               || window.innerWidth < 768;
-  location.replace(mobile ? 'webapp.html' : 'desktop.html');
+  location.replace('klaw_intro.html');
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

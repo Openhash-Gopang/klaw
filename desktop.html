@@ -245,6 +245,23 @@ button{font-family:var(--font);cursor:pointer}
 .spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── 판결문 생성 진행 상태 팝업 ── */
+.progress-toast{
+  display:none;position:fixed;right:20px;bottom:20px;z-index:900;
+  background:var(--sur);border:1px solid var(--bdr);border-radius:12px;
+  box-shadow:0 10px 32px rgba(0,0,0,.16);padding:14px 16px;width:280px;
+}
+.progress-toast.open{display:block;animation:toastIn .18s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.progress-toast-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.progress-toast-title{font-size:12.5px;font-weight:700;color:var(--txt)}
+.progress-toast-steps{display:flex;gap:5px;margin-bottom:8px}
+.progress-toast-dot{flex:1;height:4px;border-radius:2px;background:var(--bdr)}
+.progress-toast-dot.done{background:var(--pri)}
+.progress-toast-dot.active{background:var(--pri);opacity:.5;animation:dotPulse 1s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:.35}50%{opacity:.9}}
+.progress-toast-label{font-size:11.5px;color:var(--txt3);line-height:1.5}
+
 .history-panel{position:fixed;top:52px;right:16px;z-index:500;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.1);width:340px;max-height:380px;overflow-y:auto;display:none}
 .history-panel.open{display:block}
 .history-hd{padding:11px 14px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:var(--txt);display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
@@ -257,6 +274,15 @@ button{font-family:var(--font);cursor:pointer}
 </style>
 </head>
 <body>
+
+<div class="progress-toast" id="progress-toast">
+  <div class="progress-toast-hd">
+    <div class="spinner"></div>
+    <span class="progress-toast-title" id="progress-toast-title">판결문 생성 중…</span>
+  </div>
+  <div class="progress-toast-steps" id="progress-toast-steps"></div>
+  <div class="progress-toast-label" id="progress-toast-label"></div>
+</div>
 
 <div class="history-panel" id="klaw-history-panel">
   <div class="history-hd">
@@ -273,10 +299,10 @@ button{font-family:var(--font);cursor:pointer}
 
 <header class="topbar">
     <script src="/gopang-wallet.js"></script>
-  <div class="topbar-brand">
+  <a class="topbar-brand" href="klaw_intro.html" style="cursor:pointer">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
-    <a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a>
-  </div>
+    K-Law
+  </a>
   <div class="topbar-breadcrumb">
     <a href="https://gopang.net" style="color:inherit;text-decoration:none">고팡</a><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">판결 시뮬레이터</span>
   </div>
@@ -461,7 +487,7 @@ button{font-family:var(--font);cursor:pointer}
               <b>K-Law는 어떤 LLM을 타든 "대법원 예상 판결문"이라는 같은 목적지로 안내합니다.</b>
             </p>
             <p style="margin:0">
-              시뮬레이션을 실행하려면 <b>각자 탑승할 자동차(LLM)의 API Key를 입력</b>해야 합니다 — K-Law는 자체 LLM 서버를 운영하지 않고, 입력하신 키는 브라우저나 서버에 보관되지 않습니다.
+              시뮬레이션을 실행하려면 <b>각자 탑승할 자동차(LLM)의 API Key를 입력</b>해야 합니다 — K-Law는 자체 LLM 서버를 운영하지 않습니다. 입력하신 키는 이 브라우저에만(localStorage) 저장되어 다음 방문 시 자동으로 채워지며, K-Law 서버로는 전송되지 않습니다. 공용 PC라면 브라우저 방문 기록 삭제 시 함께 삭제됩니다.
             </p>
           </div>
 
@@ -600,7 +626,7 @@ button{font-family:var(--font);cursor:pointer}
         </div>
         <div class="api-key-row visible" id="api-key-section">
           <label class="api-key-label" id="api-key-label">DeepSeek API Key</label>
-          <input class="api-key-input" type="password" id="api-key" placeholder="sk-…">
+          <input class="api-key-input" type="password" id="api-key" placeholder="sk-…" oninput="saveApiKey(conversationState.llmModel||'deepseek', this.value)">
           <button type="button" onclick="openApiKeyHelp()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:none;color:var(--pri);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">무료 API Key 발급 방법</button>
         </div>
       </div>
@@ -869,6 +895,19 @@ document.addEventListener('DOMContentLoaded', () => {
   conversationState.selectedModel = 'deepseek-v4-pro';
 });
 
+// ══ API Key 브라우저 저장 (제공자별) ═══════════════════════
+// 이 기기의 브라우저 localStorage에만 저장됨 — K-Law 서버로는 전송되지 않음.
+const API_KEY_STORAGE_PREFIX = 'klaw_api_key_';
+function saveApiKey(model, key) {
+  try {
+    if (key) localStorage.setItem(API_KEY_STORAGE_PREFIX + model, key);
+    else localStorage.removeItem(API_KEY_STORAGE_PREFIX + model);
+  } catch(e) {}
+}
+function loadApiKey(model) {
+  try { return localStorage.getItem(API_KEY_STORAGE_PREFIX + model) || ''; } catch(e) { return ''; }
+}
+
 function selectLLM(model) {
   conversationState.llmModel = model;
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
@@ -895,6 +934,7 @@ function selectLLM(model) {
   };
   apiLabel.textContent = labels[model] || 'API Key';
   apiInput.placeholder = phs[model] || 'API Key를 입력하세요';
+  apiInput.value = loadApiKey(model);
 }
 
 // ══ API Key 발급 안내 모달 ════════════════════════════════════
@@ -1116,6 +1156,13 @@ async function runSimulation() {
   document.getElementById('llm-section').classList.add('visible');
   if (!conversationState.llmModel) selectLLM('deepseek');
 
+  // API Key 동기화 — 이 입력란(#api-key)에서 값을 읽어와야 callLLM이 사용할 수 있음.
+  // (기존에는 runJudgementSim에서만 읽어들여 여기서는 항상 빈 값으로 호출되어 재입력 오류가 발생했음)
+  const apiKeyInput = document.getElementById('api-key');
+  const apiKeyVal = apiKeyInput ? apiKeyInput.value.trim() : '';
+  if (!apiKeyVal) { alert('선택한 LLM의 API Key를 입력해 주세요.\n(아직 키가 없다면 "무료 API Key 발급 방법" 버튼을 참고하세요)'); return; }
+  conversationState.apiKey = apiKeyVal;
+
   const btn = document.getElementById('run-btn');
   btn.disabled = true; btn.textContent = '분석 중...';
 
@@ -1310,8 +1357,15 @@ async function runJudgementSim() {
   window._verdictParts = {};
   window._verdictCaseNo = caseNo;
 
-  for (const stepDef of STEP_DEFS) {
-    await renderStepStreaming(stepDef, baseCtx, caseNo, level);
+  showProgressToast();
+  try {
+    for (let i = 0; i < STEP_DEFS.length; i++) {
+      updateProgressToast(i, STEP_DEFS.length, STEP_DEFS[i].title);
+      await renderStepStreaming(STEP_DEFS[i], baseCtx, caseNo, level);
+    }
+    updateProgressToast(STEP_DEFS.length, STEP_DEFS.length, '완료');
+  } finally {
+    setTimeout(hideProgressToast, 900);
   }
 
   const fullText = Object.values(window._verdictParts).join('\n\n');
@@ -1351,6 +1405,33 @@ async function runJudgementSim() {
   });
 
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ══ 판결문 생성 진행 상태 팝업 ══════════════════════════
+function showProgressToast() {
+  const t = document.getElementById('progress-toast');
+  if (t) t.classList.add('open');
+}
+
+function updateProgressToast(doneCount, total, currentLabel) {
+  const dotsEl = document.getElementById('progress-toast-steps');
+  const labelEl = document.getElementById('progress-toast-label');
+  const titleEl = document.getElementById('progress-toast-title');
+  if (dotsEl) {
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'progress-toast-dot' + (i < doneCount ? ' done' : (i === doneCount ? ' active' : ''));
+      dotsEl.appendChild(dot);
+    }
+  }
+  if (titleEl) titleEl.textContent = doneCount >= total ? '판결문 생성 완료' : `판결문 생성 중… (${doneCount + 1}/${total})`;
+  if (labelEl) labelEl.textContent = currentLabel || '';
+}
+
+function hideProgressToast() {
+  const t = document.getElementById('progress-toast');
+  if (t) t.classList.remove('open');
 }
 
 async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
@@ -1528,7 +1609,7 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
 
         <p class="apikey-modal-note">
-          ⚠️ 발급받은 API Key는 본인의 브라우저에만 임시로 보관되며 K-Law 서버로 전송되거나 저장되지 않습니다. 각 제공자의 요금 정책 및 무료 한도는 변경될 수 있으니 발급 페이지에서 최신 정보를 확인하세요.
+          ⚠️ 발급받은 API Key는 본인의 브라우저에만(localStorage) 보관되며 K-Law 서버로 전송되거나 저장되지 않습니다. 각 제공자의 요금 정책 및 무료 한도는 변경될 수 있으니 발급 페이지에서 최신 정보를 확인하세요.
         </p>
       </div>
     </div>

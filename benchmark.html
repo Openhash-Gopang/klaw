@@ -104,6 +104,12 @@ button{font-family:var(--font);cursor:pointer}
 .page-tab{padding:10px 16px;font-size:13px;color:var(--txt3);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .12s,border-color .12s;font-family:var(--font)}
 .page-tab:hover{color:var(--txt)}
 .page-tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:500}
+.page-tab-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;background:#e5e7eb;color:#374151;font-size:13px;font-weight:700;font-family:var(--font);transition:background .15s,color .15s}
+.page-tab-pill:hover{background:#d1d5db}
+.page-tab-pill.active{background:#374151;color:#fff}
+.page-tab-pill.active:hover{background:#374151}
+.page-tab-pill-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:rgba(55,65,81,.15);color:#374151;font-size:10px;font-weight:700;border-radius:9px;line-height:1}
+.page-tab-pill.active .page-tab-pill-badge{background:rgba(255,255,255,.25);color:#fff}
 
 .content{padding:24px 28px;flex:1}
 
@@ -230,10 +236,10 @@ button{font-family:var(--font);cursor:pointer}
 </div>
 
 <header class="topbar">
-  <div class="topbar-brand">
+  <a class="topbar-brand" href="klaw_intro.html" style="cursor:pointer">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
     K-Law
-  </div>
+  </a>
   <div class="topbar-breadcrumb">
     <span>고팡</span><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">벤치마크</span>
   </div>
@@ -324,17 +330,9 @@ button{font-family:var(--font);cursor:pointer}
       </div>
       <div class="page-tabs" style="display:flex;align-items:center;gap:8px">
         <button class="page-tab active" id="tab-sim" onclick="window.switchBenchTab&&window.switchBenchTab('sim')">입력 및 분석</button>
-        <button id="tab-history" onclick="window.switchBenchTab&&window.switchBenchTab('history')"
-          style="display:inline-flex;align-items:center;gap:6px;
-            padding:7px 16px;border-radius:6px;border:none;cursor:pointer;
-            background:#374151;color:#fff;font-size:13px;font-weight:700;
-            font-family:var(--font);transition:opacity .15s">
+        <button class="page-tab-pill" id="tab-history" onclick="window.switchBenchTab&&window.switchBenchTab('history')">
           일치도 이력
-          <span id="bench-history-badge" style="
-            display:inline-flex;align-items:center;justify-content:center;
-            min-width:18px;height:18px;padding:0 5px;
-            background:rgba(255,255,255,.25);color:#fff;
-            font-size:10px;font-weight:700;border-radius:9px;line-height:1">0</span>
+          <span class="page-tab-pill-badge" id="bench-history-badge">0</span>
         </button>
       </div>
     </div>
@@ -2129,13 +2127,13 @@ window.switchBenchTab = function(tab) {
 
   if (tab === 'sim') {
     simTab.classList.add('active');
-    histTab.style.opacity = '1';
+    histTab.classList.remove('active');
     if (content)   content.style.display = '';
     if (histPanel) histPanel.style.display = 'none';
     if (guide)     guide.style.display = '';
   } else {
     simTab.classList.remove('active');
-    histTab.style.opacity = '.75';
+    histTab.classList.add('active');
     if (content)   content.style.display = 'none';
     if (histPanel) histPanel.style.display = 'block';
     if (guide)     guide.style.display = 'none';
