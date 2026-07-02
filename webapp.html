@@ -9,7 +9,7 @@
 <!-- PC 리다이렉트 제거 — 모바일/PC 모두 webapp.html 직접 사용 -->
 
 <!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -1417,7 +1417,7 @@ async function saveAndReport(full) {
         matchRate:  state.matchRate,
         summary:    state.summary.slice(0,200),
         ok: true
-      }, 'https://gopang.net');
+      }, 'https://hondi.net');
       console.log('[K-Law] 고팡에 결과 전송 완료');
     } catch(e) { console.warn('[K-Law] 고팡 전송 실패:', e.message); }
   }

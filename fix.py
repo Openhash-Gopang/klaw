@@ -1,42 +1,78 @@
 # -*- coding: utf-8 -*-
 """
-K-Law desktop.html 패치 — API Key 행의 "저장" 버튼이 안 보이는 문제 수정
+K-Law 전체 파일 — gopang.net → hondi.net 도메인 정리
 
-원인: 캐시 문제가 아니었음 (원본 서버 콘텐츠는 정상 확인됨).
-실제 원인은 레이아웃 클리핑:
-  - .api-key-row는 flex-wrap 없이 label+input+저장+발급방법 4개 요소를
-    한 줄에 강제로 배치하려 함.
-  - 이 행의 부모 컨테이너 .llm-panel은 펼침 애니메이션(max-height transition)
-    때문에 항상 overflow:hidden 상태를 유지함 (펼쳐진 상태에서도 오버라이드되지 않음).
-  - 이 두 조건이 겹치면, 창 폭이 좁아지거나(예: 개발자 도구를 연 상태) 요소가
-    하나 늘어나면(이번에 추가된 "저장" 버튼), 넘치는 요소가 부모의
-    overflow:hidden에 의해 잘려서 "존재하지만 안 보이는" 상태가 됨.
+배경: gopang.net은 더 이상 사용되지 않으며, 관련 저장소(gopang/gopang_v2)의
+CNAME도 이미 hondi.net으로 이전되어 있습니다. klaw 저장소 곳곳에 남아있던
+gopang.net 참조를 hondi.net으로 정리합니다.
 
-수정: .api-key-row에 flex-wrap:wrap을 추가해 공간이 부족하면 다음 줄로
-자연스럽게 넘어가도록 하고, 펼쳐진 상태의 max-height를 60px → 110px로
-늘려 두 줄로 표시되어도 잘리지 않도록 함.
+대상 및 영향:
+- desktop.html, webapp.html, benchmark.html:
+  <script type="module" src="https://gopang.net/auth/subsystem-auth.js">
+  → 실제 인증 스크립트가 있는 위치(hondi.net)로 수정. 이전에는 존재하지
+    않는 옛 주소를 요청해서 CORS 에러와 함께 로딩이 아예 실패했음.
+- webapp.html: window.opener.postMessage(..., 'https://gopang.net') →
+  'https://hondi.net' (팝업 연동 시 origin 불일치로 메시지가 전달되지
+  않던 문제도 함께 해결)
+- 나머지 파일들(business.html, report.html, dashboard.html, index.html,
+  participation.html, klaw_intro.html, whitepaper.html): "고팡 앱" 링크,
+  푸터의 "klaw.gopang.net" 표기 등 — 사용자에게 노출되는 링크/텍스트를
+  hondi.net으로 정리.
+
+10개 파일이 대상입니다. 각 파일은 개별적으로 이미 적용되어 있는지 확인 후
+건너뛰므로 여러 번 실행해도 안전합니다.
 """
 import pathlib
 import sys
 
-TARGET = pathlib.Path("desktop.html")
-if not TARGET.exists():
-    print("[오류] desktop.html 파일을 현재 폴더에서 찾을 수 없습니다.")
-    sys.exit(1)
+FILES = [
+    "business.html", "report.html", "desktop.html", "dashboard.html",
+    "index.html", "participation.html", "klaw_intro.html", "webapp.html",
+    "whitepaper.html", "benchmark.html",
+]
 
-src = TARGET.read_text(encoding="utf-8")
+total_applied = 0
+total_skipped = 0
+total_missing = 0
 
-old = """.api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
-.api-key-row.visible{max-height:60px;overflow:visible}"""
-new = """.api-key-row{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;flex-wrap:wrap;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}
-.api-key-row.visible{max-height:110px;overflow:visible}"""
+for fname in FILES:
+    p = pathlib.Path(fname)
+    if not p.exists():
+        print(f"[건너뜀] {fname} — 현재 폴더에 없음")
+        total_missing += 1
+        continue
 
-if "flex-wrap:wrap;gap:10px;max-height:0;overflow:hidden;transition:max-height .3s ease}\n.api-key-row.visible{max-height:110px" in src:
-    print("[안내] 변경 사항이 없습니다 (이미 적용됨).")
-elif old in src:
-    src = src.replace(old, new, 1)
-    TARGET.write_text(src, encoding="utf-8")
-    print("[완료] desktop.html 패치 적용됨: API Key 행에 flex-wrap 추가, 펼침 높이 확장 (60px→110px)")
-else:
-    print("[오류] 패치 대상 문자열을 찾지 못했습니다. 파일이 변경되었을 수 있습니다.")
+    src = p.read_text(encoding="utf-8")
+
+    if "gopang.net" not in src:
+        print(f"[건너뜀] {fname} — gopang.net 참조 없음 (이미 정리됨)")
+        total_skipped += 1
+        continue
+
+    new_src = src
+    # 순서 중요: 더 구체적인 패턴부터 치환
+    new_src = new_src.replace(
+        'src="https://gopang.net/auth/subsystem-auth.js"',
+        'src="https://hondi.net/auth/subsystem-auth.js"',
+    )
+    new_src = new_src.replace("'https://gopang.net'", "'https://hondi.net'")
+    new_src = new_src.replace('"https://gopang.net/"', '"https://hondi.net/"')
+    new_src = new_src.replace('"https://gopang.net"', '"https://hondi.net"')
+    new_src = new_src.replace("(https://gopang.net)", "(https://hondi.net)")
+    new_src = new_src.replace("klaw.gopang.net", "klaw.hondi.net")
+    # 마지막으로 남은 gopang.net 문자열(링크 표시 텍스트 등)을 일괄 정리
+    new_src = new_src.replace("gopang.net", "hondi.net")
+
+    if new_src == src:
+        print(f"[안내] {fname} — 변경 사항 없음")
+        continue
+
+    p.write_text(new_src, encoding="utf-8")
+    print(f"[완료] {fname} — gopang.net → hondi.net 적용됨")
+    total_applied += 1
+
+print()
+print(f"요약: 적용 {total_applied} / 이미 정리됨 {total_skipped} / 파일 없음 {total_missing}")
+
+if total_missing == len(FILES):
     sys.exit(1)
