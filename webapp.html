@@ -1,20 +1,17 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-    <script src="/gopang-wallet.js"></script>
+<script src="/gopang-wallet.js"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-Law — AI 판결 시뮬레이션</title>
-<meta name="description" content="사건의 개요를 입력하면 AI가 즉시 판결을 예측합니다.">
-<!-- PC 리다이렉트 제거 — 모바일/PC 모두 webapp.html 직접 사용 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>K-Law — AI 판결 상담</title>
+<meta name="description" content="K-Law 전문 AI와 대화를 통해 사건 개요를 파악하고 가상 판결문을 작성합니다.">
 
 <!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
 <script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-/* ── 변수 ── */
 :root {
   --gov:     #001845;
   --nav:     #002D72;
@@ -34,1453 +31,757 @@
   --pur:     #5B2D8E; --pbg:#F0EAF8;
   --gld:     #96760A; --ybg:#FEF3CD;
   --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
-  --r:5px;
+  --r:10px;
   --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-html{scroll-behavior:smooth}
-body{font-family:var(--font);font-size:16px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:15px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
 a{text-decoration:none;color:inherit}
 button{font-family:var(--font)}
-
-/* ── 공통 애니메이션 ── */
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:16px;height:16px;border:2px solid rgba(0,87,168,.2);border-top-color:var(--pri);border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0}
+.spinner{width:14px;height:14px;border:2px solid rgba(0,87,168,.2);border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 
-/* ════════════════════════════════════
-   TOPBAR
-════════════════════════════════════ */
-.topbar{
-  background:var(--nav);color:#fff;height:48px;
-  display:flex;align-items:center;padding:0 18px;gap:12px;
-  position:sticky;top:0;z-index:200;
-  box-shadow:0 2px 6px rgba(0,0,0,.25);
+/* ── 상단바 ── */
+#top-bar{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));
+  background:var(--gov);color:#fff;box-shadow:var(--sh);z-index:20;
 }
-.tb-logo{font-size:15px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
-.tb-logo-mark{
-  width:26px;height:26px;border:1.5px solid rgba(255,255,255,.35);
-  border-radius:4px;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:900;color:#fff;letter-spacing:0;flex-shrink:0;
-}
-.tb-ver{
-  font-size:12px;font-weight:700;color:rgba(255,255,255,.55);
-  background:rgba(255,255,255,.08);border-radius:10px;padding:2px 8px;
-}
-.tb-right{margin-left:auto;display:flex;align-items:center;gap:14px}
-.tb-dot-wrap{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:rgba(255,255,255,.55)}
-.tb-dot{width:5px;height:5px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
-.tb-link{font-size:13px;font-weight:600;color:rgba(255,255,255,.55);transition:color .15s}
-.tb-link:hover{color:#fff}
+.tb-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.tb-icon{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px}
+.tb-sub{font-size:11px;font-weight:400;opacity:.75;margin-left:2px}
+.tb-gear{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tb-gear:active{background:rgba(255,255,255,.22)}
 
-/* ════════════════════════════════════
-   HERO — 스마트폰은 한 줄 / PC는 더 여유
-════════════════════════════════════ */
-.hero{
-  background:linear-gradient(150deg,var(--gov) 0%,#002D72 100%);
-  color:#fff;padding:14px 18px 12px;
-  border-bottom:2px solid var(--pri-lt);
+/* ── 대화 스레드 ── */
+#chat-thread{
+  flex:1;overflow-y:auto;padding:18px 14px 10px;display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
 }
-.hero-title{font-size:14px;font-weight:700;letter-spacing:-.2px;color:rgba(255,255,255,.9)}
-.hero-title em{color:#90C4FF;font-style:normal}
+.bubble{max-width:88%;padding:12px 14px;border-radius:14px;font-size:14.5px;line-height:1.65;white-space:normal;word-break:break-word;animation:pop .18s ease}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.bubble-ai{align-self:flex-start;background:var(--sur);border:1px solid var(--bdr);border-top-left-radius:4px;color:var(--txt);box-shadow:var(--sh)}
+.bubble-user{align-self:flex-end;background:var(--pri);color:#fff;border-top-right-radius:4px}
+.bubble-typing{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border:1px solid var(--bdr);border-radius:14px;border-top-left-radius:4px;font-size:12.5px;color:var(--hint)}
 
-/* ════════════════════════════════════
-   BODY
-════════════════════════════════════ */
-.body{padding:14px 14px 0;max-width:600px;margin:0 auto;width:100%;display:flex;flex-direction:column;flex:1;min-height:0;}
+/* ── 분석 카드 / 판결 요약 카드 ── */
+.analysis-card{display:flex;flex-direction:column;gap:8px}
+.ac-type{display:inline-block;align-self:flex-start;color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px}
+.ac-row b{display:block;font-size:11.5px;color:var(--hint);font-weight:700;margin-bottom:2px}
+.verdict-card{display:flex;flex-direction:column;gap:10px}
+.vc-badge{font-size:11.5px;font-weight:700;color:var(--pri);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:6px;padding:4px 8px;align-self:flex-start}
+.vc-summary{font-size:14px;font-weight:600;line-height:1.7}
+.vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px}
+.vc-grid > div{background:var(--bg);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.vc-grid span{color:var(--hint);font-size:11px}
+.vc-grid b{color:var(--pri);font-size:15px}
+.vc-caution{font-size:11.5px;color:var(--hint);line-height:1.6;border-top:1px dashed var(--bdr);padding-top:8px}
 
-/* ── 진행 단계 ── */
-.phase-bar{display:flex;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:1px solid var(--bdr)}
-.phase-step{
-  flex:1;padding:7px 2px;text-align:center;
-  font-size:13px;font-weight:700;letter-spacing:.2px;
-  color:var(--hint);background:var(--sur);
-  border-right:1px solid var(--bdr);transition:all .25s;
+/* ── 진행률 ── */
+.progress-wrap{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.progress-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--pri);transition:width .3s}
+.progress-label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--hint)}
+
+/* ── 입력바 ── */
+#input-bar{
+  flex-shrink:0;display:flex;align-items:flex-end;gap:8px;padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:var(--sur);border-top:1px solid var(--bdr);
 }
-.phase-step:last-child{border-right:none}
-.phase-step.active{background:var(--pri);color:#fff}
-.phase-step.done{background:var(--gbg);color:var(--grn)}
-
-/* ── 입력 영역 ── */
-.inp-wrap{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;margin-bottom:10px}
-textarea.inp{
-  width:100%;padding:12px 44px 48px 128px;
-  border:1.5px solid var(--bdr);border-radius:var(--r);
-  font-family:var(--font);font-size:15px;color:var(--txt);
-  background:#fff;resize:none;outline:none;
-  line-height:1.7;height:100%;min-height:120px;
-  transition:border-color .15s,box-shadow .15s;display:block;
-  flex:1;
+.mic-btn{
+  width:40px;height:40px;flex-shrink:0;border-radius:50%;border:1.5px solid var(--bdr);background:var(--bg);
+  color:var(--pri);display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,87,168,.09)}
-textarea.inp::placeholder{color:var(--hint)}
-
-/* ── 입력 영역 하단 버튼 공통 ── */
-.attach-btn,.cam-btn,.mic-btn,.submit-btn{
-  position:absolute;bottom:10px;
-  width:30px;height:30px;border-radius:50%;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:border-color .15s,background .15s,opacity .15s;
+.mic-btn.recording{background:var(--rbg);border-color:#fca5a5;color:var(--red);animation:pulse 1s infinite}
+.mic-btn svg{width:18px;height:18px}
+#chat-input{
+  flex:1;resize:none;max-height:120px;min-height:40px;padding:10px 14px;border-radius:20px;
+  border:1.5px solid var(--bdr);font-family:var(--font);font-size:14.5px;line-height:1.5;background:var(--bg);color:var(--txt);
 }
-/* 좌측 3버튼 — 파일·카메라·마이크 */
-.attach-btn,.cam-btn,.mic-btn{
-  border:1.5px solid var(--bdr);background:#fff;color:var(--sub);
+#chat-input:focus{outline:none;border-color:var(--pri);background:var(--sur)}
+.send-btn{
+  width:40px;height:40px;flex-shrink:0;border-radius:50%;border:none;background:var(--bdr);color:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;
 }
-.attach-btn{left:10px; font-size:17px;font-weight:300;line-height:1;}
-.cam-btn   {left:48px;}
-.mic-btn   {left:86px;}
-.attach-btn:hover,.cam-btn:hover,.mic-btn:hover{
-  border-color:var(--pri);color:var(--pri);background:var(--pri-bg)
+.send-btn.active{background:var(--pri)}
+.send-btn svg{width:17px;height:17px}
+#mic-msg{margin:0 12px 8px;padding:9px 12px;border-radius:8px;font-size:11.5px;line-height:1.6}
+
+/* ── 설정 시트 ── */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.sheet-backdrop.open{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;background:var(--sur);border-radius:16px 16px 0 0;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease;z-index:31;
+  box-shadow:0 -4px 20px rgba(0,0,0,.15);max-height:80vh;overflow-y:auto;
 }
-.mic-btn.recording{border-color:var(--red);color:var(--red);background:var(--rbg);animation:pulse 1s infinite}
-.cam-btn svg,.mic-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-
-/* 우측 1버튼 — 입력 완료 */
-.submit-btn{
-  right:10px;
-  border:none;background:var(--pri);color:#fff;
-  opacity:.3;pointer-events:none;
+.sheet.open{transform:translateY(0)}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sheet-hd h3{font-size:15.5px;font-weight:800}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub)}
+.sheet label{font-size:12px;font-weight:700;color:var(--hint);display:block;margin-bottom:6px}
+.sheet input[type=text],.sheet input[type=password]{
+  width:100%;padding:11px 12px;border-radius:8px;border:1.5px solid var(--bdr);font-size:13.5px;font-family:var(--font);margin-bottom:6px;
 }
-.submit-btn.active{opacity:1;pointer-events:auto;}
-.submit-btn:hover{background:var(--nav)}
-/* 음성 입력 완료 후 입력 완료 버튼 강조 */
-@keyframes submitPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,87,168,.5)}60%{box-shadow:0 0 0 7px rgba(0,87,168,0)}}
-.submit-btn.mic-done{animation:submitPulse .9s ease-out 3;}
-
-/* ── 카메라 모달 ── */
-.cam-modal{
-  display:none;position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.72);align-items:center;justify-content:center;
-}
-.cam-modal.open{display:flex;}
-.cam-box{
-  background:#fff;border-radius:10px;overflow:hidden;
-  width:min(96vw,460px);box-shadow:0 8px 32px rgba(0,0,0,.35);
-  display:flex;flex-direction:column;
-}
-.cam-header{
-  background:var(--nav);color:#fff;padding:10px 14px;
-  display:flex;align-items:center;justify-content:space-between;
-  font-size:13px;font-weight:700;
-}
-.cam-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0 2px;}
-.cam-close:hover{opacity:.7}
-.cam-preview-wrap{position:relative;background:#000;aspect-ratio:4/3;width:100%}
-#cam-video,#cam-canvas{width:100%;height:100%;object-fit:cover;display:block;}
-#cam-canvas{display:none;position:absolute;inset:0;}
-.cam-footer{padding:12px 14px;display:flex;gap:8px;align-items:center;justify-content:center;background:#f8f9fb;border-top:1px solid var(--bdr)}
-.cam-snap-btn{
-  width:52px;height:52px;border-radius:50%;
-  background:var(--pri);border:3px solid #fff;
-  box-shadow:0 0 0 2px var(--pri);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .15s;flex-shrink:0;
-}
-.cam-snap-btn:hover{background:var(--nav)}
-.cam-snap-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.cam-action-btn{
-  padding:9px 18px;border-radius:var(--r);font-family:var(--font);
-  font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;
-}
-.cam-use-btn{background:var(--pri);color:#fff;}
-.cam-use-btn:hover{background:var(--nav)}
-.cam-retake-btn{background:transparent;border:1.5px solid var(--bdr);color:var(--sub);}
-.cam-retake-btn:hover{background:var(--bg)}
-.cam-switch-btn{
-  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bdr);
-  background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  color:var(--sub);transition:all .15s;position:absolute;top:8px;right:8px;z-index:10;
-}
-.cam-switch-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
-.cam-switch-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-.attach-file-input{display:none}
-.file-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0}
-.file-chip{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--pri-bg);border:1px solid var(--pri-bd);
-  border-radius:12px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--pri);
-  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.chip-x{cursor:pointer;opacity:.6;font-size:12px;flex-shrink:0;margin-left:2px}
-.chip-x:hover{opacity:1}
-
-/* ── LLM 드롭다운 ── */
-.llm-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.llm-label{font-size:11px;font-weight:700;color:var(--hint);white-space:nowrap;flex-shrink:0}
-.llm-select{
-  flex:1;padding:8px 28px 8px 10px;
-  border:1.5px solid var(--bdr);border-radius:var(--r);
-  font-family:var(--font);font-size:15px;color:var(--txt);
-  background:#fff;outline:none;cursor:pointer;
-  appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23718096' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;
-}
-.llm-select:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,87,168,.09)}
-.api-key-inp{
-  width:100%;padding:8px 10px;margin-bottom:10px;
-  border:1.5px solid var(--bdr);border-radius:var(--r);
-  font-family:var(--font);font-size:15px;color:var(--txt);
-  background:#fff;outline:none;
-}
-.api-key-inp:focus{border-color:var(--pri)}
-
-/* ── 실행 버튼 ── */
-.btn-run{
-  width:100%;padding:13px 0;
-  background:var(--nav);color:#fff;
-  border:none;border-radius:var(--r);
-  font-family:var(--font);font-size:16px;font-weight:700;
-  cursor:pointer;letter-spacing:-.2px;
-  transition:background .15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-run:hover{background:var(--gov)}
-.btn-run:disabled{background:#9AA5B4;cursor:not-allowed}
-.btn-sm{
-  padding:8px 16px;border-radius:var(--r);
-  font-family:var(--font);font-size:14px;font-weight:700;
-  cursor:pointer;border:none;transition:all .15s;
-}
-.btn-pri{background:var(--pri);color:#fff}
-.btn-pri:hover{background:var(--nav)}
-.btn-out{background:transparent;border:1.5px solid var(--bdr);color:var(--sub)}
-.btn-out:hover{background:var(--bg)}
-
-/* ── 분석 결과 카드 ── */
-.result-card{background:#fff;border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:10px;overflow:hidden}
-.result-hero{padding:12px 14px;color:#fff}
-.rh-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.7;margin-bottom:3px}
-.rh-val{font-size:18px;font-weight:900;letter-spacing:-.4px}
-.rh-sub{font-size:11px;opacity:.8;margin-top:2px;font-weight:600}
-.row{display:flex;border-bottom:1px solid var(--bdr);padding:9px 14px;align-items:flex-start}
-.row:last-child{border-bottom:none}
-.row-k{font-size:9px;font-weight:700;color:var(--pri);text-transform:uppercase;letter-spacing:.4px;min-width:80px;flex-shrink:0;padding-top:2px;line-height:1.6}
-.row-v{font-size:14px;color:var(--txt);line-height:1.7;flex:1;white-space:pre-wrap}
-
-/* ── 로딩 ── */
-.loading-row{display:flex;align-items:center;gap:9px;padding:18px 0;justify-content:center;color:var(--sub);font-size:14px;font-weight:600}
-
-/* ── 채팅 ── */
-.chat-wrap{display:flex;flex-direction:column;gap:8px}
-.msg-k{background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:3px 10px 10px 10px;padding:10px 13px;font-size:14px;line-height:1.7}
-.msg-k-lbl{font-size:8px;font-weight:700;color:var(--pri);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
-.msg-u{background:#fff;border:1px solid var(--bdr);border-radius:10px 3px 10px 10px;padding:9px 13px;font-size:14px;line-height:1.7;text-align:right}
-.chat-input-row{display:flex;gap:7px;align-items:flex-end;margin-top:10px}
-.chat-ta{flex:1;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:14px;resize:none;outline:none;height:72px;line-height:1.6;background:#fff}
-.chat-ta:focus{border-color:var(--pri)}
-.chat-mic-btn{
-  width:32px;height:32px;border-radius:50%;
-  border:1.5px solid var(--bdr);background:#fff;color:var(--sub);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:border-color .15s,background .15s;flex-shrink:0;align-self:flex-end;
-}
-.chat-mic-btn:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
-.chat-mic-btn.recording{border-color:var(--red);color:var(--red);background:var(--rbg);animation:pulse 1s infinite}
-.chat-mic-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.chat-actions{display:flex;flex-direction:column;gap:5px;align-self:flex-end}
-
-/* ── 판결문 스텝 ── */
-.step-card{border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;overflow:hidden;background:#fff;box-shadow:var(--sh)}
-.step-head{background:var(--bg);padding:8px 13px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--bdr)}
-.step-tag{background:var(--nav);color:#fff;font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.3px}
-.step-title-txt{font-size:11px;font-weight:700;color:var(--sub)}
-.step-body{padding:12px 14px;font-size:13px;line-height:1.8;color:var(--txt);white-space:pre-wrap;font-family:'D2Coding','Courier New',monospace}
-.step-done{margin:6px 13px 8px;display:flex;flex-wrap:wrap;gap:4px}
-.step-done-tag{background:var(--gbg);color:var(--grn);font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;border:1px solid var(--gbd)}
-
-/* ── 확신도 ── */
-.conf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.conf-item{background:#fff;border:1px solid var(--bdr);border-radius:var(--r);padding:10px;text-align:center;box-shadow:var(--sh)}
-.conf-lbl{font-size:9px;color:var(--hint);font-weight:600;margin-bottom:3px}
-.conf-val{font-size:18px;font-weight:900;color:var(--pri)}
-.verdict-summary{background:var(--pri-bg);border:1.5px solid var(--pri-bd);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
-.vs-label{font-size:9px;font-weight:700;color:var(--pri);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
-.vs-text{font-size:14px;line-height:1.8;color:var(--txt);font-weight:600}
-.caution{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--hint);line-height:1.7;margin-top:10px}
-
-/* ── 완료 ── */
-.done-card{background:#fff;border:1.5px solid var(--gbd);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:10px}
-.done-title{font-size:14px;font-weight:800;color:var(--grn);margin-bottom:4px}
-.done-sub{font-size:13px;color:var(--sub);line-height:1.7}
-.done-actions{display:flex;gap:8px;margin-top:10px}
-
-/* ── 고팡 보고 상태 ── */
-.report-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r);font-size:13px;background:#fff;border:1px solid var(--bdr);margin-bottom:8px}
-.report-bar.sent{border-color:var(--gbd);background:var(--gbg);color:var(--grn)}
-.report-bar.err{border-color:#FCA5A5;background:var(--rbg);color:var(--red)}
-
-
-/* ── 하단 고정 버튼 ── */
-.fixed-bottom{
-  position:fixed;bottom:0;left:0;right:0;
-  padding:12px 14px;
-  background:rgba(242,245,250,.96);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border-top:1px solid var(--bdr);
-  z-index:150;
-  max-width:600px;margin:0 auto;
-  left:50%;transform:translateX(-50%);
-  width:100%;
-}
-/* section-input 아래 고정버튼 공간 확보 */
-.btn-run-spacer{height:68px}
-
-/* ════════════════════════════════════
-   PC 전용 (768px+) — 레이아웃 확장
-════════════════════════════════════ */
-@media(min-width:768px){
-  .hero{padding:24px 32px 20px}
-  .hero-title{font-size:20px}
-  .body{padding:24px 32px 60px;max-width:800px}
-  .conf-grid{grid-template-columns:repeat(6,1fr)}
-  textarea.inp{height:100%;min-height:180px}
-
-  .fixed-bottom{padding:14px 32px;max-width:800px}
-
-  .topbar{height:52px;padding:0 24px}
-  .tb-logo{font-size:16px}
-  .tb-logo-mark{width:30px;height:30px;font-size:12px}
-  .phase-step{font-size:10px;padding:8px 4px}
-  .step-body{font-size:12px}
-  .row-k{min-width:100px;font-size:10px}
-  .row-v{font-size:13px}
-}
+.sheet-hint{font-size:11px;color:var(--hint);line-height:1.6;margin-bottom:14px}
+.sheet-save{width:100%;padding:12px;border-radius:8px;border:none;background:var(--pri);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.sheet-save:active{background:var(--pri-lt)}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="tb-logo">
-    <div class="tb-logo-mark">K</div>
-    K-Law
+<header id="top-bar">
+  <div class="tb-brand">
+    <div class="tb-icon">⚖</div>
+    <div>K-Law <span class="tb-sub" id="klaw-ver-badge">로딩 중…</span></div>
   </div>
-  <span class="tb-ver" id="klaw-ver-badge">v15.1</span>
-  <div class="tb-right">
-    <div class="tb-dot-wrap"><div class="tb-dot"></div>AI 가동 중</div>
-    <a href="https://klaw.hondi.net/dashboard.html" class="tb-link">대시보드</a>
+  <button class="tb-gear" onclick="openSettings()" title="이용 안내">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+  </button>
+</header>
+
+<main id="chat-thread"></main>
+
+<footer id="input-bar">
+  <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="음성 입력">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+  </button>
+  <textarea id="chat-input" rows="1" placeholder="메시지를 입력하세요…"></textarea>
+  <button class="send-btn" id="send-btn" onclick="sendMessage()" title="전송">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+  </button>
+</footer>
+
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSettings()"></div>
+<div class="sheet" id="settings-sheet">
+  <div class="sheet-hd">
+    <h3>이용 안내</h3>
+    <button class="sheet-close" onclick="closeSettings()">✕</button>
   </div>
-</div>
-
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-title"><em>AI 판결 시뮬레이션</em></div>
-</div>
-
-<!-- BODY -->
-<div class="body">
-
-  <!-- 진행 단계 -->
-  <div class="phase-bar" id="phase-bar">
-    <div class="phase-step active" id="phase-1">사건 입력</div>
-    <div class="phase-step" id="phase-2">AI 분석</div>
-    <div class="phase-step" id="phase-3">추가 질의</div>
-    <div class="phase-step" id="phase-4">가상 판결 생성</div>
-    <div class="phase-step" id="phase-5">기록 완료</div>
-  </div>
-
-  <!-- STEP 1: 사건 입력 -->
-  <div id="section-input" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-
-    <div class="file-chips" id="file-chips"></div>
-    <div class="inp-wrap">
-      <!-- 좌측 버튼: 파일 첨부 / 카메라 / 마이크 -->
-      <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="파일 첨부">+</button>
-      <input type="file" id="file-input" class="attach-file-input" multiple accept=".txt,.pdf,.docx,.jpg,.jpeg,.png" onchange="handleFiles(this)">
-      <button class="cam-btn" id="cam-btn" onclick="openCamera()" title="카메라 촬영">
-        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      </button>
-      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="음성 입력">
-        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-      </button>
-      <textarea class="inp" id="case-input"
-        placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.
-
-예) 상가 임대차 보증금 3,000만원을 지급했으나 임대인이 계약 만료 후 반환을 거부합니다."></textarea>
-      <!-- 우측 버튼: 입력 완료 -->
-      <button class="submit-btn" id="submit-btn" onclick="startAnalysis()" title="입력 완료 — 분석 시작">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-      </button>
-    </div>
-
-    <!-- LLM 드롭다운 -->
-    <div class="llm-row">
-      <span class="llm-label">AI 모델</span>
-      <select class="llm-select" id="llm-select" onchange="selectLLM(this.value)">
-        <option value="deepseek-free">DeepSeek v4 Flash — 무료 · 내장 프록시</option>
-        <option value="deepseek-pro">DeepSeek v4 Pro — API Key 필요</option>
-        <option value="claude">Claude — API Key 필요</option>
-        <option value="gemini">Gemini — API Key 필요</option>
-      </select>
-    </div>
-    <div id="api-key-wrap" style="display:none">
-      <input id="api-key" type="password" class="api-key-inp" placeholder="API Key를 입력하세요…" autocomplete="off">
-      <div id="api-key-notice" style="font-size:11px;color:var(--hint);margin-top:4px;padding:0 2px;line-height:1.6">
-        🔒 입력된 API Key는 이 페이지 세션 메모리에만 보관되며, 브라우저 저장소(localStorage · sessionStorage · Cookie)에 저장되지 않습니다. 페이지를 닫거나 새로고침하면 즉시 삭제됩니다.
-      </div>
-    </div>
-
-    <div class="btn-run-spacer"></div>
-  </div>
-
-  <!-- STEP 2 -->
-  <div id="section-analysis" style="display:none"></div>
-
-  <!-- STEP 3 -->
-  <div id="section-chat" style="display:none"></div>
-
-  <!-- STEP 4 -->
-  <div id="section-verdict" style="display:none"></div>
-
-  <!-- STEP 5 -->
-  <div id="section-done" style="display:none"></div>
-
-</div>
-
-<!-- ── 카메라 모달 ── -->
-<div class="cam-modal" id="cam-modal">
-  <div class="cam-box">
-    <div class="cam-header">
-      <span>📷 카메라 촬영</span>
-      <button class="cam-close" onclick="closeCamera()" title="닫기">×</button>
-    </div>
-    <div class="cam-preview-wrap">
-      <video id="cam-video" autoplay playsinline muted></video>
-      <canvas id="cam-canvas"></canvas>
-      <button class="cam-switch-btn" id="cam-switch-btn" onclick="switchCamera()" title="전/후면 전환">
-        <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
-      </button>
-    </div>
-    <div class="cam-footer" id="cam-footer-shoot">
-      <button class="cam-snap-btn" onclick="snapPhoto()" title="촬영">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/></svg>
-      </button>
-    </div>
-    <div class="cam-footer" id="cam-footer-confirm" style="display:none">
-      <button class="cam-action-btn cam-retake-btn" onclick="retakePhoto()">다시 찍기</button>
-      <button class="cam-action-btn cam-use-btn" onclick="usePhoto()">이 사진 사용</button>
-    </div>
+  <div class="sheet-hint" style="font-size:12.5px;line-height:1.9;margin-bottom:0">
+    K-Law 모바일은 <b>혼디 커뮤니티가 함께 사용하는 공유 계정</b>으로 동작합니다.
+    별도로 API Key를 등록하실 필요가 없습니다.<br><br>
+    안정적인 이용을 위해 1인당 1일 판결문 생성 한도가 있으며, 한도에 도달하면
+    다음 날 다시 이용하실 수 있습니다. 판결문 생성에는 다소 시간이 걸릴 수 있습니다.
   </div>
 </div>
 
 <script>
-// ══ 설정 ══════════════════════════════════════════════════════
-// 새 Supabase 프로젝트 생성 후 아래 값을 교체하세요
-const _KLAW_SB_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
-const _KLAW_SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+// ══════════════════════════════════════════════════════════════
+// GWP 파라미터 파싱 (gopang → 새 탭 호출 시 전달)
+// ══════════════════════════════════════════════════════════════
+const _qs        = new URLSearchParams(location.search);
+const GWP_MODE    = _qs.get('gwp') === '1';
+const GWP_TOKEN   = _qs.get('token')  || '';
+const GWP_ORIGIN  = _qs.get('origin') || '';
+let   GWP_CTX     = '';
+if (_qs.get('ctx')) {
+  try {
+    GWP_CTX = (_qs.get('ctx_enc') === 'b64')
+      ? decodeURIComponent(escape(atob(_qs.get('ctx'))))
+      : decodeURIComponent(_qs.get('ctx'));
+  } catch(e) { GWP_CTX = ''; }
+}
+let _gwpSeedUsed = false;
 
-const DEEPSEEK_KEY           = 'sk-e4a6f005aecf43d4aa60e77bb71de14c';
-const DEEPSEEK_ENDPOINT      = 'https://api.deepseek.com/v1/chat/completions';
-const DEEPSEEK_MODEL_FREE    = 'deepseek-v4-flash';   // 무료 내장 프록시
-const DEEPSEEK_MODEL_PRO     = 'deepseek-v4';         // 사용자 API Key 필요
+// ══════════════════════════════════════════════════════════════
+// 상수 (desktop.html 판결 파이프라인과 동일 — 재사용)
+// ══════════════════════════════════════════════════════════════
+const L1_URL               = 'https://l1-hanlim.hondi.net/api/collections/profiles/records';
+const KLAW_REPO_API        = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
+const KLAW_RAW_BASE        = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
+const PROXY                = 'https://gopang-proxy.tensor-city.workers.dev';
+const KLAW_RELAY_URL       = PROXY + '/klaw/relay';
 
-// ══ URL 파라미터 파싱 ════════════════════════════════════════
-const urlParams  = new URLSearchParams(window.location.search);
+// ── 공유 계정 릴레이 ──────────────────────────────────────────
+// DeepSeek API Key는 클라이언트에 전혀 존재하지 않는다. hondi-proxy의
+// /klaw/relay가 K-Law 전용 공유 계정(또는 공용 DEEPSEEK_API_KEY 폴백)으로
+// 대신 호출하며, guid 기준 1인 1일 한도 + 계정 전체 1일 예산 상한으로
+// 100여 명이 나눠 쓰는 비용을 보호한다. 티어는 두 가지뿐이다:
+//   klaw-flash — 인터뷰/분석(경량, deepseek-chat)
+//   klaw-pro   — STEP 0~C 판결 생성(추론, deepseek-reasoner)
+const KLAW_TIER_INTERVIEW = 'klaw-flash';
+const KLAW_TIER_VERDICT   = 'klaw-pro';
 
-// ctx 표준 분기 (ctx_enc=b64 지원) — 고팡 GWP 연동
-(function initCtx() {
-  const ctxRaw = urlParams.get('ctx') || '';
-  const ctxEnc = urlParams.get('ctx_enc');
-  if (ctxRaw) {
-    const ctx = ctxEnc === 'b64'
-      ? decodeURIComponent(escape(atob(ctxRaw)))
-      : decodeURIComponent(ctxRaw);
-    if (ctx) {
-      document.getElementById('case-input').value = ctx;
+let klawVersion     = '로딩 중…';
+let klawMethodText  = '';
+let klawMethodSplit = null; // { core, step0, stepA, stepB, stepC } — STEP별 분할 결과
+const _KLAW_CACHE_KEY = 'klaw_method_cache';
+const _KLAW_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+// ── 방법론 원문 STEP별 분할 ──────────────────────────────────
+// 매 STEP 호출마다 방법론 전문(~15만자)을 통째로 보내면 (1) 토큰 낭비 (2)
+// 관련 없는 다른 STEP 절차까지 섞여 모델이 "대충 훑고 다 읽은 척" 하거나
+// 엉뚱한 절차를 참조하는 hallucination 위험이 커진다. "### STEP 0/A/B/C..."
+// 제목(부록의 "### STEP B-3" 등 하위 보강 조항 포함)을 기준으로 자동
+// 분류한다 — 제목 앞부분(공리·원칙 등 제1부)은 모든 STEP에 공통으로 필요하므로
+// core에 담아 매번 함께 보낸다. klaw_v15.x가 개정되어도 "### STEP X" 제목
+// 컨벤션만 유지되면 재작업 없이 그대로 동작한다.
+function _splitKlawMethodology(text) {
+  const lines = (text || '').split('\n');
+  const buckets = { core: [], step0: [], stepA: [], stepB: [], stepC: [] };
+  let current = 'core';
+  const headerRe = /^###\s+STEP\s+([0ABC])\b/;
+  for (const line of lines) {
+    const m = line.match(headerRe);
+    if (m) current = 'step' + m[1];
+    buckets[current].push(line);
+  }
+  return {
+    core:  buckets.core.join('\n'),
+    step0: buckets.step0.join('\n'),
+    stepA: buckets.stepA.join('\n'),
+    stepB: buckets.stepB.join('\n'),
+    stepC: buckets.stepC.join('\n'),
+  };
+}
+
+async function loadKlawVersion() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
+    if (cached?.version && cached?.text && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
+      klawVersion = cached.version; klawMethodText = cached.text;
+      klawMethodSplit = _splitKlawMethodology(klawMethodText);
+      document.getElementById('klaw-ver-badge').textContent = klawVersion;
+      return;
+    }
+  } catch(e) {}
+  try {
+    const res = await fetch(KLAW_REPO_API, {cache:'no-cache'});
+    const files = await res.json();
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
+    function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
+    vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
+    const latestFile = vFiles[0] || 'klaw_v15_0.md';
+    const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
+    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
+    const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache'});
+    klawMethodText = await raw.text();
+    klawMethodSplit = _splitKlawMethodology(klawMethodText);
+    try { sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({version:klawVersion,text:klawMethodText,ts:Date.now()})); } catch(e) {}
+  } catch(e) {
+    console.warn('[K-Law] GitHub 로드 실패:', e.message);
+    klawVersion = 'v15.1'; klawMethodText = ''; klawMethodSplit = null;
+  }
+  document.getElementById('klaw-ver-badge').textContent = klawVersion;
+}
+loadKlawVersion();
+
+// ══════════════════════════════════════════════════════════════
+// 인터뷰 SP — 변호사 페르소나, 6하원칙 슬롯 채우기, AI 주도 · 1턴 1질문
+// ══════════════════════════════════════════════════════════════
+// 무거운 K-Law 방법론 원문은 여기서 절대 쓰지 않는다(desktop.html의
+// KLAW_ANALYZE_PROMPT가 안고 있던 문제: 판결 방법론 없이도 되는 "사실관계
+// 청취" 단계에 방법론을 섞을 필요가 없다 — 토큰 낭비 + 산만함만 유발).
+// 방법론은 최종 STEP 0~C 생성 단계에서만, 그것도 STEP별로 분할해 투입한다.
+const INTERVIEW_SYSTEM_PROMPT = `당신은 대한민국 변호사 역할을 수행하는 K-Law 전문 AI입니다.
+사용자와의 대화를 "당신이" 주도하여, 판결 시뮬레이션에 필요한 사실관계를
+6하원칙(누가·언제·어디서·무엇을·어떻게·왜)에 따라 체계적으로 파악합니다.
+
+절대 규칙:
+1. 한 턴에 정확히 하나의 질문만 한다. 여러 질문을 한 번에 나열하지 않는다.
+2. 사용자가 이미 말한 내용을 다시 묻지 않는다.
+3. 법적으로 의미 없는 잡담·감정 표현에는 한두 문장으로 짧게 공감하되, 즉시 다음 질문으로 돌아온다.
+4. 6하원칙 중 아직 비어 있는 항목을 우선 채우되, 사건 성격(민사/형사/행정/가사/소액사건/노동)이 파악되면 그 유형에 법적으로 의미 있는 세부 사실(금액·기한·계약서/증거 유무·전과·인과관계 등)도 함께 확인한다.
+5. 실제 변호사가 의뢰인을 상담하듯, 확인 멘트(짧은 요약·공감) 뒤에 다음 질문을 자연스럽게 잇는다.
+6. 판결 시뮬레이션에 충분한 정보가 모였다고 스스로 판단되면 더 이상 질문하지 않고 마무리 멘트를 한다.
+
+사용자에게 보여줄 답변 본문을 먼저 쓰고, 맨 마지막 줄에 반드시 아래 형식의
+상태 마커를 한 줄로 덧붙인다(이 마커는 시스템이 파싱만 하고 사용자에게는
+보이지 않게 처리되므로, 자연스러운 대화 톤을 유지하는 데에만 신경 쓰면 된다):
+
+<<<STATE>>>{"level":"","type":"","who":"","when":"","where":"","what":"","how":"","why":"","extra":"","ready":false}<<<END>>>
+
+- level: 1심/2심/3심/헌법재판 중 판단되면 채움(아직 모르면 빈 문자열)
+- type: 민사(본안)/형사/행정/가사/소액사건/노동 중 판단되면 채움
+- who/when/where/what/how/why: 지금까지 대화에서 파악된 내용을 한국어로 간결히 "누적" 기록(이전 턴 내용도 유지하며 새 내용을 더한다). 모르면 빈 문자열.
+- extra: 6하원칙 외에 사건 유형상 중요한 추가 사실(금액·증거 유무 등)을 자유 기술로 누적
+- ready: 판결 시뮬레이션을 시작해도 좋다고 판단되면 true, 아직 더 물어봐야 하면 false`;
+
+function _parseInterviewState(raw) {
+  const m = raw.match(/<<<STATE>>>([\s\S]*?)<<<END>>>/);
+  let state = null;
+  if (m) { try { state = JSON.parse(m[1]); } catch(e) { state = null; } }
+  const visible = raw.replace(/<<<STATE>>>[\s\S]*?<<<END>>>/, '').trim();
+  return { visible, state };
+}
+
+function calcMatchRate(complexity) {
+  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+  const rate = 99.99 - (c - 1) * (9.99 / 9);
+  if (rate >= 99.9) return rate.toFixed(2) + '%';
+  if (rate >= 99)   return rate.toFixed(1) + '%';
+  return rate.toFixed(0) + '%';
+}
+
+// stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
+function buildKlawSimPrompt(caseNo, level, stepKey) {
+  let methodBody;
+  if (!klawMethodSplit) {
+    methodBody = '[⚠️ K-Law 방법론 원문 로드 실패 — 페이지를 새로고침하거나 GitHub 연결을 확인하세요]\n\n';
+  } else {
+    const core = klawMethodSplit.core || '';
+    const stepText = klawMethodSplit[stepKey] || '';
+    methodBody = '[K-Law 방법론 — 공통 원칙]\n' + core + '\n\n[K-Law 방법론 — ' + stepKey.toUpperCase() + ' 절차]\n' + stepText + '\n\n---\n\n';
+  }
+  return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
+${methodBody}아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
+지금은 STEP 전체가 아니라 위에 주어진 STEP 절차문에 해당하는 부분만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.
+
+[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
+가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+}
+
+const STEP_DEFS = [
+  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
+    prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
+  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석',
+    prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
+  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
+    prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+];
+
+function caseTypeColor(type) {
+  const map = {'민사':'#0057A8','민사(본안)':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#7B3FA0','소액사건':'#C05621','노동':'#B8952A','헌법재판':'#003C82'};
+  for (const [k,v] of Object.entries(map)) { if (type && type.includes(k)) return v; }
+  return '#0057A8';
+}
+function escHtml(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════════════════════════════════════════════════════════════
+// LLM 호출 — 공유 계정 릴레이(BYOK 없음)
+// ══════════════════════════════════════════════════════════════
+async function _pumpSSE(response, handleJson) {
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try { const errBody = await response.json(); errMsg = errBody.message || errBody.error?.message || errBody.error || errMsg; } catch(e) {}
+    throw new Error(errMsg);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buf = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('data:')) continue;
+      const payload = t.slice(5).trim();
+      if (payload === '[DONE]') continue;
+      let json;
+      try { json = JSON.parse(payload); } catch(e) { continue; }
+      handleJson(json);
+    }
+  }
+}
+
+// ── 공유 계정 릴레이 호출 (BYOK 없음 — 클라이언트는 API Key를 절대 갖지 않는다) ──
+function _klawGuid() { return klawUser?.ipv6 || GWP_TOKEN || 'anonymous'; }
+
+async function _klawCall(tier, messages, opts = {}) {
+  const { maxTokens = 1200, stream = false, onChunk = null, stepCycle = false } = opts;
+  const resp = await fetch(KLAW_RELAY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle })
+  });
+
+  if (stream) {
+    let fullText = '';
+    await _pumpSSE(resp, (json) => {
+      const delta = json.choices?.[0]?.delta?.content || '';
+      if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
+    });
+    return fullText;
+  }
+
+  let data;
+  try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
+  if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// 대화 상태
+// ══════════════════════════════════════════════════════════════
+let conversationState = {
+  phase: 'boot',            // boot → interviewing → generating → done
+  messages: [],
+  caseState: { level:'', type:'', who:'', when:'', where:'', what:'', how:'', why:'', extra:'' },
+  turnCount: 0
+};
+let klawUser     = null;
+let klawNickname = '';
+let simCount     = 0;
+
+// ══════════════════════════════════════════════════════════════
+// 채팅 UI 헬퍼
+// ══════════════════════════════════════════════════════════════
+function appendBubble(role, html) {
+  const thread = document.getElementById('chat-thread');
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (role === 'ai' ? 'bubble-ai' : 'bubble-user');
+  div.innerHTML = html;
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return div;
+}
+function appendTyping() {
+  const thread = document.getElementById('chat-thread');
+  const div = document.createElement('div');
+  div.className = 'bubble-typing';
+  div.innerHTML = '<div class="spinner"></div><span>K-Law AI가 검토 중…</span>';
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return div;
+}
+function _progressHtml(done, total, label) {
+  const pct = Math.round(done / total * 100);
+  return `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="progress-label"><div class="spinner"></div>${escHtml(label)} (${done}/${total})</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 고팡 공통 인증 콜백 — 닉네임 조회 후 정확한 인사말로 시작
+// ══════════════════════════════════════════════════════════════
+window._onGopangAuth = async function(user) {
+  klawUser = user;
+  console.info('[K-Law Auth] 고팡 인증 완료 — Lv.' + user.level + ' / ' + user.via);
+  klawNickname = await _resolveNickname(user.ipv6 || GWP_TOKEN);
+  startGreeting();
+};
+
+async function _resolveNickname(ipv6) {
+  if (!ipv6) return '회원';
+  try {
+    const filter = encodeURIComponent(`guid='${ipv6}'`);
+    const r = await fetch(`${L1_URL}?filter=${filter}&perPage=1`);
+    const d = await r.json();
+    return d.items?.[0]?.nickname || '회원';
+  } catch(e) { console.warn('[K-Law] 닉네임 조회 실패:', e.message); return '회원'; }
+};
+
+function startGreeting() {
+  if (conversationState.phase !== 'boot') return;
+  const name = klawNickname || '회원';
+  appendBubble('ai', `
+    안녕하세요. <b>${escHtml(name)}</b>님, 저는 K-Law 전문 AI입니다.<br>
+    지금부터 대화를 통해 사건의 개요를 파악하고, 정확한 대법원 판결문 작성을 위해 필요한 데이터를 정리하겠습니다.<br>
+    대화가 끝나면, 가상 판결문을 작성하여 새 탭에 저장합니다. 상당한 분량의 문서이므로 <b>PC에서 열어보실 것을 권합니다.</b><br><br>
+    먼저, 사건 개요를 간략히 말씀해주세요. 마이크를 활성화하여 입력하는 것이 문자 입력보다 편하실 거예요.<br>
+    자, 시작하시죠.
+  `);
+  conversationState.phase = 'interviewing';
+  conversationState.messages = [{ role:'system', content: INTERVIEW_SYSTEM_PROMPT }];
+}
+
+// 인증 콜백이 지연되거나(예: 이미 로그인된 세션) 오지 않는 예외 상황 대비 폴백
+setTimeout(() => { if (conversationState.phase === 'boot') { klawNickname = '회원'; startGreeting(); } }, 4000);
+
+// ══════════════════════════════════════════════════════════════
+// 메시지 전송 · 대화 분기
+// ══════════════════════════════════════════════════════════════
+async function sendMessage() {
+  const ta = document.getElementById('chat-input');
+  const text = ta.value.trim();
+  if (!text) return;
+  appendBubble('user', escHtml(text).replace(/\n/g,'<br>'));
+  ta.value = ''; _micAutoResize(ta); _updateSendBtn();
+
+  switch (conversationState.phase) {
+    case 'interviewing': await _handleInterviewTurn(text); break;
+    case 'generating':
+      appendBubble('ai', '판결문을 작성하는 중입니다. 잠시만 기다려 주세요.');
+      break;
+    default: await _handleFreeQuestion(text); break;
+  }
+}
+
+// ── 변호사 페르소나 인터뷰 — AI가 주도, 1턴 1질문, 6하원칙 슬롯을 상태로 누적 ──
+async function _handleInterviewTurn(text) {
+  let userContent = text;
+  if (GWP_CTX && !_gwpSeedUsed) {
+    userContent = `[사용자가 사전에 "나만의 AI 비서"와 나눈 맥락 — 참고만 하고 그대로 인용하지 말 것]\n${GWP_CTX}\n\n[사용자의 이번 발화]\n${text}`;
+    _gwpSeedUsed = true;
+  }
+  conversationState.messages.push({ role:'user', content: userContent });
+  conversationState.turnCount++;
+
+  const typing = appendTyping();
+  try {
+    const raw = await _klawCall(KLAW_TIER_INTERVIEW, conversationState.messages, { maxTokens: 700 });
+    typing.remove();
+    const { visible, state } = _parseInterviewState(raw);
+    conversationState.messages.push({ role:'assistant', content: raw });
+
+    if (state) {
+      conversationState.caseState = {
+        level: state.level || conversationState.caseState.level,
+        type:  state.type  || conversationState.caseState.type,
+        who:   state.who   || conversationState.caseState.who,
+        when:  state.when  || conversationState.caseState.when,
+        where: state.where || conversationState.caseState.where,
+        what:  state.what  || conversationState.caseState.what,
+        how:   state.how   || conversationState.caseState.how,
+        why:   state.why   || conversationState.caseState.why,
+        extra: state.extra || conversationState.caseState.extra,
+      };
+    }
+
+    appendBubble('ai', escHtml(visible).replace(/\n/g,'<br>'));
+
+    // 최소 2턴은 주고받은 뒤에야 종료를 인정 — 첫 발화만 보고 바로 "충분"이라
+    // 판단하는 조급한 종료를 방지(실제 상담에서도 최소한의 확인 절차는 필요).
+    if (state?.ready && conversationState.turnCount >= 2) {
+      conversationState.phase = 'generating';
+      setTimeout(runJudgementSim, 400);
+    }
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', `⚠ ${escHtml(e.message)}`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// STEP 0~C 판결 시뮬레이션 (desktop.html 파이프라인 재사용)
+// ══════════════════════════════════════════════════════════════
+async function runJudgementSim() {
+  const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
+  const cs     = conversationState.caseState || {};
+  const level  = cs.level || '3심';
+  window._verdictParts  = {};
+  window._verdictCaseNo = caseNo;
+
+  const progress = appendBubble('ai', _progressHtml(0, STEP_DEFS.length, 'STEP 0 준비 중…'));
+  const baseCtx = `사건번호: ${caseNo}\n심급: ${level}\n사건분류: ${cs.type||''}\n` +
+    `누가: ${cs.who||''}\n언제: ${cs.when||''}\n어디서: ${cs.where||''}\n무엇을: ${cs.what||''}\n어떻게: ${cs.how||''}\n왜: ${cs.why||''}\n` +
+    `추가 사실: ${cs.extra||''}`;
+
+  for (let i = 0; i < STEP_DEFS.length; i++) {
+    const stepDef = STEP_DEFS[i];
+    progress.innerHTML = _progressHtml(i, STEP_DEFS.length, stepDef.tag + ' 작성 중…');
+    const prevParts = Object.values(window._verdictParts).join('\n\n');
+    const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
+    const prompt = stepDef.prompt(contextWithPrev);
+    const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level, stepDef.id) }, { role:'user', content: prompt }];
+    try {
+      const result = await _klawCall(KLAW_TIER_VERDICT, msgs, { maxTokens: 3000, stream: true, stepCycle: stepDef.id === 'step0' });
+      window._verdictParts[stepDef.id] = result;
+    } catch(e) {
+      progress.innerHTML = `⚠ ${stepDef.tag} 생성 중 오류: ${escHtml(e.message)}`;
+      conversationState.phase = 'interviewing';
       return;
     }
   }
-  // ctx 없을 때 기존 case/q 파라미터 폴백
-  const initCase = urlParams.get('case') || urlParams.get('q') || '';
-  if (initCase) document.getElementById('case-input').value = decodeURIComponent(initCase);
-})();
+  progress.remove();
 
-const fromGopang = urlParams.get('from') === 'gopang';
-
-// ══ 입력 완료 버튼 활성화 ════════════════════════════════════
-function _updateSubmitBtn() {
-  const val = document.getElementById('case-input')?.value.trim() || '';
-  const btn = document.getElementById('submit-btn');
-  if (!btn) return;
-  if (val.length >= 1) btn.classList.add('active');
-  else btn.classList.remove('active');
+  const fullText = Object.values(window._verdictParts).join('\n\n');
+  window._verdictText = fullText;
+  appendBubble('ai', buildVerdictSummaryBubble(fullText, caseNo));
+  openVerdictTab(fullText, caseNo);
+  appendBubble('ai', `📄 가상 판결문을 새 탭(마크다운)에 저장했습니다. 상당한 분량이니 <b>PC에서 열람하시는 것을 권장</b>합니다.<br>궁금한 문구나 표현이 있으면 여기서 바로 물어보세요.`);
+  conversationState.phase = 'done';
+  _sendPdvReport({ summary: 'K-Law 모바일 대화 판결 시뮬레이션 완료: ' + caseNo, goal: '가상 판결문 생성' });
 }
-document.getElementById('case-input').addEventListener('input', _updateSubmitBtn);
-// ctx/case/q로 미리 채워졌을 때도 활성화
-if (document.getElementById('case-input').value) _updateSubmitBtn();
 
-// ══ 고팡 공통 인증 콜백 ══════════════════════════════════════
-// subsystem-auth.js가 인증 완료 후 window._onGopangAuth(user) 호출
-// user = { ipv6, level, exp, via }
-let klawUser = null;   // 인증 완료 후 채워짐
+function buildVerdictSummaryBubble(fullText, caseNo) {
+  const confM    = fullText.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
+  const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+  const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+  const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+  const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+  const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
+  const totalConf = totalM ? totalM[1] : '—';
+  const complexity = complexM ? complexM[1] : null;
+  const vType = typeM ? typeM[1].trim() : '—';
+  const summary = summM ? summM[1].trim() : '';
+  const matchRate = matchLLM ? matchLLM[1].trim() : (complexity ? calcMatchRate(complexity) : '90~99.99%');
+  return `
+    <div class="verdict-card">
+      <div class="vc-badge">사건번호 ${escHtml(caseNo)} · K-Law ${escHtml(klawVersion)}</div>
+      ${summary ? `<div class="vc-summary">${escHtml(summary)}</div>` : ''}
+      <div class="vc-grid">
+        <div><span>종합 확신도</span><b>${escHtml(totalConf)}/10</b></div>
+        <div><span>사건 복잡도</span><b>${complexity ? escHtml(complexity)+'/10' : '—'}</b></div>
+        <div><span>대법원 일치도 예상</span><b>${escHtml(matchRate)}</b></div>
+        <div><span>결론 유형</span><b>${escHtml(vType)}</b></div>
+      </div>
+      <div class="vc-caution">본 판결문은 K-Law AI 시뮬레이션 결과이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.</div>
+    </div>`;
+}
 
-window._onGopangAuth = function(user) {
-  klawUser = user;
-  console.info('[K-Law Auth] 고팡 인증 완료 — Lv.' + user.level + ' / ' + user.via);
-};
+function openVerdictTab(mdText, caseNo) {
+  const safe = mdText.replace(/<\/script>/g, '<\\/script>');
+  const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<title>K-Law 가상판결문 — ${caseNo}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;max-width:820px;margin:0 auto;padding:32px 20px 80px;line-height:1.85;color:#1A202C;background:#F2F5FA}
+h1,h2,h3{color:#001845;margin-top:1.4em}
+.hd{border-bottom:2px solid #0057A8;padding-bottom:12px;margin-bottom:20px;font-size:20px;font-weight:800}
+.hd b{color:#0057A8}
+.warn{background:#FEF3E2;border:1px solid #FBD38D;border-radius:6px;padding:12px 16px;font-size:13px;color:#7B341E;margin-bottom:24px}
+pre{white-space:pre-wrap;word-break:break-word}
+@media print{body{background:#fff}}
+</style></head><body>
+<div class="hd">K-Law 가상 판결문 — 사건번호 ${caseNo}</div>
+<div class="warn">본 문서는 K-Law AI 판결 시뮬레이션 결과이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.</div>
+<div id="doc"></div>
+<script>document.getElementById('doc').innerHTML = marked.parse(${JSON.stringify(safe)});<\/script>
+</body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
 
-// ══ PDV 보고 — 표준 { user_guid, source, report: { pdv_6w } } ════
-const PROXY = 'https://gopang-proxy.tensor-city.workers.dev';
+async function _handleFreeQuestion(text) {
+  conversationState.messages.push({ role:'user', content: text });
+  const typing = appendTyping();
+  try {
+    const sys = { role:'system', content: `당신은 K-Law 전문 AI입니다. 방금 작성한 아래 가상판결문 내용에 대한 사용자의 질문에 친절하고 정확하게 답하세요. 판결문에 없는 내용은 추측하지 말고 정보 부족을 명시하세요.\n\n[판결문]\n${window._verdictText || '(아직 작성되지 않음)'}` };
+    const resp = await _klawCall(KLAW_TIER_INTERVIEW, [sys, { role:'user', content: text }], { maxTokens: 800 });
+    typing.remove();
+    appendBubble('ai', escHtml(resp).replace(/\n/g,'<br>'));
+    conversationState.messages.push({ role:'assistant', content: resp });
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', `⚠ 오류: ${escHtml(e.message)}`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PDV 보고
+// ══════════════════════════════════════════════════════════════
 async function _sendPdvReport(action) {
   try {
-    const user_guid = klawUser?.ipv6 || 'anonymous';
-    const payload = {
-      user_guid,
-      source: 'klaw',
-      report: {
-        pdv_6w: {
-          who:   user_guid,
-          when:  new Date().toISOString(),
-          where: location.href,
-          what:  action.summary,
-          how:   'subsystem-auth Lv.' + (klawUser?.level || 1),
-          why:   action.goal,
-        },
-      },
-    };
+    const user_guid = klawUser?.ipv6 || GWP_TOKEN || 'anonymous';
     await fetch(`${PROXY}/pdv_log`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      method: 'POST', headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ user_guid, source:'klaw-mobile', report:{ pdv_6w:{
+        who: user_guid, when: new Date().toISOString(), where: location.href,
+        what: action.summary, how: 'subsystem-auth Lv.'+(klawUser?.level||1), why: action.goal
+      }}})
     });
   } catch(e) { console.warn('[K-Law] PDV 전송 실패:', e.message); }
 }
-// ══ 상태 ══════════════════════════════════════════════════════
-let state = {
-  llm: 'deepseek-free',
-  apiKey: '',           // 사용하지 않음 — API Key는 callLLM에서 직접 읽음 (캐시 금지)
-  caseInput: '',
-  caseData: null,       // parseAnalysis 결과
-  messages: [],         // LLM 대화 이력
-  caseNo: '',
-  klawVersion: 'v15.1',
-  verdictFull: '',
-  confidence: '',
-  complexity: '',
-  matchRate: '',
-  verdictType: '',
-  verdictShort: '',
-  summary: ''
-};
 
-// ══ K-Law 버전 로드 (GitHub) ════════════════════════════════
-let klawMethodText = '';
-(async () => {
-  try {
-    const r = await fetch('https://api.github.com/repos/Openhash-Gopang/klaw/contents/', {cache:'no-cache'});
-    const files = await r.json();
-    const vf = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
-    function pv(n){const m=n.match(/klaw_v([\d]+)_?([\d]*)\.md/i);return m?parseFloat(m[1]+'.'+(m[2]||'0')):0;}
-    vf.sort((a,b)=>pv(b)-pv(a));
-    if(vf[0]){
-      const m=vf[0].match(/klaw_v([\d]+_?[\d]*)\.md/i);
-      if(m) state.klawVersion='v'+m[1].replace('_','.');
-      const raw=await fetch('https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/'+vf[0],{cache:'no-cache'});
-      klawMethodText=await raw.text();
-    }
-  } catch(e){}
-  document.getElementById('klaw-ver-badge').textContent=state.klawVersion;
-})();
-
-// ══ LLM 선택 (드롭다운) ══════════════════════════════════════
-function selectLLM(model) {
-  state.llm = model;
-  const sel = document.getElementById('llm-select');
-  if (sel && sel.value !== model) sel.value = model;
-  const needsKey = model !== 'deepseek-free';
-  document.getElementById('api-key-wrap').style.display = needsKey ? 'block' : 'none';
-  // API Key 입력란 초기화 — 모델 전환 시 이전 키 잔류 방지
-  if (!needsKey) {
-    const inp = document.getElementById('api-key');
-    if (inp) { inp.value = ''; state.apiKey = ''; }
-  }
+// ══════════════════════════════════════════════════════════════
+// 설정 시트
+// ══════════════════════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('sheet-backdrop').classList.add('open');
+  document.getElementById('settings-sheet').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('settings-sheet').classList.remove('open');
 }
 
-// ══ 파일 첨부 ═══════════════════════════════════════════════
-let attachedFiles = [];
-
-function handleFiles(input) {
-  Array.from(input.files).forEach(f => {
-    if (!attachedFiles.find(x => x.name === f.name)) attachedFiles.push(f);
-  });
-  input.value = '';
-  renderChips();
-}
-
-function renderChips() {
-  const wrap = document.getElementById('file-chips');
-  if (!wrap) return;
-  wrap.innerHTML = attachedFiles.map((f,i) =>
-    `<span class="file-chip">${esc(f.name.slice(0,22))}${f.name.length>22?'…':''}<span class="chip-x" onclick="removeFile(${i})">×</span></span>`
-  ).join('');
-}
-
-function removeFile(i) {
-  attachedFiles.splice(i, 1);
-  renderChips();
-}
-
-// ══ 음성 입력 (Web Speech API — v3.6 패턴 적용) ══
-
+// ══════════════════════════════════════════════════════════════
+// 음성 입력 (Web Speech API — v3.6 패턴 재사용, 단일 입력창용)
+// ══════════════════════════════════════════════════════════════
 let isRecording = false;
 let recognition = null;
 
-// ── 버튼 상태 헬퍼 ────────────────────────────────────────────
+function _detectMicEnv() {
+  const inIframe   = window.self !== window.top;
+  const isSecure   = window.isSecureContext;
+  const isArtifact = location.hostname.includes('claude') || location.hostname.includes('artifact');
+  return { inIframe, isSecure, isArtifact };
+}
+async function _checkMicPermission() {
+  if (!navigator.permissions) return 'unknown';
+  try { const r = await navigator.permissions.query({ name:'microphone' }); return r.state; } catch(e) { return 'unknown'; }
+}
+function _micShowMsg(html, type = 'warn') {
+  document.getElementById('mic-msg')?.remove();
+  const colors = { warn:{bg:'#FFF3CD',bd:'#FDE68A',tx:'#78350F'}, error:{bg:'#FEE2E2',bd:'#FCA5A5',tx:'#7F1D1D'}, info:{bg:'#EFF6FF',bd:'#BFDBFE',tx:'#1E3A5F'} }[type] || {};
+  const div = document.createElement('div');
+  div.id = 'mic-msg';
+  div.style.cssText = `background:${colors.bg};border:1px solid ${colors.bd};color:${colors.tx};`;
+  div.innerHTML = html;
+  document.getElementById('input-bar').insertAdjacentElement('beforebegin', div);
+  setTimeout(() => div.remove(), 12000);
+}
 function _micSetIdle(btn) {
-  isRecording = false;
-  btn.classList.remove('recording');
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>`;
-  btn.title = '음성 입력';
+  isRecording = false; btn.classList.remove('recording');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>';
   recognition = null;
 }
 function _micSetActive(btn) {
-  isRecording = true;
-  btn.classList.add('recording');
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
-  btn.title = '녹음 중지';
+  isRecording = true; btn.classList.add('recording');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+}
+function _micAutoResize(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; }
+function _updateSendBtn() {
+  const ta = document.getElementById('chat-input');
+  document.getElementById('send-btn').classList.toggle('active', ta.value.trim().length > 0);
 }
 
-// ── 보안 컨텍스트 / iframe 환경 감지 ─────────────────────────
-function _detectMicEnv() {
-  const inIframe   = window.self !== window.top;
-  const isSecure   = window.isSecureContext;          // HTTPS or localhost
-  const isArtifact = location.hostname.includes('claude') ||
-                     location.hostname.includes('artifact');
-  return { inIframe, isSecure, isArtifact };
-}
-
-// ── 권한 상태 확인 ───────────────────────────────────────────
-async function _checkMicPermission() {
-  if (!navigator.permissions) return 'unknown';
-  try {
-    const r = await navigator.permissions.query({ name: 'microphone' });
-    return r.state; // 'granted' | 'denied' | 'prompt'
-  } catch(e) { return 'unknown'; }
-}
-
-// ── 인라인 안내 메시지 ────────────────────────────────────────
-function _micShowMsg(html, type = 'warn') {
-  document.getElementById('mic-msg')?.remove();
-  const colors = {
-    warn:  { bg:'#FFF3CD', bd:'#FDE68A', tx:'#78350F' },
-    error: { bg:'#FEE2E2', bd:'#FCA5A5', tx:'#7F1D1D' },
-    info:  { bg:'#EFF6FF', bd:'#BFDBFE', tx:'#1E3A5F' },
-  }[type] || {};
-  const div = document.createElement('div');
-  div.id = 'mic-msg';
-  div.style.cssText = `margin-top:8px;padding:10px 14px;background:${colors.bg};border:1px solid ${colors.bd};border-radius:6px;font-size:12px;color:${colors.tx};line-height:1.7;`;
-  div.innerHTML = html;
-  document.getElementById('case-input')?.closest('.inp-wrap')?.after(div)
-    || document.getElementById('case-input')?.parentElement?.after(div);
-  setTimeout(() => div.remove(), 14000);
-}
-
-// ── 메인 toggleVoice ─────────────────────────────────────────
-async function toggleVoice() {
+async function toggleMic() {
   const btn = document.getElementById('mic-btn');
-  const ta  = document.getElementById('case-input');
+  const ta  = document.getElementById('chat-input');
+  if (isRecording) { recognition && recognition.stop(); return; }
 
-  // 중지
-  if (isRecording) {
-    recognition && recognition.stop();
-    return;
-  }
-
-  // ── 환경 체크 ──
   const env = _detectMicEnv();
-
-  // Claude Artifacts 미리보기 환경이면 즉시 안내
-  if (env.isArtifact || env.inIframe) {
-    _micShowMsg(
-      `<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong><br>
-       실제 배포 URL <code>klaw.hondi.net/webapp.html</code> 또는 고팡 앱에서 사용하세요.<br>
-       <span style="font-size:11px">iframe 내부에서는 브라우저가 마이크 권한 팝업을 차단합니다.</span>`,
-      'info'
-    );
-    return;
-  }
-
-  // 비보안 컨텍스트(HTTP)
-  if (!env.isSecure) {
-    _micShowMsg(
-      `<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong><br>
-       브라우저는 HTTP 페이지에서 마이크 접근을 차단합니다.`,
-      'error'
-    );
-    return;
-  }
-
-  // Web Speech API 지원 여부
+  if (env.isArtifact || env.inIframe) { _micShowMsg('<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong><br>실제 배포 URL에서 사용하세요.', 'info'); return; }
+  if (!env.isSecure) { _micShowMsg('<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'error'); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    _micShowMsg(
-      '⚠️ 이 브라우저는 음성-텍스트 변환을 지원하지 않습니다.<br>Chrome 또는 Edge를 사용해 주세요.',
-      'warn'
-    );
-    return;
-  }
-
-  // 이미 denied 상태이면 팝업 없이 바로 안내
+  if (!SR) { _micShowMsg('⚠️ 이 브라우저는 음성-텍스트 변환을 지원하지 않습니다.<br>Chrome 또는 Edge를 사용해 주세요.', 'warn'); return; }
   const perm = await _checkMicPermission();
-  if (perm === 'denied') {
-    _micShowMsg(
-      `<strong>🎙️ 마이크 권한이 차단되어 있습니다.</strong><br>
-       브라우저 주소창 왼쪽 🔒 → <strong>사이트 설정</strong> → 마이크 → <strong>허용</strong> 후 페이지를 새로고침하세요.`,
-      'error'
-    );
-    return;
-  }
+  if (perm === 'denied') { _micShowMsg('<strong>🎙️ 마이크 권한이 차단되어 있습니다.</strong><br>주소창 왼쪽 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'); return; }
 
-  // ── SpeechRecognition 시작 (★ getUserMedia() 선행 호출 없음 — v3.6) ──
   recognition = new SR();
-  recognition.lang            = 'ko-KR';
-  recognition.continuous      = true;
-  recognition.interimResults  = true;
-  recognition.maxAlternatives = 1;
+  recognition.lang = 'ko-KR'; recognition.continuous = true; recognition.interimResults = true; recognition.maxAlternatives = 1;
+  let finalText = ta.value; let interim = '';
 
-  let finalText = ta.value;
-  let interim   = '';
-
-  recognition.onstart = () => {
-    _micSetActive(btn);
-    document.getElementById('mic-msg')?.remove();
-  };
-
+  recognition.onstart = () => { _micSetActive(btn); document.getElementById('mic-msg')?.remove(); };
   recognition.onresult = (e) => {
     interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
       else interim += e.results[i][0].transcript;
     }
-    ta.value = finalText + interim;
-    _micAutoResize(ta);   // ★ 직접 호출 (dispatchEvent 절대 사용 금지 — v3.6)
+    ta.value = finalText + interim; _micAutoResize(ta);
   };
-
-  recognition.onend = () => {
-    _micSetIdle(btn);
-    ta.value = finalText;
-    _micAutoResize(ta);   // ★ 직접 호출
-    // 음성 입력 완료 → 입력 완료 버튼 활성화 + 강조
-    _updateSubmitBtn();
-    _micPulseSubmit();
-  };
-
+  recognition.onend = () => { _micSetIdle(btn); ta.value = finalText; _micAutoResize(ta); _updateSendBtn(); };
   recognition.onerror = (e) => {
     _micSetIdle(btn);
-    console.warn('[K-Law Mic] error:', e.error);
     const msgs = {
-      'not-allowed':         ['마이크 권한이 거부되었습니다.<br>주소창 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'],
-      'service-not-allowed': ['음성 인식 서비스가 허용되지 않았습니다.<br>HTTPS 환경인지 확인하세요.', 'error'],
-      'network':             ['네트워크 오류로 음성 인식에 실패했습니다.', 'warn'],
-      'no-speech':           ['음성이 감지되지 않았습니다. 마이크에 가까이 대고 다시 시도하세요.', 'warn'],
-      'audio-capture':       ['마이크를 찾을 수 없습니다.', 'error'],
+      'not-allowed': ['마이크 권한이 거부되었습니다.<br>주소창 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'],
+      'service-not-allowed': ['음성 인식 서비스가 허용되지 않았습니다.', 'error'],
+      'network': ['네트워크 오류로 음성 인식에 실패했습니다.', 'warn'],
+      'no-speech': ['음성이 감지되지 않았습니다. 마이크에 가까이 대고 다시 시도하세요.', 'warn'],
+      'audio-capture': ['마이크를 찾을 수 없습니다.', 'error'],
     };
-    if (e.error !== 'aborted' && msgs[e.error]) {
-      _micShowMsg('🎙️ ' + msgs[e.error][0], msgs[e.error][1]);
-    }
+    if (e.error !== 'aborted' && msgs[e.error]) _micShowMsg('🎙️ ' + msgs[e.error][0], msgs[e.error][1]);
   };
-
   recognition.start();
-  isRecording = true;
-  _micSetActive(btn);
 }
 
-// ── textarea 높이 자동 조절 (v3.6 직접 호출용) ───────────────
-function _micAutoResize(ta) {
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight + 'px';
-}
-
-// ── chat-ta 전용 마이크 (STEP 3 추가 질의) — v3.6 패턴 ───────
-let _chatMicActive = false;
-let _chatRecognition = null;
-
-function toggleChatMic() {
-  const btn = document.getElementById('chat-mic-btn');
-  const ta  = document.getElementById('chat-reply');
-  if (!btn || !ta) return;
-
-  // 중지
-  if (_chatMicActive) {
-    if (_chatRecognition) { try { _chatRecognition.stop(); } catch(e) {} _chatRecognition = null; }
-    _chatMicActive = false;
-    btn.classList.remove('recording');
-    return;
-  }
-
-  const env = _detectMicEnv();
-  if (env.isArtifact || env.inIframe) {
-    _micShowMsg('<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'info');
-    return;
-  }
-  if (!env.isSecure) {
-    _micShowMsg('<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'error');
-    return;
-  }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    _micShowMsg('⚠️ 이 브라우저는 음성 인식을 지원하지 않습니다. Chrome 또는 Edge를 사용해 주세요.', 'warn');
-    return;
-  }
-
-  // ★ getUserMedia() 선행 호출 없음 — v3.6
-  _chatRecognition = new SR();
-  _chatRecognition.lang           = 'ko-KR';
-  _chatRecognition.continuous     = false;
-  _chatRecognition.interimResults = false;
-  _chatRecognition.maxAlternatives = 1;
-
-  _chatRecognition.onresult = (e) => {
-    const t = e.results[0][0].transcript;
-    if (t) {
-      ta.value += (ta.value ? ' ' : '') + t;
-      _micAutoResize(ta);   // ★ 직접 호출 (dispatchEvent 절대 사용 금지 — v3.6)
-    }
-    _chatMicActive = false;
-    btn.classList.remove('recording');
-    _chatRecognition = null;
-  };
-
-  _chatRecognition.onerror = (e) => {
-    _chatMicActive = false;
-    btn.classList.remove('recording');
-    _chatRecognition = null;
-    console.warn('[K-Law ChatMic] 오류:', e.error);
-    if (e.error !== 'aborted') _micShowMsg('🎙️ 음성 인식 오류: ' + e.error, 'warn');
-  };
-
-  _chatRecognition.onend = () => {
-    _chatMicActive = false;
-    btn.classList.remove('recording');
-    _chatRecognition = null;
-  };
-
-  _chatRecognition.start();
-  _chatMicActive = true;
-  btn.classList.add('recording');
-}
-
-// ── 음성 입력 완료 후 입력 완료 버튼 강조 ───────────────────
-function _micPulseSubmit() {
-  const btn = document.getElementById('submit-btn');
-  if (!btn || !btn.classList.contains('active')) return;
-  btn.classList.remove('mic-done');
-  // reflow 강제로 애니메이션 재시작
-  void btn.offsetWidth;
-  btn.classList.add('mic-done');
-  btn.addEventListener('animationend', () => btn.classList.remove('mic-done'), { once: true });
-}
-
-// ══ 카메라 촬영 ═══════════════════════════════════════════════
-let _camStream   = null;
-let _camFacing   = 'environment'; // 'environment'=후면, 'user'=전면
-let _camPhotoBlob = null;
-
-async function openCamera() {
-  const env = _detectMicEnv();
-  if (env.isArtifact || env.inIframe) {
-    _micShowMsg(
-      `<strong>📷 미리보기 환경에서는 카메라를 사용할 수 없습니다.</strong><br>
-       실제 배포 URL <code>klaw.hondi.net/webapp.html</code> 에서 사용하세요.`,
-      'info'
-    );
-    return;
-  }
-  if (!env.isSecure) {
-    _micShowMsg(
-      '<strong>📷 HTTPS 환경에서만 카메라를 사용할 수 있습니다.</strong>', 'error'
-    );
-    return;
-  }
-  document.getElementById('cam-modal').classList.add('open');
-  await _camStart(_camFacing);
-}
-
-async function _camStart(facing) {
-  // 기존 스트림 정리
-  if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
-  const video  = document.getElementById('cam-video');
-  const canvas = document.getElementById('cam-canvas');
-  video.style.display  = 'block';
-  canvas.style.display = 'none';
-  document.getElementById('cam-footer-shoot').style.display   = 'flex';
-  document.getElementById('cam-footer-confirm').style.display = 'none';
-  _camPhotoBlob = null;
-
-  try {
-    _camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } },
-      audio: false
-    });
-    video.srcObject = _camStream;
-  } catch(err) {
-    closeCamera();
-    const msg = err.name === 'NotAllowedError'
-      ? '카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라를 허용하세요.'
-      : err.name === 'NotFoundError'
-        ? '카메라를 찾을 수 없습니다.'
-        : '카메라 오류: ' + err.message;
-    _micShowMsg('📷 ' + msg, 'error');
-  }
-}
-
-async function switchCamera() {
-  _camFacing = _camFacing === 'environment' ? 'user' : 'environment';
-  await _camStart(_camFacing);
-}
-
-function snapPhoto() {
-  const video  = document.getElementById('cam-video');
-  const canvas = document.getElementById('cam-canvas');
-  canvas.width  = video.videoWidth  || 1280;
-  canvas.height = video.videoHeight || 960;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  // 스트림 일시 정지 (preview 유지)
-  if (_camStream) _camStream.getTracks().forEach(t => t.enabled = false);
-  video.style.display  = 'none';
-  canvas.style.display = 'block';
-  document.getElementById('cam-footer-shoot').style.display   = 'none';
-  document.getElementById('cam-footer-confirm').style.display = 'flex';
-  // Blob으로 저장
-  canvas.toBlob(blob => { _camPhotoBlob = blob; }, 'image/jpeg', 0.92);
-}
-
-function retakePhoto() {
-  _camPhotoBlob = null;
-  if (_camStream) _camStream.getTracks().forEach(t => t.enabled = true);
-  const video  = document.getElementById('cam-video');
-  const canvas = document.getElementById('cam-canvas');
-  video.style.display  = 'block';
-  canvas.style.display = 'none';
-  document.getElementById('cam-footer-shoot').style.display   = 'flex';
-  document.getElementById('cam-footer-confirm').style.display = 'none';
-}
-
-function usePhoto() {
-  if (!_camPhotoBlob) return;
-  // 파일 첨부 목록에 추가 (기존 handleFiles 흐름 재사용)
-  const now  = new Date();
-  const name = `사진_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}.jpg`;
-  const file = new File([_camPhotoBlob], name, { type: 'image/jpeg' });
-  if (!attachedFiles.find(x => x.name === file.name)) attachedFiles.push(file);
-  renderChips();
-  closeCamera();
-  // 입력 필드에 안내 텍스트 추가 (비어있을 때만)
-  const ta = document.getElementById('case-input');
-  if (!ta.value.trim()) {
-    ta.value = '(첨부된 사진을 참고하여 분석해 주세요)';
-    _micAutoResize(ta);
-  }
-}
-
-function closeCamera() {
-  if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
-  _camPhotoBlob = null;
-  _camFacing = 'environment';
-  document.getElementById('cam-modal').classList.remove('open');
-  const video  = document.getElementById('cam-video');
-  const canvas = document.getElementById('cam-canvas');
-  if (video)  { video.srcObject = null; video.style.display = 'block'; }
-  if (canvas) { canvas.style.display = 'none'; }
-}
-
-// 모달 배경 클릭 시 닫기
-document.getElementById('cam-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeCamera();
+// ══════════════════════════════════════════════════════════════
+// 초기화
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('chat-input');
+  ta.addEventListener('input', () => { _micAutoResize(ta); _updateSendBtn(); });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 });
-// ESC 키로 닫기
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeCamera();
-});
-
-
-async function callLLM(messages, maxTokens=2000) {
-  // API Key는 호출 시점에만 읽고 변수에 저장하지 않음 (캐시 금지)
-  const key = document.getElementById('api-key')?.value.trim() || '';
-  if (state.llm==='claude') {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,
-        messages:messages.filter(m=>m.role!=='system'),
-        system:messages.find(m=>m.role==='system')?.content||''})
-    });
-    const d=await r.json();
-    if(d.error) throw new Error(d.error.message);
-    return d.content?.[0]?.text||'';
-  }
-  if (state.llm==='gemini') {
-    const gmsg=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
-    const sys=messages.find(m=>m.role==='system')?.content||'';
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});
-    const d=await r.json();
-    if(d.error) throw new Error(d.error.message);
-    return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-  }
-  if (state.llm==='deepseek-pro') {
-    // DeepSeek v4 Pro — 사용자 API Key 사용 (저장 안 함)
-    const r=await fetch(DEEPSEEK_ENDPOINT,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({model:DEEPSEEK_MODEL_PRO,messages,max_tokens:maxTokens,temperature:0.2})
-    });
-    const d=await r.json();
-    if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
-    return d.choices?.[0]?.message?.content||'';
-  }
-  // deepseek-free — DeepSeek v4 Flash, 내장 프록시 키 사용
-  const r=await fetch(DEEPSEEK_ENDPOINT,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL_FREE,messages,max_tokens:maxTokens,temperature:0.2})
-  });
-  const d=await r.json();
-  if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
-  return d.choices?.[0]?.message?.content||'';
-}
-
-// ══ STEP 1 → 분석 시작 ═══════════════════════════════════════
-const ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
-사용자가 제출한 사건의 개요를 분석하여 아래 형식으로 정확히 응답하세요.
-
-【심급】
-1심 / 2심 / 3심 / 헌법재판 중 하나
-
-【사건분류】
-민사(본안) / 형사 / 행정 / 가사 / 소액사건 / 노동 중 하나
-
-【사건종류_상세】
-사건의 구체적 유형
-
-【사건의 개요】
-입력된 내용을 바탕으로 명확하게 정리
-
-【원고의 주장】
-원고(신청인) 측 주장 정리 (없으면 "정보 부족")
-
-【피고의 주장】
-피고(상대방) 측 주장 정리 (없으면 "정보 부족")
-
-【다툼의 요지】
-핵심 법적 쟁점 2~3가지
-
-【추가질문】
-판결 시뮬레이션에 필요한 추가 정보가 있으면 1~3개 질문. 충분하면 "없음".
-
-응답은 반드시 위 형식만 사용하세요.`;
-
-async function startAnalysis() {
-  const input = document.getElementById('case-input').value.trim();
-  if (!input || input.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
-  // API Key는 state에 저장하지 않음 — callLLM이 직접 읽음 (캐시 금지)
-  const needsKey = state.llm !== 'deepseek-free';
-  const enteredKey = document.getElementById('api-key').value.trim();
-  if (needsKey && !enteredKey) { alert('선택한 LLM의 API Key를 입력해 주세요.'); return; }
-  state.caseInput = input;
-  state.caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
-
-  // 고정 버튼 및 입력 완료 버튼 숨기기
-  const fixedWrap = document.getElementById('fixed-btn-wrap');
-  if(fixedWrap) fixedWrap.style.display='none';
-  const submitBtn = document.getElementById('submit-btn');
-  if(submitBtn) submitBtn.style.display='none';
-  setPhase(2);
-  const btn = document.getElementById('btn-analyze');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>&nbsp;분석 중';
-
-  state.messages = [
-    { role:'system', content: ANALYZE_PROMPT },
-    { role:'user',   content: '사건의 개요:\n' + input }
-  ];
-
-  try {
-    const result = await callLLM(state.messages, 1400);
-    state.messages.push({ role:'assistant', content: result });
-    state.caseData = parseAnalysis(result);
-    renderAnalysis(state.caseData);
-    btn.disabled = false; btn.innerHTML = '사건 분석 시작';
-
-    const q = state.caseData.extraQ;
-    if (q && q !== '없음' && q.trim().length > 2) {
-      setPhase(3);
-      renderChat(q);
-    } else {
-      setPhase(3);
-      showReadyToSim();
-    }
-  } catch(e) {
-    btn.disabled=false; btn.innerHTML='사건 분석 시작';
-    showErr(document.getElementById('section-analysis'), '분석 오류: '+e.message);
-  }
-}
-
-function parseAnalysis(text) {
-  const get=tag=>{const m=text.match(new RegExp('【'+tag+'】\\s*([\\s\\S]*?)(?=【|$)'));return m?m[1].trim():'';}
-  return {
-    level:get('심급'), type:get('사건분류'), detail:get('사건종류_상세'),
-    overview:get('사건의 개요'), plaintiff:get('원고의 주장'),
-    defendant:get('피고의 주장'), dispute:get('다툼의 요지'), extraQ:get('추가질문')
-  };
-}
-
-function caseColor(type) {
-  const m={'민사':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#6B3FA0','소액':'#C05621','노동':'#B8952A','헌법':'#003C82'};
-  for(const[k,v]of Object.entries(m)){if(type&&type.includes(k))return v;}
-  return '#0057A8';
-}
-
-function renderAnalysis(d) {
-  const el=document.getElementById('section-analysis');
-  el.style.display='block';
-  const col=caseColor(d.type);
-  el.innerHTML=`
-  <div class="card">
-    <div class="result-hero" style="background:linear-gradient(135deg,${col} 0%,${col}CC 100%)">
-      <div class="rh-tag">사건 분류</div>
-      <div class="rh-val">${esc(d.type||'—')}</div>
-      ${d.detail?`<div class="rh-sub">${esc(d.detail)}</div>`:''}
-    </div>
-    <div class="row"><span class="row-k">심급</span><span class="row-v">${esc(d.level||'—')}</span></div>
-    <div class="row"><span class="row-k">사건의 개요</span><span class="row-v">${esc(d.overview||'—')}</span></div>
-    <div class="row"><span class="row-k">원고의 주장</span><span class="row-v">${esc(d.plaintiff||'—')}</span></div>
-    <div class="row"><span class="row-k">피고의 주장</span><span class="row-v">${esc(d.defendant||'—')}</span></div>
-    <div class="row" style="border-bottom:none"><span class="row-k">다툼의 요지</span><span class="row-v">${esc(d.dispute||'—')}</span></div>
-  </div>`;
-}
-
-// ══ STEP 3: 채팅 ══════════════════════════════════════════════
-function renderChat(question) {
-  const el = document.getElementById('section-chat');
-  el.style.display = 'block';
-  el.innerHTML = `
-  <div class="card">
-    <div class="card-head"><span class="card-title">K-Law 추가 정보 요청</span></div>
-    <div class="card-body">
-      <div class="chat-wrap" id="chat-msgs">
-        <div class="msg-k"><div class="msg-k-lbl">K-Law AI</div>${esc(question).replace(/\n/g,'<br>')}</div>
-      </div>
-      <div class="chat-input-row" id="chat-input-row">
-        <textarea class="chat-ta" id="chat-reply" placeholder="추가 정보를 입력하세요…"></textarea>
-        <button class="chat-mic-btn" id="chat-mic-btn" onclick="toggleChatMic()" title="음성 입력">
-          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-        </button>
-        <div class="chat-actions">
-          <button class="btn-sm btn-pri" onclick="sendReply()">전송</button>
-          <button class="btn-sm btn-out" onclick="skipToSim()">생략</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-  el.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-async function sendReply() {
-  const ta = document.getElementById('chat-reply');
-  const reply = ta.value.trim();
-  if (!reply) return;
-  const msgs = document.getElementById('chat-msgs');
-  msgs.insertAdjacentHTML('beforeend',`<div class="msg-u">${esc(reply)}</div>`);
-  ta.value = '';
-  state.messages.push({ role:'user', content: reply });
-
-  const loadId='cl-'+Date.now();
-  msgs.insertAdjacentHTML('beforeend',`<div class="msg-k" id="${loadId}"><div class="msg-k-lbl">K-Law AI</div><span style="opacity:.5">⏳ 검토 중…</span></div>`);
-
-  const checkMsgs=[...state.messages,{role:'user',content:'위 추가 답변을 반영하여 정보가 충분하면 "시뮬레이션_진행"이라고만, 더 필요하면 【추가질문】 형식으로 답하세요.'}];
-  try {
-    const r=await callLLM(checkMsgs,500);
-    document.getElementById(loadId)?.remove();
-    if(r.includes('시뮬레이션_진행')||r.includes('시뮬레이션 진행')){
-      showReadyToSim();
-    } else {
-      const qm=r.match(/【추가질문】\s*([\s\S]*?)(?=【|$)/);
-      const nq=qm?qm[1].trim():r.trim();
-      msgs.insertAdjacentHTML('beforeend',`<div class="msg-k"><div class="msg-k-lbl">K-Law AI</div>${esc(nq).replace(/\n/g,'<br>')}</div>`);
-      state.messages.push({role:'assistant',content:r});
-    }
-  } catch(e) {
-    document.getElementById(loadId)?.remove();
-    msgs.insertAdjacentHTML('beforeend',`<div class="msg-k" style="border-color:var(--bd-r)"><div class="msg-k-lbl">오류</div>${esc(e.message)}</div>`);
-  }
-}
-
-function skipToSim() {
-  state.messages.push({role:'user',content:'(추가 정보 없이 진행)'});
-  showReadyToSim();
-}
-
-function showReadyToSim() {
-  const inputRow=document.getElementById('chat-input-row');
-  if(inputRow) inputRow.style.display='none';
-  const msgs=document.getElementById('chat-msgs');
-  if(msgs) msgs.insertAdjacentHTML('beforeend',`<div class="msg-k"><div class="msg-k-lbl">K-Law AI</div>판결문 작성 준비가 완료되었습니다.</div>`);
-
-  // 시뮬레이션 실행 버튼
-  const chatEl=document.getElementById('section-chat');
-  if(chatEl) chatEl.insertAdjacentHTML('beforeend',`
-    <button class="btn-run" style="margin-top:10px" onclick="runVerdictSim()">
-      대법원 판결 시뮬레이션 실행
-    </button>`);
-}
-
-// ══ STEP 4: 판결 시뮬레이션 ══════════════════════════════════
-const STEP_DEFS = [
-  { id:'step0', tag:'STEP 0', icon:'🔍', title:'사건 기본 분석 · 명제 설정',
-    prompt:ctx=>`${ctx}\n\nK-Law 판결 방법론 ${state.klawVersion}의 STEP 0만 작성하세요. [0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
-  { id:'stepA', tag:'STEP A', icon:'', title:'판례 법리 · 법률관계 분석',
-    prompt:ctx=>`${ctx}\n\nSTEP A만 작성하세요. A-0~A-5 소항목과 각 완료 태그 포함.` },
-  { id:'stepB', tag:'STEP B', icon:'📋', title:'법률관계 확정 · 최종 판결문',
-    prompt:ctx=>`${ctx}\n\nSTEP B만 작성하세요. B-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
-  { id:'stepC', tag:'STEP C', icon:'', title:'완결 게이트웨이 · 확신도 · 자기 검증',
-    prompt:ctx=>`${ctx}\n\nSTEP C 작성 후 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
-];
-
-function buildSimPrompt() {
-  const ms = klawMethodText ? klawMethodText.slice(0,4000) : '';
-  return `당신은 K-Law 판결 방법론 ${state.klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
-${ms ? '[K-Law 방법론 발췌]\n'+ms+'\n\n---\n\n' : ''}
-가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.`;
-}
-
-let verdictParts = {};
-
-async function runVerdictSim() {
-  setPhase(4);
-  const el = document.getElementById('section-verdict');
-  el.style.display = 'block';
-  el.innerHTML = `<div id="steps-wrap"></div>`;
-  el.scrollIntoView({behavior:'smooth',block:'start'});
-  verdictParts = {};
-
-  const baseCtx = state.messages.filter(m=>m.role!=='system')
-    .map(m=>(m.role==='user'?'사용자: ':'K-Law: ')+m.content).join('\n\n');
-
-  for(const step of STEP_DEFS) {
-    await renderStep(step, baseCtx);
-  }
-
-  const full = Object.values(verdictParts).join('\n\n');
-  state.verdictFull = full;
-  renderConfidence(full);
-  await saveAndReport(full);
-}
-
-async function renderStep(step, baseCtx) {
-  const wrap = document.getElementById('steps-wrap');
-  const card = document.createElement('div');
-  card.className = 'step-card'; card.id = 'sc-'+step.id;
-  card.innerHTML=`
-    <div class="step-head">
-      <span class="step-tag">${step.icon} ${step.tag}</span>
-      <span class="step-title-txt">${step.title}</span>
-    </div>
-    <div class="step-body" id="sb-${step.id}">
-      <div class="loading-box"><div class="spinner"></div> ${step.tag} 작성 중…</div>
-    </div>`;
-  wrap.appendChild(card);
-  card.scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  const prev = Object.values(verdictParts).join('\n\n');
-  const ctx = prev ? `[이전 STEP]\n${prev}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
-  const prompt = step.prompt(ctx).replace(/{CASENO}/g, state.caseNo).replace(/{LEVEL}/g, state.caseData?.level||'3심');
-
-  try {
-    const result = await callLLM([
-      { role:'system', content: buildSimPrompt() },
-      { role:'user',   content: prompt }
-    ], 3000);
-    verdictParts[step.id] = result;
-    const bodyEl = document.getElementById('sb-'+step.id);
-    if(bodyEl) bodyEl.textContent = result;
-
-    const tags = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
-    if(tags){
-      const doneEl=document.createElement('div');
-      doneEl.className='step-done';
-      doneEl.innerHTML=tags.map(t=>`<span class="step-done-tag">${esc(t)}</span>`).join('');
-      card.appendChild(doneEl);
-    }
-  } catch(e){
-    const b=document.getElementById('sb-'+step.id);
-    if(b) b.innerHTML=`<span style="color:var(--red)">${esc(e.message)}</span>`;
-  }
-}
-
-function renderConfidence(full) {
-  const cm=full.match(/\[법리 확신도:\s*([\d.]+)\/10\]/);
-  const fm=full.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
-  const tm=full.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
-  const xm=full.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const mm=full.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
-  const vm=full.match(/\[결론 유형:\s*([^\]]+)\]/);
-  const sm=full.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[|$)/);
-
-  state.confidence = tm ? tm[1]+'/10' : '';
-  state.complexity  = xm ? xm[1] : '';
-  state.matchRate   = mm ? mm[1].trim() : (xm ? calcMatch(xm[1]) : '');
-  state.verdictType = vm ? vm[1].trim() : '';
-  state.summary     = sm ? sm[1].trim() : '';
-
-  const el=document.getElementById('section-verdict');
-  const div=document.createElement('div');
-  div.innerHTML=`
-  ${state.summary?`<div class="verdict-summary"><div class="vs-label">판결 요약</div><div class="vs-text">${esc(state.summary)}</div></div>`:''}
-  <div class="conf-grid">
-    <div class="conf-item"><div class="conf-lbl">법리 확신도</div><div class="conf-val">${cm?cm[1]+'/10':'—'}</div></div>
-    <div class="conf-item"><div class="conf-lbl">사실 확신도</div><div class="conf-val">${fm?fm[1]+'/10':'—'}</div></div>
-    <div class="conf-item"><div class="conf-lbl">종합 확신도</div><div class="conf-val" style="font-size:24px">${tm?tm[1]+'/10':'—'}</div></div>
-    <div class="conf-item"><div class="conf-lbl">사건 복잡도</div><div class="conf-val">${xm?xm[1]+'/10':'—'}</div></div>
-    <div class="conf-item" style="border:2px solid var(--bd-p)"><div class="conf-lbl" style="color:var(--primary);font-weight:800">대법원 일치도 예상</div><div class="conf-val" style="color:var(--primary);font-size:22px">${esc(state.matchRate||'—')}</div></div>
-    <div class="conf-item"><div class="conf-lbl">결론 유형</div><div class="conf-val" style="font-size:14px">${esc(state.verdictType||'—')}</div></div>
-  </div>
-  <div class="caution">본 판결문은 K-Law AI 시뮬레이션 결과입니다. 법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.</div>`;
-  el.insertBefore(div, el.firstChild);
-}
-
-function calcMatch(c){
-  const v=99.99-(Math.max(1,Math.min(10,parseFloat(c)||5))-1)*(9.99/9);
-  return v>=99.9?v.toFixed(2)+'%':v>=99?v.toFixed(1)+'%':v.toFixed(0)+'%';
-}
-
-// ══ STEP 5: Supabase 저장 + 고팡 보고 ════════════════════════
-async function saveAndReport(full) {
-  setPhase(5);
-
-  // 판결 주문 추출
-  const vdM = full.match(/주\s*문\s*[:：]?\s*([^\n]{1,80})/);
-  state.verdictShort = vdM ? vdM[1].trim() : (state.caseData?.type ? state.caseData.type+' 사건 판결' : '판결 완료');
-
-  const record = {
-    id:           state.caseNo,
-    source:       fromGopang ? 'gopang' : 'webapp',
-    case_type:    state.caseData?.type    || null,
-    case_type_code: typeCode(state.caseData?.type),
-    case_level:   state.caseData?.level   || null,
-    case_detail:  state.caseData?.detail  || null,
-    case_input:   state.caseInput.slice(0,2000),
-    case_summary: state.caseData?.overview?.slice(0,500) || null,
-    plaintiff:    state.caseData?.plaintiff?.slice(0,300) || null,
-    defendant:    state.caseData?.defendant?.slice(0,300) || null,
-    dispute:      state.caseData?.dispute?.slice(0,300)   || null,
-    verdict:      state.verdictShort.slice(0,80),
-    verdict_full: full.slice(0,50000),
-    confidence:   state.confidence || null,
-    complexity:   state.complexity || null,
-    match_rate:   state.matchRate  || null,
-    verdict_type: state.verdictType|| null,
-    llm_model:    state.llm,
-    klaw_version: state.klawVersion,
-    reporter:     klawUser?.ipv6 || null,
-    status:       'completed'
-  };
-
-  // Supabase 저장
-  let saved = false;
-  const gpEl = document.getElementById('section-done');
-  gpEl.style.display = 'block';
-  gpEl.innerHTML = `<div class="report-bar"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Supabase에 저장 중…</div>`;
-
-  try {
-    if (_KLAW_SB_URL && _KLAW_SB_URL.startsWith('https://')) {
-      const r = await fetch(_KLAW_SB_URL+'/rest/v1/klaw_cases', {
-        method:'POST',
-        headers:{
-          'apikey':_KLAW_SB_KEY,
-          'Authorization':'Bearer '+_KLAW_SB_KEY,
-          'Content-Type':'application/json',
-          'Prefer':'return=minimal'
-        },
-        body: JSON.stringify(record)
-      });
-      saved = r.ok || r.status===201;
-      console.log('[K-Law] Supabase 저장', saved?'':'❌', r.status);
-    } else {
-      console.warn('[K-Law] Supabase URL 미설정 — 저장 건너뜀');
-    }
-  } catch(e) {
-    console.warn('[K-Law] Supabase 오류:', e.message);
-  }
-
-  // 고팡 앱에 결과 보고 (postMessage 또는 URL 파라미터)
-  if (fromGopang && window.opener) {
-    try {
-      window.opener.postMessage({
-        type: 'KLAW_RESULT',
-        caseNo:  state.caseNo,
-        verdict: state.verdictShort,
-        confidence: state.confidence,
-        matchRate:  state.matchRate,
-        summary:    state.summary.slice(0,200),
-        ok: true
-      }, 'https://hondi.net');
-      console.log('[K-Law] 고팡에 결과 전송 완료');
-    } catch(e) { console.warn('[K-Law] 고팡 전송 실패:', e.message); }
-  }
-
-  // PDV 보고 — 판결 시뮬레이션 완료
-  await _sendPdvReport({
-    summary: `K-Law 판결 시뮬레이션 완료: ${state.caseData?.type || '미분류'} / ${state.caseNo}`,
-    goal:    '판결 예측 시뮬레이션'
-  });
-
-  // 완료 UI
-  gpEl.innerHTML = `
-  <div class="done-card">
-    <div class="done-title">시뮬레이션 완료</div>
-    <div class="done-sub">
-      사건번호 <strong>${esc(state.caseNo)}</strong><br>
-      ${saved ? '저장 완료 — 대시보드에서 확인하세요.' : '저장 미설정'}<br>
-      ${fromGopang ? '고팡 앱에 결과를 전달했습니다.' : ''}
-    </div>
-  </div>
-  <div style="display:flex;gap:10px;margin-top:12px">
-    <a href="https://klaw.hondi.net/dashboard.html" class="btn-sm btn-pri" style="flex:1;text-align:center">대시보드 확인</a>
-    <button class="btn-sm btn-out" onclick="location.reload()" style="flex:1">새 사건 입력</button>
-  </div>`;
-  gpEl.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function typeCode(type) {
-  if(!type) return null;
-  if(type.includes('민사')) return 'TYPE_01';
-  if(type.includes('형사')) return 'TYPE_02';
-  if(type.includes('행정')) return 'TYPE_03';
-  if(type.includes('가사')) return 'TYPE_04';
-  if(type.includes('소액')) return 'TYPE_05';
-  if(type.includes('노동')) return 'TYPE_06';
-  return null;
-}
-
-// ══ 유틸 ═════════════════════════════════════════════════════
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-function setPhase(n) {
-  for(let i=1;i<=5;i++){
-    const el=document.getElementById('phase-'+i);
-    if(!el)continue;
-    if(i<n) el.className='phase-step done';
-    else if(i===n) el.className='phase-step active';
-    else el.className='phase-step';
-  }
-}
-
-function showErr(container, msg) {
-  container.style.display='block';
-  container.innerHTML=`<div class="card"><div class="card-body" style="color:var(--red);font-size:13px">${esc(msg)}</div></div>`;
-}
 </script>
-
-<!-- 하단 고정 버튼 -->
-<div class="fixed-bottom" id="fixed-btn-wrap">
-  <button class="btn-run" id="btn-analyze" onclick="startAnalysis()">
-    사건 분석 시작
-  </button>
-</div>
 </body>
 </html>
-
