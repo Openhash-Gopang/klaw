@@ -361,7 +361,7 @@ textarea.inp::placeholder{color:var(--hint)}
   <span class="tb-ver" id="klaw-ver-badge">v15.1</span>
   <div class="tb-right">
     <div class="tb-dot-wrap"><div class="tb-dot"></div>AI 가동 중</div>
-    <a href="https://klaw.openhash.kr/dashboard.html" class="tb-link">대시보드</a>
+    <a href="https://klaw.hondi.net/dashboard.html" class="tb-link">대시보드</a>
   </div>
 </div>
 
@@ -696,7 +696,7 @@ async function toggleVoice() {
   if (env.isArtifact || env.inIframe) {
     _micShowMsg(
       `<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong><br>
-       실제 배포 URL <code>klaw.openhash.kr/webapp.html</code> 또는 고팡 앱에서 사용하세요.<br>
+       실제 배포 URL <code>klaw.hondi.net/webapp.html</code> 또는 고팡 앱에서 사용하세요.<br>
        <span style="font-size:11px">iframe 내부에서는 브라우저가 마이크 권한 팝업을 차단합니다.</span>`,
       'info'
     );
@@ -884,7 +884,7 @@ async function openCamera() {
   if (env.isArtifact || env.inIframe) {
     _micShowMsg(
       `<strong>📷 미리보기 환경에서는 카메라를 사용할 수 없습니다.</strong><br>
-       실제 배포 URL <code>klaw.openhash.kr/webapp.html</code> 에서 사용하세요.`,
+       실제 배포 URL <code>klaw.hondi.net/webapp.html</code> 에서 사용하세요.`,
       'info'
     );
     return;
@@ -1439,7 +1439,7 @@ async function saveAndReport(full) {
     </div>
   </div>
   <div style="display:flex;gap:10px;margin-top:12px">
-    <a href="https://klaw.openhash.kr/dashboard.html" class="btn-sm btn-pri" style="flex:1;text-align:center">대시보드 확인</a>
+    <a href="https://klaw.hondi.net/dashboard.html" class="btn-sm btn-pri" style="flex:1;text-align:center">대시보드 확인</a>
     <button class="btn-sm btn-out" onclick="location.reload()" style="flex:1">새 사건 입력</button>
   </div>`;
   gpEl.scrollIntoView({behavior:'smooth',block:'start'});
