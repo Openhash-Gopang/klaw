@@ -231,6 +231,8 @@ button{font-family:var(--font);cursor:pointer}
 .step-tag{background:var(--bg);border:1px solid var(--bdr);color:var(--txt2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-family:var(--mono)}
 .step-title{font-size:12px;font-weight:600;color:var(--txt3)}
 .step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}
+.stream-cursor{display:inline-block;width:2px;height:1em;background:var(--pri);vertical-align:text-bottom;margin-left:1px;animation:cursorBlink .9s step-start infinite}
+@keyframes cursorBlink{50%{opacity:0}}
 .step-complete{display:inline-block;font-size:10px;font-weight:600;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:2px 7px;margin-top:7px;font-family:var(--mono)}
 .conf-block{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
 .conf-item{display:flex;flex-direction:column;gap:4px;padding:0 20px 0 0;margin-right:20px;border-right:1px solid var(--bdr)}
@@ -1036,6 +1038,89 @@ async function callLLM(messages, maxTokens = 2000) {
   return data.choices?.[0]?.message?.content || '';
 }
 
+// ══ 스트리밍 응답 (판결문 생성 STEP 카드용) ═══════════════════
+// onChunk(delta, fullTextSoFar)를 매 토큰 청크마다 호출하고, 최종 전체 텍스트를 반환.
+async function _pumpSSE(response, handleJson) {
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try { const errBody = await response.json(); errMsg = errBody.error?.message || errBody.message || errMsg; } catch(e) {}
+    throw new Error(errMsg);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buf = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('data:')) continue;
+      const payload = t.slice(5).trim();
+      if (payload === '[DONE]') continue;
+      let json;
+      try { json = JSON.parse(payload); } catch(e) { continue; }
+      handleJson(json);
+    }
+  }
+}
+
+async function callLLMStream(messages, maxTokens = 3000, onChunk) {
+  const model  = conversationState.llmModel || 'deepseek';
+  const apiKey = conversationState.apiKey;
+  let fullText = '';
+  const emit = (delta) => { if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); } };
+
+  if (model === 'claude') {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
+      body: JSON.stringify({ model: conversationState.selectedModel || 'claude-sonnet-4-20250514', max_tokens:maxTokens, stream:true, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })
+    });
+    await _pumpSSE(resp, (json) => {
+      if (json.type === 'error') throw new Error(json.error?.message || 'Claude 스트리밍 오류');
+      if (json.type === 'content_block_delta' && json.delta?.type === 'text_delta') emit(json.delta.text);
+    });
+    return fullText;
+  }
+  if (model === 'gemini') {
+    const gmsg = messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+    const sys  = messages.find(m=>m.role==='system')?.content || '';
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${conversationState.selectedModel||'gemini-2.5-pro'}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});
+    await _pumpSSE(resp, (json) => {
+      if (json.error) throw new Error(json.error.message || 'Gemini 스트리밍 오류');
+      emit(json.candidates?.[0]?.content?.parts?.[0]?.text || '');
+    });
+    return fullText;
+  }
+  if (model === 'groq') {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+      body: JSON.stringify({ model: conversationState.selectedModel || 'llama-3.3-70b-versatile', messages, max_tokens:maxTokens, temperature:0.2, stream:true })
+    });
+    await _pumpSSE(resp, (json) => {
+      if (json.error) throw new Error(json.error.message || JSON.stringify(json.error));
+      emit(json.choices?.[0]?.delta?.content || '');
+    });
+    return fullText;
+  }
+  // DeepSeek — 사용자 본인 API Key 필요
+  const resp = await fetch(DEEPSEEK_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+    body: JSON.stringify({ model: conversationState.selectedModel || 'deepseek-v4-pro', messages, max_tokens:maxTokens, temperature:0.2, stream:true })
+  });
+  await _pumpSSE(resp, (json) => {
+    if (json.error) throw new Error(json.error.message || JSON.stringify(json.error));
+    emit(json.choices?.[0]?.delta?.content || '');
+  });
+  return fullText;
+}
+
 // ══ K-Law 버전 동적 로드 ════════════════════════════════
 const KLAW_REPO_API = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
 const KLAW_RAW_BASE = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
@@ -1458,9 +1543,17 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
   const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level) }, { role:'user', content: prompt }];
 
   try {
-    const result = await callLLM(msgs, 3000);
-    window._verdictParts[stepDef.id] = result;
     const bodyEl = document.getElementById('vsb-' + stepDef.id);
+    let streamStarted = false;
+    const result = await callLLMStream(msgs, 3000, (delta, fullSoFar) => {
+      if (!streamStarted) {
+        streamStarted = true;
+        bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
+      } else {
+        bodyEl.firstElementChild.firstChild.nodeValue = fullSoFar;
+      }
+    });
+    window._verdictParts[stepDef.id] = result;
     if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;
     const completeMatch = result.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
     if (completeMatch) {
