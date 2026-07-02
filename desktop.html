@@ -629,6 +629,7 @@ button{font-family:var(--font);cursor:pointer}
         <div class="api-key-row visible" id="api-key-section">
           <label class="api-key-label" id="api-key-label">DeepSeek API Key</label>
           <input class="api-key-input" type="password" id="api-key" placeholder="sk-…" oninput="saveApiKey(conversationState.llmModel||'deepseek', this.value)">
+          <button type="button" id="api-key-save-btn" onclick="saveApiKeyClick()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:var(--pri);color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">저장</button>
           <button type="button" onclick="openApiKeyHelp()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:none;color:var(--pri);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">무료 API Key 발급 방법</button>
         </div>
       </div>
@@ -910,7 +911,23 @@ function loadApiKey(model) {
   try { return localStorage.getItem(API_KEY_STORAGE_PREFIX + model) || ''; } catch(e) { return ''; }
 }
 
+// "저장" 버튼 클릭 시 명시적으로 저장하고 버튼에 확인 표시
+function saveApiKeyClick() {
+  const model = conversationState.llmModel || 'deepseek';
+  const input = document.getElementById('api-key');
+  const key = input ? input.value.trim() : '';
+  saveApiKey(model, key);
+  const btn = document.getElementById('api-key-save-btn');
+  if (!btn) return;
+  if (btn._resetTimer) clearTimeout(btn._resetTimer);
+  const original = btn.dataset.label || btn.textContent;
+  btn.dataset.label = original;
+  btn.textContent = key ? '저장됨 ✓' : '삭제됨';
+  btn._resetTimer = setTimeout(() => { btn.textContent = original; }, 1200);
+}
+
 function selectLLM(model) {
+  const modelChanged = conversationState.llmModel !== model;
   conversationState.llmModel = model;
   document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('card-' + model)?.classList.add('selected');
@@ -936,7 +953,9 @@ function selectLLM(model) {
   };
   apiLabel.textContent = labels[model] || 'API Key';
   apiInput.placeholder = phs[model] || 'API Key를 입력하세요';
-  apiInput.value = loadApiKey(model);
+  // 실제로 제공자가 바뀐 경우에만 저장된 키를 불러옴 — 같은 제공자로 재호출될 때
+  // (예: 페이지 초기화가 뒤늦게 한 번 더 실행되는 경우) 사용자가 이미 입력 중인 값을 덮어쓰지 않도록 함.
+  if (modelChanged) apiInput.value = loadApiKey(model);
 }
 
 // ══ API Key 발급 안내 모달 ════════════════════════════════════

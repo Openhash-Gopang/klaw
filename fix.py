@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-K-Law desktop.html 패치 — 판결문 생성(STEP 0/A/B/C) 실시간 스트리밍 표시
+K-Law desktop.html 패치 — 그동안 누락되었던 두 가지 수정을 하나로 합침
 
-기존에는 각 STEP의 LLM 응답을 한 번에 받아서(non-streaming) 완료 후 통째로
-렌더링했음 — 생성 중에는 스피너만 보이고 실제 내용은 완료돼야 나타남.
+(참고: 이전에 스트리밍 패치는 정상 반영되었으나, 아래 두 가지는 파일 이동
+경로 문제로 실제로는 적용되지 않은 채 남아 있었습니다.)
 
-변경 사항:
-1) _pumpSSE() / callLLMStream() 추가 — DeepSeek/Claude/Gemini/Groq 4개 제공자
-   모두 SSE(Server-Sent Events) 스트리밍 응답을 파싱해 토큰이 도착하는 대로
-   콜백(onChunk)을 호출. 각 제공자별 이벤트 포맷 차이(OpenAI 호환 delta.content,
-   Claude의 content_block_delta, Gemini의 candidates 등) 처리.
-2) renderStepStreaming()이 callLLMStream()을 사용하도록 변경 — STEP 카드 안에
-   텍스트가 실시간으로 타이핑되듯 나타나고, 끝에 깜빡이는 커서 표시.
-3) .stream-cursor CSS 추가 (깜빡이는 커서 애니메이션).
+1) API Key "저장" 버튼 추가
+   입력란 옆에 명시적 저장 버튼을 추가. 클릭 시 즉시 저장되고
+   버튼에 "저장됨 ✓" 표시가 잠깐 나타남 (기존 자동 저장(oninput)은 유지).
 
-검증: SSE 파싱 로직에 대해 DeepSeek/Claude 포맷, UTF-8 멀티바이트 문자가 청크
-경계에서 분할되는 경우, 스트림 중간 오류 이벤트, HTTP 레벨 오류 등 5개 케이스
-단위 테스트 통과. renderStepStreaming() 전체 흐름(카드 생성 → 실시간 갱신 →
-최종 렌더링 → STEP-COMPLETE 배지 추출)도 헤드리스 환경에서 시뮬레이션 검증 완료.
+2) API Key 입력값이 지워지는 경쟁 상태(race condition) 수정
+   selectLLM()이 중복 호출될 때마다 무조건 입력란을 localStorage 값으로
+   덮어써서, 페이지 초기화가 늦게 완료되면 사용자가 이미 입력한 키가
+   지워지는 문제가 있었음. 실제로 제공자가 바뀐 경우에만 저장된 키를
+   다시 불러오도록 수정 — 같은 제공자로 재호출되는 중복 초기화는
+   입력란을 건드리지 않음.
 """
 import pathlib
 import sys
@@ -30,40 +27,128 @@ if not TARGET.exists():
 src = TARGET.read_text(encoding="utf-8")
 applied = []
 
-# ── 패치 1: CSS — 스트리밍 커서 ──────────────────────────────
-p1_old = '.step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}'
-p1_new = '.step-body{font-size:13px;color:var(--txt);line-height:1.85;white-space:pre-wrap}\n.stream-cursor{display:inline-block;width:2px;height:1em;background:var(--pri);vertical-align:text-bottom;margin-left:1px;animation:cursorBlink .9s step-start infinite}\n@keyframes cursorBlink{50%{opacity:0}}'
-if ".stream-cursor{" in src:
-    applied.append("CSS: 스트리밍 커서 스타일 이미 존재 (건너뜀)")
-elif p1_old in src:
-    src = src.replace(p1_old, p1_new, 1)
-    applied.append("CSS: 스트리밍 커서 스타일 추가")
+# ── 패치 1: HTML — 저장 버튼 추가 ──────────────────────────
+html_old = """        <div class="api-key-row visible" id="api-key-section">
+          <label class="api-key-label" id="api-key-label">DeepSeek API Key</label>
+          <input class="api-key-input" type="password" id="api-key" placeholder="sk-…" oninput="saveApiKey(conversationState.llmModel||'deepseek', this.value)">
+          <button type="button" onclick="openApiKeyHelp()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:none;color:var(--pri);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">무료 API Key 발급 방법</button>
+        </div>"""
+html_new = """        <div class="api-key-row visible" id="api-key-section">
+          <label class="api-key-label" id="api-key-label">DeepSeek API Key</label>
+          <input class="api-key-input" type="password" id="api-key" placeholder="sk-…" oninput="saveApiKey(conversationState.llmModel||'deepseek', this.value)">
+          <button type="button" id="api-key-save-btn" onclick="saveApiKeyClick()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:var(--pri);color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">저장</button>
+          <button type="button" onclick="openApiKeyHelp()" style="padding:6px 10px;border:1px solid var(--pri);border-radius:var(--r);background:none;color:var(--pri);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">무료 API Key 발급 방법</button>
+        </div>"""
+
+if 'id="api-key-save-btn"' in src:
+    applied.append("HTML: 저장 버튼 이미 존재 (건너뜀)")
+elif html_old in src:
+    src = src.replace(html_old, html_new, 1)
+    applied.append("HTML: API Key 저장 버튼 추가")
 else:
-    print("[오류] 패치 1(CSS) 대상 문자열을 찾지 못했습니다.")
+    print("[오류] 패치 1(HTML) 대상 문자열을 찾지 못했습니다. 파일이 변경되었을 수 있습니다.")
     sys.exit(1)
 
-# ── 패치 2: JS — _pumpSSE / callLLMStream 추가 ───────────────
-p2_old = "  const data = await resp.json();\n  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));\n  return data.choices?.[0]?.message?.content || '';\n}\n\n// ══ K-Law 버전 동적 로드"
-p2_new = "  const data = await resp.json();\n  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));\n  return data.choices?.[0]?.message?.content || '';\n}\n\n// ══ 스트리밍 응답 (판결문 생성 STEP 카드용) ═══════════════════\n// onChunk(delta, fullTextSoFar)를 매 토큰 청크마다 호출하고, 최종 전체 텍스트를 반환.\nasync function _pumpSSE(response, handleJson) {\n  if (!response.ok) {\n    let errMsg = `HTTP ${response.status}`;\n    try { const errBody = await response.json(); errMsg = errBody.error?.message || errBody.message || errMsg; } catch(e) {}\n    throw new Error(errMsg);\n  }\n  const reader = response.body.getReader();\n  const decoder = new TextDecoder('utf-8');\n  let buf = '';\n  while (true) {\n    const { value, done } = await reader.read();\n    if (done) break;\n    buf += decoder.decode(value, { stream: true });\n    const lines = buf.split('\\n');\n    buf = lines.pop();\n    for (const line of lines) {\n      const t = line.trim();\n      if (!t.startsWith('data:')) continue;\n      const payload = t.slice(5).trim();\n      if (payload === '[DONE]') continue;\n      let json;\n      try { json = JSON.parse(payload); } catch(e) { continue; }\n      handleJson(json);\n    }\n  }\n}\n\nasync function callLLMStream(messages, maxTokens = 3000, onChunk) {\n  const model  = conversationState.llmModel || 'deepseek';\n  const apiKey = conversationState.apiKey;\n  let fullText = '';\n  const emit = (delta) => { if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); } };\n\n  if (model === 'claude') {\n    const resp = await fetch('https://api.anthropic.com/v1/messages', {\n      method: 'POST',\n      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },\n      body: JSON.stringify({ model: conversationState.selectedModel || 'claude-sonnet-4-20250514', max_tokens:maxTokens, stream:true, messages:messages.filter(m=>m.role!=='system'), system:messages.find(m=>m.role==='system')?.content||'' })\n    });\n    await _pumpSSE(resp, (json) => {\n      if (json.type === 'error') throw new Error(json.error?.message || 'Claude 스트리밍 오류');\n      if (json.type === 'content_block_delta' && json.delta?.type === 'text_delta') emit(json.delta.text);\n    });\n    return fullText;\n  }\n  if (model === 'gemini') {\n    const gmsg = messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));\n    const sys  = messages.find(m=>m.role==='system')?.content || '';\n    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${conversationState.selectedModel||'gemini-2.5-pro'}:streamGenerateContent?alt=sse&key=${apiKey}`,\n      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:sys?{parts:[{text:sys}]}:undefined,contents:gmsg,generationConfig:{maxOutputTokens:maxTokens}})});\n    await _pumpSSE(resp, (json) => {\n      if (json.error) throw new Error(json.error.message || 'Gemini 스트리밍 오류');\n      emit(json.candidates?.[0]?.content?.parts?.[0]?.text || '');\n    });\n    return fullText;\n  }\n  if (model === 'groq') {\n    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {\n      method: 'POST',\n      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },\n      body: JSON.stringify({ model: conversationState.selectedModel || 'llama-3.3-70b-versatile', messages, max_tokens:maxTokens, temperature:0.2, stream:true })\n    });\n    await _pumpSSE(resp, (json) => {\n      if (json.error) throw new Error(json.error.message || JSON.stringify(json.error));\n      emit(json.choices?.[0]?.delta?.content || '');\n    });\n    return fullText;\n  }\n  // DeepSeek — 사용자 본인 API Key 필요\n  const resp = await fetch(DEEPSEEK_ENDPOINT, {\n    method: 'POST',\n    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },\n    body: JSON.stringify({ model: conversationState.selectedModel || 'deepseek-v4-pro', messages, max_tokens:maxTokens, temperature:0.2, stream:true })\n  });\n  await _pumpSSE(resp, (json) => {\n    if (json.error) throw new Error(json.error.message || JSON.stringify(json.error));\n    emit(json.choices?.[0]?.delta?.content || '');\n  });\n  return fullText;\n}\n\n// ══ K-Law 버전 동적 로드"
-if "async function callLLMStream(" in src:
-    applied.append("JS: callLLMStream() 이미 존재 (건너뜀)")
-elif p2_old in src:
-    src = src.replace(p2_old, p2_new, 1)
-    applied.append("JS: _pumpSSE() / callLLMStream() 스트리밍 함수 추가")
+# ── 패치 2: JS — saveApiKeyClick() 함수 추가 ────────────────
+js_old = """function loadApiKey(model) {
+  try { return localStorage.getItem(API_KEY_STORAGE_PREFIX + model) || ''; } catch(e) { return ''; }
+}"""
+js_new = """function loadApiKey(model) {
+  try { return localStorage.getItem(API_KEY_STORAGE_PREFIX + model) || ''; } catch(e) { return ''; }
+}
+
+// "저장" 버튼 클릭 시 명시적으로 저장하고 버튼에 확인 표시
+function saveApiKeyClick() {
+  const model = conversationState.llmModel || 'deepseek';
+  const input = document.getElementById('api-key');
+  const key = input ? input.value.trim() : '';
+  saveApiKey(model, key);
+  const btn = document.getElementById('api-key-save-btn');
+  if (!btn) return;
+  if (btn._resetTimer) clearTimeout(btn._resetTimer);
+  const original = btn.dataset.label || btn.textContent;
+  btn.dataset.label = original;
+  btn.textContent = key ? '저장됨 ✓' : '삭제됨';
+  btn._resetTimer = setTimeout(() => { btn.textContent = original; }, 1200);
+}"""
+
+if "function saveApiKeyClick()" in src:
+    applied.append("JS: saveApiKeyClick() 이미 존재 (건너뜀)")
+elif js_old in src:
+    src = src.replace(js_old, js_new, 1)
+    applied.append("JS: saveApiKeyClick() 함수 추가")
 else:
-    print("[오류] 패치 2(JS - callLLMStream) 대상 문자열을 찾지 못했습니다.")
+    print("[오류] 패치 2(JS) 대상 문자열을 찾지 못했습니다.")
     sys.exit(1)
 
-# ── 패치 3: JS — renderStepStreaming()이 스트리밍 사용하도록 변경 ─
-p3_old = '  try {\n    const result = await callLLM(msgs, 3000);\n    window._verdictParts[stepDef.id] = result;\n    const bodyEl = document.getElementById(\'vsb-\' + stepDef.id);\n    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;'
-p3_new = '  try {\n    const bodyEl = document.getElementById(\'vsb-\' + stepDef.id);\n    let streamStarted = false;\n    const result = await callLLMStream(msgs, 3000, (delta, fullSoFar) => {\n      if (!streamStarted) {\n        streamStarted = true;\n        bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;\n      } else {\n        bodyEl.firstElementChild.firstChild.nodeValue = fullSoFar;\n      }\n    });\n    window._verdictParts[stepDef.id] = result;\n    if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(result)}</div>`;'
-if "let streamStarted = false;" in src:
-    applied.append("JS: renderStepStreaming() 스트리밍 연동 이미 존재 (건너뜀)")
-elif p3_old in src:
-    src = src.replace(p3_old, p3_new, 1)
-    applied.append("JS: renderStepStreaming()이 callLLMStream() 사용하도록 변경")
+# ── 패치 3: JS — selectLLM() 경쟁 상태 수정 ─────────────────
+race_old = """function selectLLM(model) {
+  conversationState.llmModel = model;
+  document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + model)?.classList.add('selected');
+  ['deepseek','claude','gemini','groq'].forEach(m => {
+    const n = document.getElementById('llm-nav-' + m);
+    if (n) n.classList.toggle('active', m === model);
+  });
+  const apiSec = document.getElementById('api-key-section');
+  const apiLabel = document.getElementById('api-key-label');
+  const apiInput = document.getElementById('api-key');
+  apiSec.classList.add('visible');
+  const labels = {
+    deepseek: 'DeepSeek API Key',
+    claude:   'Anthropic API Key',
+    gemini:   'Google API Key',
+    groq:     'Groq API Key',
+  };
+  const phs = {
+    deepseek: 'sk-…',
+    claude:   'sk-ant-…',
+    gemini:   'AIza…',
+    groq:     'gsk_…',
+  };
+  apiLabel.textContent = labels[model] || 'API Key';
+  apiInput.placeholder = phs[model] || 'API Key를 입력하세요';
+  apiInput.value = loadApiKey(model);
+}"""
+race_new = """function selectLLM(model) {
+  const modelChanged = conversationState.llmModel !== model;
+  conversationState.llmModel = model;
+  document.querySelectorAll('.llm-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + model)?.classList.add('selected');
+  ['deepseek','claude','gemini','groq'].forEach(m => {
+    const n = document.getElementById('llm-nav-' + m);
+    if (n) n.classList.toggle('active', m === model);
+  });
+  const apiSec = document.getElementById('api-key-section');
+  const apiLabel = document.getElementById('api-key-label');
+  const apiInput = document.getElementById('api-key');
+  apiSec.classList.add('visible');
+  const labels = {
+    deepseek: 'DeepSeek API Key',
+    claude:   'Anthropic API Key',
+    gemini:   'Google API Key',
+    groq:     'Groq API Key',
+  };
+  const phs = {
+    deepseek: 'sk-…',
+    claude:   'sk-ant-…',
+    gemini:   'AIza…',
+    groq:     'gsk_…',
+  };
+  apiLabel.textContent = labels[model] || 'API Key';
+  apiInput.placeholder = phs[model] || 'API Key를 입력하세요';
+  // 실제로 제공자가 바뀐 경우에만 저장된 키를 불러옴 — 같은 제공자로 재호출될 때
+  // (예: 페이지 초기화가 뒤늦게 한 번 더 실행되는 경우) 사용자가 이미 입력 중인 값을 덮어쓰지 않도록 함.
+  if (modelChanged) apiInput.value = loadApiKey(model);
+}"""
+
+if "const modelChanged = conversationState.llmModel !== model;" in src:
+    applied.append("JS: selectLLM() 경쟁 상태 수정 이미 존재 (건너뜀)")
+elif race_old in src:
+    src = src.replace(race_old, race_new, 1)
+    applied.append("JS: selectLLM() 경쟁 상태 수정 (제공자 변경 시에만 키 재로드)")
 else:
-    print("[오류] 패치 3(JS - renderStepStreaming) 대상 문자열을 찾지 못했습니다.")
+    print("[오류] 패치 3(JS - selectLLM) 대상 문자열을 찾지 못했습니다.")
     sys.exit(1)
 
 TARGET.write_text(src, encoding="utf-8")
