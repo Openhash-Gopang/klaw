@@ -320,7 +320,13 @@ function calcMatchRate(complexity) {
 }
 
 // stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
-function buildKlawSimPrompt(caseNo, level, stepKey) {
+// stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
+// ★ 토큰 절약 프로토콜(SP_token_efficiency_v1_0.md) T1 준수: 사건번호·심급처럼
+// 호출마다 달라지는 값은 절대 여기(system) 넣지 않는다 — baseCtx(user 메시지)로만
+// 전달한다. 그래야 같은 stepKey에 대해 모든 사용자·모든 사건이 완전히 동일한
+// system 문자열을 공유해 DeepSeek 프롬프트 캐시가 적중한다. 이전 버전은 사건번호를
+// 여기 삽입해 방법론 STEP 분할의 절약 효과를 사실상 무효화시키고 있었다.
+function buildKlawSimPrompt(stepKey) {
   let methodBody;
   if (!klawMethodSplit) {
     methodBody = '[⚠️ K-Law 방법론 원문 로드 실패 — 페이지를 새로고침하거나 GitHub 연결을 확인하세요]\n\n';
@@ -332,8 +338,7 @@ function buildKlawSimPrompt(caseNo, level, stepKey) {
   return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
 ${methodBody}아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
 지금은 STEP 전체가 아니라 위에 주어진 STEP 절차문에 해당하는 부분만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.
-
-[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
+사건번호·심급 등 이번 사건의 구체적인 정보는 이어지는 사용자 메시지에서 확인하세요.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
@@ -576,7 +581,7 @@ async function runJudgementSim() {
     const prevParts = Object.values(window._verdictParts).join('\n\n');
     const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
     const prompt = stepDef.prompt(contextWithPrev);
-    const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level, stepDef.id) }, { role:'user', content: prompt }];
+    const msgs = [{ role:'system', content: buildKlawSimPrompt(stepDef.id) }, { role:'user', content: prompt }];
     try {
       const result = await _klawCall(KLAW_TIER_VERDICT, msgs, { maxTokens: 3000, stream: true, stepCycle: stepDef.id === 'step0' });
       window._verdictParts[stepDef.id] = result;
