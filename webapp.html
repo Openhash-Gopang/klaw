@@ -595,6 +595,25 @@ async function _resolveNickname(ipv6) {
 function startGreeting() {
   if (conversationState.phase !== 'boot') return;
   const name = klawNickname || '회원';
+  conversationState.phase = 'interviewing';
+  conversationState.messages = [{ role:'system', content: INTERVIEW_SYSTEM_PROMPT }];
+
+  // BUG-FIX(2026-07-03): GWP_CTX(나만의 AI 비서가 이 탭을 열며 넘긴, 사용자가
+  // 방금 한 발화 원문)가 있는데도 지금까지는 무시하고 상투적 인사+재질문으로
+  // 시작한 뒤, 사용자가 "다음에" 뭔가 입력해야만 _handleInterviewTurn()
+  // 내부에서 슬쩍 끼워넣었다. 이제는 GWP_CTX가 있으면 그 발화를 곧바로 첫
+  // 인터뷰 입력으로 사용한다 — 재질문 여부(사건 내용이었는지, 단순 "K-Law
+  // 열어줘" 명령이었는지)는 여기서 미리 분류하지 않고, 그대로 INTERVIEW_
+  // SYSTEM_PROMPT에게 판단을 맡긴다(내용이 있으면 바로 분석 질문, 없으면
+  // 자연스럽게 "무엇을 도와드릴지" 물어보는 것도 인터뷰 LLM 몫).
+  if (GWP_CTX && !_gwpSeedUsed) {
+    _gwpSeedUsed = true;
+    appendBubble('ai', `안녕하세요. <b>${escHtml(name)}</b>님, 저는 K-Law 전문 AI입니다. AI 비서로부터 전달받은 내용을 확인하고 있습니다…`);
+    appendBubble('user', `<i>(AI 비서로부터 전달됨)</i><br>${escHtml(GWP_CTX).replace(/\n/g,'<br>')}`);
+    _handleInterviewTurn(GWP_CTX);
+    return;
+  }
+
   appendBubble('ai', `
     안녕하세요. <b>${escHtml(name)}</b>님, 저는 K-Law 전문 AI입니다.<br>
     지금부터 대화를 통해 사건의 개요를 파악하고, 정확한 대법원 판결문 작성을 위해 필요한 데이터를 정리하겠습니다.<br>
@@ -602,8 +621,6 @@ function startGreeting() {
     먼저, 사건 개요를 간략히 말씀해주세요. 마이크를 활성화하여 입력하는 것이 문자 입력보다 편하실 거예요.<br>
     자, 시작하시죠.
   `);
-  conversationState.phase = 'interviewing';
-  conversationState.messages = [{ role:'system', content: INTERVIEW_SYSTEM_PROMPT }];
 }
 
 // 인증 콜백이 지연되거나(예: 이미 로그인된 세션) 오지 않는 예외 상황 대비 폴백
