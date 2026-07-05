@@ -652,7 +652,7 @@ const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 async function _sendPdvReport(user, action) {
   if (!user?.ipv6) { console.warn('[K-Law] PDV 전송 건너뜀: ipv6 없음'); return; }
   try {
-    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+    const res = await fetch('https://hondi-proxy.tensor-city.workers.dev/pdv/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
