@@ -539,7 +539,7 @@ const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 async function _sendPdvReport(user, action) {
   if (!user?.ipv6) { console.warn('[K-Law] PDV 전송 건너뜀: ipv6 없음'); return; }
   try {
-    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+    const res = await fetch('https://hondi-proxy.tensor-city.workers.dev/pdv/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -809,7 +809,7 @@ async function callLLM(messages, maxTokens = 2000) {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
   // DeepSeek — Worker 경유 (CORS + 키 보안 + Context Cache)
-  const resp = await fetch('https://gopang-proxy.tensor-city.workers.dev/ai/chat', {
+  const resp = await fetch('https://hondi-proxy.tensor-city.workers.dev/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -2578,7 +2578,7 @@ async function runMatchEval() {
   try {
     const prompt = buildMatchPrompt(virtualVerdict, realVerdict);
     // Worker /ai/chat 경유 — DeepSeek V4 Pro + Context Cache 자동 적용
-    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/ai/chat', {
+    const res = await fetch('https://hondi-proxy.tensor-city.workers.dev/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
