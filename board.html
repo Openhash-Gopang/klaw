@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — 판결 시뮬레이션 게시판</title>
+<meta name="description" content="K-Law로 생성된 가상 대법원 판결 시뮬레이션 사건을 일련번호로 게재한 공개 게시판.">
+<link rel="stylesheet" href="klaw_shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.board-stat-row{margin-bottom:20px}
+.board-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+.board-toolbar-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.board-select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:var(--font);color:var(--text);background:var(--surface)}
+.case-row{cursor:pointer}
+.case-row td{font-size:12.5px}
+.case-no{font-family:'SF Mono',Consolas,monospace;font-weight:700;color:var(--primary);white-space:nowrap}
+.case-summary-cell{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detail-panel{display:none;background:var(--bg);border-top:2px solid var(--primary-bd)}
+.detail-panel.open{display:table-row}
+.detail-panel td{padding:16px 18px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-block-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--hint);margin-bottom:6px}
+.detail-block-body{font-size:12.5px;line-height:1.7;color:var(--text);white-space:pre-wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;max-height:220px;overflow-y:auto}
+.board-empty{text-align:center;color:var(--hint);padding:48px 0}
+.board-loadmore{display:block;margin:16px auto 0;padding:9px 22px}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a href="index.html" class="sb-brand">
+    <div class="sb-icon">⚖</div>
+    <div><div class="sb-name">K-Law</div><div class="sb-sub">AI 사법 예측 시스템</div></div>
+  </a>
+  <nav class="sb-nav">
+    <div class="sb-sec">서비스</div>
+    <a class="sb-item" href="dashboard.html"><span>🖥</span> 판결 시뮬레이터</a>
+    <a class="sb-item active" href="board.html"><span>📰</span> 게시판</a>
+    <a class="sb-item" href="report.html"><span>📊</span> 실증 결과 보고서</a>
+    <div class="sb-sec">문서</div>
+    <a class="sb-item" href="business.html"><span>💼</span> 사업화 계획서</a>
+    <a class="sb-item" href="whitepaper.html"><span>📄</span> GPT 백서</a>
+    <a class="sb-item" href="participation.html"><span>🤝</span> 파트너 참여 제안</a>
+    <div class="sb-sec">관련 서비스</div>
+    <a class="sb-item" href="https://hondi.net" target="_blank"><span>🤖</span> 고팡</a>
+    <a class="sb-item" href="https://fiil.kr" target="_blank"><span>🌊</span> FIIL.kr</a>
+  </nav>
+  <div class="sb-user"><strong>law.hondi.net</strong>AI City Inc. / K-Law Inc.</div>
+</aside>
+<div class="main">
+  <header class="topbar">
+    <nav class="breadcrumb"><a href="index.html">K-Law</a> › <strong style="color:var(--text)">게시판</strong></nav>
+    <div class="topbar-right">
+      <a class="btn btn-primary" href="desktop.html">⚖ 새 판결 시뮬레이션 실행</a>
+      <span class="clock" id="clock"></span>
+    </div>
+  </header>
+  <div class="content">
+
+    <div class="grid-4 board-stat-row">
+      <div class="stat-card"><div class="stat-icon">📰</div><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">게재된 사건(전체)</div></div>
+      <div class="stat-card"><div class="stat-icon">⚖</div><div class="stat-val" id="stat-avg">—</div><div class="stat-lbl">일치도 누적 평균</div></div>
+      <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val" id="stat-today">—</div><div class="stat-lbl">오늘 게재된 사건</div></div>
+      <div class="stat-card"><div class="stat-icon">🕐</div><div class="stat-val" id="stat-latest">—</div><div class="stat-lbl">최근 게재 시각</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📋 게재 사건 목록</div>
+      </div>
+      <div class="card-body" style="padding:14px 18px 0">
+        <div class="board-toolbar">
+          <div class="board-toolbar-left">
+            <select class="board-select" id="filter-type" onchange="_reload()">
+              <option value="">전체 사건 유형</option>
+              <option value="민사">민사</option>
+              <option value="형사">형사</option>
+              <option value="행정">행정</option>
+              <option value="가사">가사</option>
+              <option value="소액">소액사건</option>
+              <option value="노동">노동</option>
+            </select>
+            <select class="board-select" id="filter-model" onchange="_reload()">
+              <option value="">전체 LLM 모델</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="claude">Claude</option>
+              <option value="gemini">Gemini</option>
+              <option value="groq">Groq</option>
+            </select>
+          </div>
+          <span style="font-size:11px;color:var(--hint)">행을 클릭하면 상세 내용을 볼 수 있습니다</span>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top:0">
+        <table class="data-table" id="board-table">
+          <thead>
+            <tr>
+              <th>일련번호</th>
+              <th>사건 유형</th>
+              <th>심급</th>
+              <th>사건 개요</th>
+              <th>판결 요지</th>
+              <th style="text-align:right">일치도</th>
+              <th>LLM</th>
+              <th>게재 일시</th>
+            </tr>
+          </thead>
+          <tbody id="board-tbody">
+            <tr><td colspan="8" class="board-empty">불러오는 중…</td></tr>
+          </tbody>
+        </table>
+        <button class="btn btn-outline board-loadmore" id="loadmore-btn" onclick="_loadMore()" style="display:none">더 보기</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function tick(){const el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});setTimeout(tick,1000);})();
+
+// ── Supabase (desktop.html과 동일한 klaw_cases 테이블 사용)
+const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+const PAGE_SIZE = 30;
+let offset = 0;
+let reachedEnd = false;
+let allLoaded = [];
+
+const modelLabel = { deepseek:'DeepSeek', claude:'Claude', gemini:'Gemini', groq:'Groq' };
+const typeChip = { '민사':'chip-blue','형사':'chip-red','행정':'chip-green','가사':'chip-orange','소액':'chip-orange','노동':'chip-gold' };
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso){ return iso ? new Date(iso).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'; }
+function chipForType(t){ for(const k in typeChip){ if(t&&t.includes(k)) return typeChip[k]; } return 'chip-gray'; }
+
+function _parseMatchRate(v) {
+  if (v === null || v === undefined) return null;
+  const nums = String(v).match(/\d+(\.\d+)?/g);
+  if (!nums || !nums.length) return null;
+  if (nums.length >= 2) return (parseFloat(nums[0]) + parseFloat(nums[1])) / 2;
+  return parseFloat(nums[0]);
+}
+
+async function _fetchPage(reset) {
+  const typeF  = document.getElementById('filter-type').value;
+  const modelF = document.getElementById('filter-model').value;
+  let q = supa.from('klaw_cases').select('*').eq('status', 'completed')
+    .order('created_at', { ascending: false })
+    .range(reset ? 0 : offset, (reset ? 0 : offset) + PAGE_SIZE - 1);
+  if (typeF)  q = q.ilike('case_type', `%${typeF}%`);
+  if (modelF) q = q.eq('llm_model', modelF);
+  const { data, error } = await q;
+  if (error) { console.warn('[Board] Supabase 오류:', error.message); return []; }
+  return data || [];
+}
+
+async function _reload() {
+  offset = 0; reachedEnd = false; allLoaded = [];
+  document.getElementById('board-tbody').innerHTML = '<tr><td colspan="8" class="board-empty">불러오는 중…</td></tr>';
+  const rows = await _fetchPage(true);
+  allLoaded = rows;
+  offset = rows.length;
+  if (rows.length < PAGE_SIZE) reachedEnd = true;
+  _renderTable(true);
+  _loadStats();
+}
+
+async function _loadMore() {
+  const rows = await _fetchPage(false);
+  allLoaded = allLoaded.concat(rows);
+  offset += rows.length;
+  if (rows.length < PAGE_SIZE) reachedEnd = true;
+  _renderTable(false);
+}
+
+function _renderTable(reset) {
+  const tbody = document.getElementById('board-tbody');
+  const lm = document.getElementById('loadmore-btn');
+  if (!allLoaded.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="board-empty">게재된 사건이 아직 없습니다. 시뮬레이션을 실행하면 이곳에 자동으로 게재됩니다.</td></tr>';
+    lm.style.display = 'none';
+    return;
+  }
+  tbody.innerHTML = allLoaded.map((r, i) => `
+    <tr class="case-row" onclick="_toggleDetail(${i})">
+      <td class="case-no">${esc(r.id)}</td>
+      <td><span class="chip ${chipForType(r.case_type)}">${esc(r.case_type || '미분류')}</span></td>
+      <td>${esc(r.case_level || '-')}</td>
+      <td class="case-summary-cell">${esc(r.case_summary || '(개요 없음)')}</td>
+      <td class="case-summary-cell">${esc(r.verdict || '-')}</td>
+      <td style="text-align:right;font-weight:700">${esc(r.match_rate || '-')}</td>
+      <td>${esc(modelLabel[r.llm_model] || r.llm_model || '-')}</td>
+      <td style="white-space:nowrap;color:var(--hint)">${fmtDate(r.created_at)}</td>
+    </tr>
+    <tr class="detail-panel" id="detail-${i}">
+      <td colspan="8">
+        <div class="detail-grid">
+          <div>
+            <div class="detail-block-title">사건 개요 입력</div>
+            <div class="detail-block-body">${esc(r.case_input || r.case_summary || '(내용 없음)')}</div>
+          </div>
+          <div>
+            <div class="detail-block-title">판결 요지</div>
+            <div class="detail-block-body">${esc(r.verdict || '(판결 요지 없음)')}</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--hint)">
+          K-Law ${esc(r.klaw_version || '-')} · 심급: ${esc(r.case_level || '불명')} · 복잡도: ${esc(r.complexity || '-')} · 확신도: ${esc(r.confidence || '-')} · 판결유형: ${esc(r.verdict_type || '-')}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  lm.style.display = reachedEnd ? 'none' : 'block';
+}
+
+function _toggleDetail(i) {
+  const el = document.getElementById('detail-' + i);
+  if (!el) return;
+  const willOpen = !el.classList.contains('open');
+  document.querySelectorAll('.detail-panel.open').forEach(p => p.classList.remove('open'));
+  if (willOpen) el.classList.add('open');
+}
+
+// ── 상단 요약 통계 (전체 게재 건수 / 일치도 누적 평균 / 오늘 게재 / 최근 게재 시각)
+async function _loadStats() {
+  try {
+    const { count } = await supa.from('klaw_cases').select('id', { count: 'exact', head: true }).eq('status', 'completed');
+    document.getElementById('stat-total').textContent = (count ?? '—') + '건';
+
+    const { data: recentForAvg } = await supa.from('klaw_cases').select('match_rate, created_at')
+      .eq('status', 'completed').order('created_at', { ascending: false }).limit(500);
+    const rates = (recentForAvg || []).map(r => _parseMatchRate(r.match_rate)).filter(v => v !== null);
+    document.getElementById('stat-avg').textContent = rates.length
+      ? (rates.reduce((a,b)=>a+b,0) / rates.length).toFixed(1) + '%'
+      : '—';
+
+    const todayStr = new Date().toISOString().slice(0,10);
+    const todayCount = (recentForAvg || []).filter(r => (r.created_at||'').slice(0,10) === todayStr).length;
+    document.getElementById('stat-today').textContent = todayCount + '건';
+
+    document.getElementById('stat-latest').textContent = recentForAvg && recentForAvg[0]
+      ? new Date(recentForAvg[0].created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+      : '—';
+  } catch(e) { console.warn('[Board] 통계 로드 실패:', e.message); }
+}
+
+_reload();
+</script>
+</body>
+</html>

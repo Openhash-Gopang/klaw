@@ -241,6 +241,7 @@ a { text-decoration: none; color: inherit; }
     <a class="sidebar-link" onclick="showPanel('simulations')"><span class="icon">📋</span> 시뮬레이션 이력 <span class="sidebar-badge" id="sb-sim-count">0</span></a>
     <a class="sidebar-link" onclick="showPanel('users')"><span class="icon">👥</span> 사용자 현황</a>
     <a class="sidebar-link" onclick="showPanel('klaw-versions')"><span class="icon">📄</span> K-Law 버전 이력</a>
+    <a class="sidebar-link" href="board.html" target="_blank"><span class="icon">📰</span> 공개 게시판 ↗</a>
   </div>
 
   <div class="sidebar-section">
@@ -461,6 +462,25 @@ function showPanel(id) {
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtDate(iso){ return iso?new Date(iso).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'-'; }
 const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude Sonnet', gemini:'Gemini 2.0' };
+
+// ── match_rate 파싱 (예: "94.4%", "90~99.99%" 형태의 LLM 자기보고 문자열 → 숫자)
+function _parseMatchRate(v) {
+  if (v === null || v === undefined) return null;
+  const nums = String(v).match(/\d+(\.\d+)?/g);
+  if (!nums || !nums.length) return null;
+  if (nums.length >= 2) return (parseFloat(nums[0]) + parseFloat(nums[1])) / 2;
+  return parseFloat(nums[0]);
+}
+
+// ── ISO 주차 키 (YYYY-Www)
+function _isoWeekKey(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - dayNum + 3);
+  const firstThu = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((date - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay() + 6) % 7)) / 7);
+  return date.getUTCFullYear() + '-W' + String(week).padStart(2, '0');
+}
 
 // ── 종합 대시보드
 function caseTypeBadge(type) {
@@ -706,18 +726,54 @@ function renderStats() {
 
 // ── 예측 정확도
 function renderAccuracy() {
+  // klaw_cases.match_rate는 LLM이 자기보고한 문자열("94.4%", "90~99.99%" 등) → 숫자로 파싱
+  const withRate = allSessions
+    .map(s => ({ ...s, _rate: _parseMatchRate(s.match_rate) }))
+    .filter(s => s._rate !== null);
+
+  const overallAvg = withRate.length
+    ? withRate.reduce((a, s) => a + s._rate, 0) / withRate.length
+    : null;
+
+  // 버킷팅: 기본 일별, 데이터가 21일을 초과해 흩어져 있으면 주별로 전환
+  const dayKeys = [...new Set(withRate.map(s => new Date(s.used_at).toISOString().slice(0, 10)))];
+  const useWeekly = dayKeys.length > 21;
+  const buckets = {};
+  withRate.forEach(s => {
+    const d = new Date(s.used_at);
+    const key = useWeekly ? _isoWeekKey(d) : d.toISOString().slice(0, 10);
+    (buckets[key] = buckets[key] || []).push(s._rate);
+  });
+  const bucketKeys = Object.keys(buckets).sort().slice(-14); // 최근 14개 구간만 표시
+  const bucketAvgs = bucketKeys.map(k => {
+    const arr = buckets[k];
+    return { key: k, avg: arr.reduce((a, b) => a + b, 0) / arr.length, n: arr.length };
+  });
+  const maxAvg = Math.max(1, ...bucketAvgs.map(b => b.avg));
+
   return `
   <div class="section-hd">K-Law 예측 정확도 지표</div>
   <div class="kpi-row">
     <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-body"><div class="kpi-val gold">99.9%</div><div class="kpi-label">논문 기준 정확도</div><div class="kpi-sub">K-Law 이론적 추정치</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">⚖</div><div class="kpi-body"><div class="kpi-val">73%</div><div class="kpi-label">대법원 일치도(실측)</div><div class="kpi-sub">선별 판례 300건 기준</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">⚖</div><div class="kpi-body"><div class="kpi-val">${overallAvg !== null ? overallAvg.toFixed(1) + '%' : '—'}</div><div class="kpi-label">대법원 일치도(실측 누적 평균)</div><div class="kpi-sub">${withRate.length}건 기준</div></div></div>
     <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kpi-val green">+28%p</div><div class="kpi-label">인간 원심 대비</div><div class="kpi-sub">2심 대비 정확도 향상</div></div></div>
     <div class="kpi-card"><div class="kpi-icon">🔬</div><div class="kpi-body"><div class="kpi-val orange">95.5%</div><div class="kpi-label">전수 상고 환경 추정</div><div class="kpi-sub">이론적 추정(±5%p)</div></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">📅 ${useWeekly ? '주별' : '일별'} 일치도 평균 추이 <span style="font-weight:400;color:var(--hint);font-size:11px">최근 ${bucketAvgs.length}개 구간</span></div>
+    <div class="card-body">
+      ${bucketAvgs.length ? bucketAvgs.map(b => `
+      <div class="stat-bar-row">
+        <div class="stat-bar-label">${b.key}</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" data-width="${Math.round(b.avg / maxAvg * 100)}" style="width:0%;background:var(--primary)"></div></div>
+        <div class="stat-bar-val">${b.avg.toFixed(1)}% <span style="color:var(--hint);font-weight:400">(${b.n}건)</span></div>
+      </div>`).join('') : '<div style="text-align:center;color:var(--hint);padding:24px">일치도 데이터를 가진 사건이 아직 없습니다</div>'}
+    </div>
   </div>
   <div class="card">
     <div class="card-header">📋 면책 고지</div>
     <div class="card-body" style="font-size:12px;color:var(--sub);line-height:1.8">
-      ⚠ 99.9% 및 95.5% 수치는 K-Law 논문 기반 이론적 추정치입니다. 73%는 대법원 선별 공개 판례(고난도 사건) 기준 예비 측정치이며, 실제 전수 사건에서는 다를 수 있습니다. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 변호사의 법률 자문을 대체하지 않습니다.
+      ⚠ 99.9% 및 95.5%, +28%p 수치는 K-Law 논문 기반 이론적 추정치입니다. "대법원 일치도(실측 누적 평균)"와 위 추이 차트는 klaw_cases 테이블에 기록된 실제 시뮬레이션 결과를 집계한 것이나, 일치도 자체가 각 LLM이 스스로 보고한 예상치(자기평가)이며 표본이 편중되어 있을 수 있어 전체 사건 분포를 대표하지 않을 수 있습니다. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 변호사의 법률 자문을 대체하지 않습니다.
     </div>
   </div>`;
 }
