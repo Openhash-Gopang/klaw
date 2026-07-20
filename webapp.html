@@ -751,15 +751,40 @@ async function runJudgementSim() {
   // 시뮬레이션 완료가 이 세션의 목적 완수 시점이므로 여기서 1회 발신한다.
   if (window.opener) {
     import('https://hondi.net/src/gopang/gwp/gwp-report-client.js')
-      .then(({ reportGwpSessionEnd }) => reportGwpSessionEnd({
-        agencyId: 'klaw',
-        guid: _klawGuid(),
-        messages: conversationState.messages,
-        resultText: fullText,
-        summaryLine: 'K-Law 판결 시뮬레이션 완료: ' + caseNo,
-        gwpMode: GWP_MODE,
-        gwpOrigin: GWP_ORIGIN,
-      }))
+      .then(({ reportGwpSessionEnd, recordOwnerPDV }) => {
+        // consultation(사용자와의 상담) — reportGwpSessionEnd() 내부에서
+        // 2026-07-20부로 자동 기록됨(gwp-report-client.js (c) 참조).
+        reportGwpSessionEnd({
+          agencyId: 'klaw',
+          guid: _klawGuid(),
+          messages: conversationState.messages,
+          resultText: fullText,
+          summaryLine: 'K-Law 판결 시뮬레이션 완료: ' + caseNo,
+          gwpMode: GWP_MODE,
+          gwpOrigin: GWP_ORIGIN,
+        }).catch(() => {});
+
+        // own_output(K-Law 자신의 산출물) — 2026-07-20 신설. 실사용자의
+        // 실제 사건이라 대응하는 실제 판결이 없으므로 평가 점수는 없다
+        // (그건 benchmark.html의 별도 흐름 — 실제 판결문이 있는 과거
+        // 사건을 K-Law에 입력해 생성과 채점을 같은 흐름에서 수행함).
+        // 여기서는 판결문 본문에 이미 있는 K-Law 자신의 예측치(자기평가,
+        // 검증 아님)만 detail에 같이 남긴다.
+        const predictedMatch = (fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/) || [])[1] || null;
+        recordOwnerPDV({
+          ownerAgency: 'klaw',
+          recordType: 'own_output',
+          what: 'K-Law 가상 판결문 생성: ' + caseNo,
+          how: 'completed',
+          detail: {
+            subtype: 'verdict_generated',
+            case_no: caseNo,
+            klaw_version: klawVersion,
+            predicted_match_rate: predictedMatch, // 자기평가 예측치일 뿐, 검증된 값 아님
+            verified: false,
+          },
+        }).catch(() => {});
+      })
       .catch(() => {});
   }
 }
