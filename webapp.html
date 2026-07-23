@@ -1,13 +1,16 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-<script src="/gopang-wallet.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
 <title>K-Law — AI 판결 상담</title>
 <meta name="description" content="K-Law 전문 AI와 대화를 통해 사건 개요를 파악하고 가상 판결문을 작성합니다.">
 
-<!-- 2026-07-23: K-Law 가상 판결 시뮬레이션은 혼디 로그인이 불필요 → subsystem-auth.js 제거 -->
+<!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
+<!-- 2026-07-23: 잠깐 제거됐다가 복원 — 이 페이지는 klaw_sessions 이용 이력·PDV
+     기록에 실제 guid가 필요해서, desktop.html/benchmark.html과 달리 익명
+     게스트로 둘 수 없다. 필수(data-required 속성 없음 = 기본값 true) 그대로 둔다. -->
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
