@@ -262,6 +262,18 @@ if (_qs.get('ctx')) {
       : decodeURIComponent(_qs.get('ctx'));
   } catch(e) { GWP_CTX = ''; }
 }
+// ★ 2026-07-30 신설 — engine.js의 _gwpLaunch()가 보내는 facts(currentLocation)
+// 파싱. K-Public에서 같은 패턴으로 이미 적용·검증했다(주피터 지시 — gov
+// 도메인 전체로 확장, K-Law도 handleKlawRelay 서버측 강제주입이 이미 준비됨).
+let GWP_FACTS = null;
+if (_qs.get('facts')) {
+  try {
+    const raw = (_qs.get('facts_enc') === 'b64')
+      ? decodeURIComponent(escape(atob(_qs.get('facts'))))
+      : decodeURIComponent(_qs.get('facts'));
+    GWP_FACTS = JSON.parse(raw);
+  } catch (e) { console.warn('[GWP] facts 파싱 실패(무시):', e.message); GWP_FACTS = null; }
+}
 let _gwpSeedUsed = false;
 
 // ══════════════════════════════════════════════════════════════
@@ -486,7 +498,7 @@ async function _klawCall(tier, messages, opts = {}) {
   const resp = await fetch(KLAW_RELAY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle })
+    body: JSON.stringify({ guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle, currentLocation: GWP_FACTS?.currentLocation || null })
   });
 
   if (stream) {
