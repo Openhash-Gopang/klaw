@@ -332,6 +332,40 @@ function _splitKlawMethodology(text) {
   };
 }
 
+// ══════════════════════════════════════════════════════════════
+// 관할(사건유형)별 부록 B-1 발췌 — 인터뷰에서 이미 파악한 cs.type을
+// 그대로 활용해, STEP B-1의 16개 버킷 중 이 사건에 우선 적용되는
+// 버킷만 뽑아 baseCtx(사용자 메시지)에 실어보낸다.
+// ★ system 프롬프트(buildKlawSimPrompt)는 건드리지 않는다 — 토큰
+// 절약 프로토콜 T1(캐시 적중 유지) 원칙을 그대로 지킨다. cs.type처럼
+// 사건마다 달라지는 값은 항상 user 메시지(baseCtx)에만 싣는다.
+const CASE_TYPE_TO_B1_BUCKET = {
+  '민사(본안)': ['계약 해석', '권리의 발생·소멸·변경', '손해배상', '권리 귀속', '증거·입증', '시간적 요소'],
+  '형사':        ['형사', '증거·입증', '시간적 요소'],
+  '행정':        ['행정', '제재', '하위 규범 효력', '절차법'],
+  '가사':        ['가사', '권리의 발생·소멸·변경'],
+  '소액사건':    ['계약 해석', '손해배상', '증거·입증'],
+  '노동':        ['노동관계', '제재'],
+  '소년보호':    ['소년보호'],
+  '지식재산':    ['지식재산', '계약 해석'],
+  '도산':        ['도산', '절차법'],
+};
+
+// klawMethodText(원문) 안의 "### B-1: ..." 섹션에서 대괄호 제목이
+// bucketNames와 일치하는 블록만 뽑아 반환한다. 못 찾으면 빈 문자열.
+function extractB1Buckets(fullText, bucketNames) {
+  if (!fullText || !bucketNames?.length) return '';
+  const b1Start = fullText.indexOf('### B-1:');
+  const b2Start = fullText.indexOf('### B-2:');
+  if (b1Start === -1) return '';
+  const b1Section = fullText.slice(b1Start, b2Start === -1 ? undefined : b2Start);
+  const blocks = b1Section.split(/\n---\n/);
+  const matched = blocks.filter(block =>
+    bucketNames.some(name => block.includes('**[' + name))
+  );
+  return matched.join('\n\n').trim();
+}
+
 async function loadKlawVersion() {
   try {
     const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
@@ -387,7 +421,7 @@ const INTERVIEW_SYSTEM_PROMPT = `당신은 대한민국 변호사 역할을 수�
 1. 한 턴에 정확히 하나의 질문만 한다. 여러 질문을 한 번에 나열하지 않는다.
 2. 사용자가 이미 말한 내용을 다시 묻지 않는다.
 3. 법적으로 의미 없는 잡담·감정 표현에는 한두 문장으로 짧게 공감하되, 즉시 다음 질문으로 돌아온다.
-4. 6하원칙 중 아직 비어 있는 항목을 우선 채우되, 사건 성격(민사/형사/행정/가사/소액사건/노동)이 파악되면 그 유형에 법적으로 의미 있는 세부 사실(금액·기한·계약서/증거 유무·전과·인과관계 등)도 함께 확인한다.
+4. 6하원칙 중 아직 비어 있는 항목을 우선 채우되, 사건 성격(민사/형사/행정/가사/소액사건/노동/소년보호/지식재산/도산)이 파악되면 그 유형에 법적으로 의미 있는 세부 사실(금액·기한·계약서/증거 유무·전과·인과관계·소년의 연령·특허등록번호·개시원인 등)도 함께 확인한다.
 5. 실제 변호사가 의뢰인을 상담하듯, 확인 멘트(짧은 요약·공감) 뒤에 다음 질문을 자연스럽게 잇는다.
 6. 판결 시뮬레이션에 충분한 정보가 모였다고 스스로 판단되면 더 이상 질문하지 않고 마무리 멘트를 한다.
 
@@ -398,7 +432,7 @@ const INTERVIEW_SYSTEM_PROMPT = `당신은 대한민국 변호사 역할을 수�
 <<<STATE>>>{"level":"","type":"","who":"","when":"","where":"","what":"","how":"","why":"","extra":"","ready":false}<<<END>>>
 
 - level: 1심/2심/3심/헌법재판 중 판단되면 채움(아직 모르면 빈 문자열)
-- type: 민사(본안)/형사/행정/가사/소액사건/노동 중 판단되면 채움
+- type: 민사(본안)/형사/행정/가사/소액사건/노동/소년보호/지식재산/도산 중 판단되면 채움(가사사건 중 만 19세 미만 소년의 보호처분·형사 사건이면 가사가 아니라 소년보호로 분류)
 - who/when/where/what/how/why: 지금까지 대화에서 파악된 내용을 한국어로 간결히 "누적" 기록(이전 턴 내용도 유지하며 새 내용을 더한다). 모르면 빈 문자열.
 - extra: 6하원칙 외에 사건 유형상 중요한 추가 사실(금액·증거 유무 등)을 자유 기술로 누적
 - ready: 판결 시뮬레이션을 시작해도 좋다고 판단되면 true, 아직 더 물어봐야 하면 false`;
@@ -458,7 +492,7 @@ const STEP_DEFS = [
 ];
 
 function caseTypeColor(type) {
-  const map = {'민사':'#0057A8','민사(본안)':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#7B3FA0','소액사건':'#C05621','노동':'#B8952A','헌법재판':'#003C82'};
+  const map = {'민사':'#0057A8','민사(본안)':'#0057A8','형사':'#C01C28','행정':'#1B6B3A','가사':'#7B3FA0','소액사건':'#C05621','노동':'#B8952A','헌법재판':'#003C82','소년보호':'#8A5A00','지식재산':'#00707A','도산':'#4A4A4A'};
   for (const [k,v] of Object.entries(map)) { if (type && type.includes(k)) return v; }
   return '#0057A8';
 }
@@ -732,9 +766,12 @@ async function runJudgementSim() {
   window._verdictCaseNo = caseNo;
 
   const progress = appendBubble('ai', _progressHtml(0, STEP_DEFS.length, 'STEP 0 준비 중…'));
+  const priorityBuckets = CASE_TYPE_TO_B1_BUCKET[cs.type] || [];
+  const b1Excerpt = extractB1Buckets(klawMethodText, priorityBuckets);
   const baseCtx = `사건번호: ${caseNo}\n심급: ${level}\n사건분류: ${cs.type||''}\n` +
     `누가: ${cs.who||''}\n언제: ${cs.when||''}\n어디서: ${cs.where||''}\n무엇을: ${cs.what||''}\n어떻게: ${cs.how||''}\n왜: ${cs.why||''}\n` +
-    `추가 사실: ${cs.extra||''}`;
+    `추가 사실: ${cs.extra||''}` +
+    (b1Excerpt ? `\n\n[이 사건유형(${cs.type})에 우선 적용되는 부록 B-1 원칙 발췌]\n${b1Excerpt}` : '');
 
   for (let i = 0; i < STEP_DEFS.length; i++) {
     const stepDef = STEP_DEFS[i];
