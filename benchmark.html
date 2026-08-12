@@ -7,7 +7,6 @@
 <title>K-Law — 벤치마크</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
 <script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -532,9 +531,12 @@ button{font-family:var(--font);cursor:pointer}
 
 <script>
 // ══ SUPABASE 초기화 ════════════════════════════════════════
-const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
-const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+// ══ L1 PocketBase (hanlim) ═══════════════════════════════════
+// 2026-08-12 — Supabase 자격증명 제거에 따른 전환. gopang/pb_migrations의
+// klaw_cases/klaw_benchmark/klaw_sessions 세 마이그레이션 참조.
+const L1_KLAW_CASES_URL     = 'https://l1-hanlim.hondi.net/api/collections/klaw_cases/records';
+const L1_KLAW_BENCHMARK_URL = 'https://l1-hanlim.hondi.net/api/collections/klaw_benchmark/records';
+const L1_KLAW_SESSIONS_URL  = 'https://l1-hanlim.hondi.net/api/collections/klaw_sessions/records';
 
 // ══ PDV 보고 ═══════════════════════════════════════════════
 async function _sendPdvReport(user, action) {
@@ -578,44 +580,45 @@ window._onGopangAuth = function(user) {
   _loadKlawHistory();
 };
 
-// ══ K-Law 이력 (Supabase klaw_sessions) ══════════════════
+// ══ K-Law 이력 (L1 PocketBase klaw_sessions) ══════════════
 async function _loadKlawHistory() {
   if (!currentUser?.ipv6) return;
   try {
-    const { data } = await supa
-      .from('klaw_sessions')
-      .select('klaw_version, llm_model, used_at')
-      .eq('user_id', currentUser.ipv6)
-      .order('used_at', { ascending: false })
-      .limit(50);
+    const filter = encodeURIComponent(`user_id='${currentUser.ipv6}'`);
+    const res = await fetch(`${L1_KLAW_SESSIONS_URL}?filter=${filter}&sort=-created&perPage=50`);
+    const json = await res.json();
+    const data = (json.items || []).map(r => ({ ...r, used_at: r.created }));
     userKlawSentVersions[currentUser.ipv6] = {};
-    (data||[]).forEach(r => { userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
-    _renderKlawHistory(data||[]);
-  } catch(e) { console.warn('[Supa]', e.message); }
+    data.forEach(r => { userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
+    _renderKlawHistory(data);
+  } catch(e) { console.warn('[L1]', e.message); }
 }
 
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
   const uid = currentUser?.ipv6;
   if (!uid) return;
   try {
-    const { error } = await supa.from('klaw_sessions').insert({
-      user_id:      uid,
-      klaw_version: klawVer,
-      llm_model:    llmModel,
-      used_at:      new Date().toISOString(),
-      case_type:    simData.caseType    || null,
-      case_level:   simData.caseLevel   || null,
-      case_summary: simData.caseSummary || null,
-      verdict:      simData.verdict     || null,
-      confidence:   simData.confidence  || null,
-      case_input:   simData.caseInput   || null
+    const res = await fetch(L1_KLAW_SESSIONS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id:      uid,
+        klaw_version: klawVer,
+        llm_model:    llmModel,
+        case_type:    simData.caseType    || null,
+        case_level:   simData.caseLevel   || null,
+        case_summary: simData.caseSummary || null,
+        verdict:      simData.verdict     || null,
+        confidence:   simData.confidence  || null,
+        case_input:   simData.caseInput   || null
+      })
     });
-    if (error) { console.error('[Supa] klaw_sessions 저장 실패:', JSON.stringify(error)); return; }
+    if (!res.ok) { console.error('[L1] klaw_sessions 저장 실패:', res.status, await res.text()); return; }
     if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
     userKlawSentVersions[uid][klawVer] = true;
-    console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
+    console.log('[K-Law] \u2705 klaw_sessions 저장 완료 (L1)');
     _loadKlawHistory();
-  } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
+  } catch(e) { console.warn('[L1] 이력 저장 실패:', e.message); }
 }
 
 function hasKlawBeenSent(klawVer) {
@@ -650,10 +653,7 @@ document.addEventListener('click', e => {
   if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
 });
 
-// Supabase klaw_cases 저장
-const _KLAW_SUPABASE_URL = SUPA_URL;
-const _KLAW_SUPABASE_KEY = SUPA_ANON;
-
+// L1 PocketBase klaw_cases 저장 (L1_KLAW_CASES_URL은 상단에 정의됨)
 function _sendCaseToKlaw(klawResult, caseInput) {
   try {
     const caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
@@ -668,8 +668,8 @@ function _sendCaseToKlaw(klawResult, caseInput) {
       return null;
     }
     const record = {
-      id:            caseNo,
-      source:        'desktop',
+      case_no:       caseNo,
+      source:        'benchmark', // v15.2 정합성 리뷰에서 수정 — 이전엔 desktop.html 복사본이라 'desktop'으로 오기재됨
       case_type:     klawResult?.caseType    || null,
       case_type_code:_typeCode(klawResult?.caseType),
       case_level:    klawResult?.caseLevel   || null,
@@ -686,15 +686,12 @@ function _sendCaseToKlaw(klawResult, caseInput) {
       reporter:      currentUser?.ipv6 || null,
       status:        'completed'
     };
-    fetch(_KLAW_SUPABASE_URL + '/rest/v1/klaw_cases', {
+    fetch(L1_KLAW_CASES_URL, {
       method: 'POST',
-      headers: {
-        'apikey': _KLAW_SUPABASE_KEY, 'Authorization': 'Bearer ' + _KLAW_SUPABASE_KEY,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(record)
     }).then(res => {
-      if (res.ok || res.status === 201) console.log('[K-Law] ✅ Supabase 저장 →', caseNo);
+      if (res.ok) console.log('[K-Law] ✅ L1 PocketBase 저장 →', caseNo);
       else res.text().then(t => console.warn('[K-Law] Supabase 오류:', res.status, t));
     }).catch(e => console.warn('[K-Law] 네트워크 오류:', e.message));
   } catch(e) { console.warn('[K-Law] _sendCaseToKlaw 오류:', e.message); }
@@ -2041,7 +2038,7 @@ async function saveBenchRecord(record) {
   _bhSave(arr);
   _updateHistoryBadge(); // 뱃지 카운트 갱신
 
-  // ── 2. Supabase klaw_benchmark 저장 ────────────────────
+  // ── 2. L1 PocketBase klaw_benchmark 저장 ────────────────
   try {
     const row = {
       case_no:          record.caseNo       || '—',
@@ -2056,25 +2053,20 @@ async function saveBenchRecord(record) {
       score_total:      record.total        ?? null,
       grade:            record.grade        || null,
       eval_raw:         (window._lastEvalRaw || '').slice(0, 4000) || null,
-      klaw_version:     record.klawVersion  || klawVersion || 'v15.3',
+      klaw_version:     record.klawVersion  || klawVersion || 'v15.1',
       llm_model:        'deepseek-v4-pro',
       reporter:         currentUser?.ipv6   || null,
     };
-    const res = await fetch(SUPA_URL + '/rest/v1/klaw_benchmark', {
+    const res = await fetch(L1_KLAW_BENCHMARK_URL, {
       method:  'POST',
-      headers: {
-        'apikey':        SUPA_ANON,
-        'Authorization': 'Bearer ' + SUPA_ANON,
-        'Content-Type':  'application/json',
-        'Prefer':        'return=minimal',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(row),
     });
-    if (res.ok || res.status === 201) {
-      console.log('[Benchmark] ✅ Supabase 저장 완료 —', record.caseNo);
+    if (res.ok) {
+      console.log('[Benchmark] ✅ L1 PocketBase 저장 완료 —', record.caseNo);
     } else {
       const t = await res.text();
-      console.warn('[Benchmark] Supabase 저장 실패:', res.status, t);
+      console.warn('[Benchmark] L1 PocketBase 저장 실패:', res.status, t);
     }
   } catch(e) {
     console.warn('[Benchmark] Supabase 네트워크 오류:', e.message);
@@ -2130,16 +2122,18 @@ function _bhGoPage(p) { _bhPage = p; _renderTable(_bhLoad()); }
 async function clearBenchHistory() {
   if (!confirm('이력을 모두 삭제하시겠습니까?')) return;
   localStorage.removeItem(BH_KEY);
-  // Supabase 본인 기록도 삭제
+  // L1 PocketBase 본인 기록도 삭제
   if (currentUser?.ipv6) {
     try {
-      await fetch(
-        SUPA_URL + '/rest/v1/klaw_benchmark?reporter=eq.' + encodeURIComponent(currentUser.ipv6),
-        { method: 'DELETE',
-          headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
-      );
-      console.log('[Benchmark] Supabase 이력 삭제 완료');
-    } catch(e) { console.warn('[Benchmark] Supabase 삭제 실패:', e.message); }
+      // PocketBase REST는 필터 기반 일괄 삭제를 지원하지 않아 목록 조회 후 개별 삭제
+      const filter = encodeURIComponent(`reporter='${currentUser.ipv6}'`);
+      const res = await fetch(`${L1_KLAW_BENCHMARK_URL}?filter=${filter}&perPage=200`);
+      const json = await res.json();
+      await Promise.all((json.items || []).map(r =>
+        fetch(`${L1_KLAW_BENCHMARK_URL}/${r.id}`, { method: 'DELETE' })
+      ));
+      console.log('[Benchmark] L1 PocketBase 이력 삭제 완료');
+    } catch(e) { console.warn('[Benchmark] L1 PocketBase 삭제 실패:', e.message); }
   }
   renderBenchHistory();
 }
@@ -2169,17 +2163,15 @@ window.switchBenchTab = function(tab) {
 }
 
 // ── 이력 렌더링 ───────────────────────────────────────────
-async function _loadBenchHistoryFromSupabase() {
+async function _loadBenchHistoryFromL1() {
   if (!currentUser?.ipv6) return;
   try {
-    const res = await fetch(
-      SUPA_URL + '/rest/v1/klaw_benchmark?order=created_at.desc&limit=200',
-      { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON,
-                   'x-gopang-ipv6': currentUser.ipv6 } }
-    );
+    const filter = encodeURIComponent(`reporter='${currentUser.ipv6}'`);
+    const res = await fetch(`${L1_KLAW_BENCHMARK_URL}?filter=${filter}&sort=-created&perPage=200`);
     if (!res.ok) return;
-    const rows = await res.json();
-    if (!Array.isArray(rows) || !rows.length) return;
+    const json = await res.json();
+    const rows = json.items || [];
+    if (!rows.length) return;
     const converted = rows.map(r => ({
       caseNo:      r.case_no,
       caseType:    r.case_type,
@@ -2189,20 +2181,20 @@ async function _loadBenchHistoryFromSupabase() {
       total:       r.score_total      !== null ? parseFloat(r.score_total)      : null,
       grade:       r.grade,
       klawVersion: r.klaw_version,
-      createdAt:   r.created_at,
+      createdAt:   r.created,
       summary:     r.summary || null,
       supaId:      r.id,
     }));
     _bhSave(converted);
-    console.log('[Benchmark] ✅ Supabase 이력 로드 —', converted.length, '건');
+    console.log('[Benchmark] ✅ L1 PocketBase 이력 로드 —', converted.length, '건');
   } catch(e) {
-    console.warn('[Benchmark] Supabase 이력 로드 실패:', e.message);
+    console.warn('[Benchmark] L1 PocketBase 이력 로드 실패:', e.message);
   }
 }
 
 async function renderBenchHistory() {
   // Supabase에서 최신 데이터 로드 후 렌더링
-  await _loadBenchHistoryFromSupabase();
+  await _loadBenchHistoryFromL1();
   const arr = _bhLoad();
   _renderStats(arr);
   _renderTrend(arr);
@@ -2469,7 +2461,7 @@ function showBenchDetail(supaId, caseNo) {
   document.body.style.overflow = 'hidden';
 
   if (!supaId) {
-    // Supabase ID 없으면 localStorage에서 찾기
+    // L1 PocketBase ID 없으면 localStorage에서 찾기
     const local = _bhLoad().find(r => r.caseNo === caseNo);
     if (local?.summary) {
       _renderBenchDetail({ summary: local.summary, virtual_verdict: null,
@@ -2478,20 +2470,17 @@ function showBenchDetail(supaId, caseNo) {
         klaw_version: local.klawVersion, created_at: local.createdAt });
     } else {
       loading.style.display = 'none';
-      errorEl.textContent = 'Supabase ID가 없습니다. 재평가 후 다시 시도하세요.';
+      errorEl.textContent = 'PocketBase ID가 없습니다. 재평가 후 다시 시도하세요.';
       errorEl.style.display = 'block';
     }
     return;
   }
 
-  // Supabase에서 전체 판결문 로드
-  fetch(SUPA_URL + '/rest/v1/klaw_benchmark?id=eq.' + supaId + '&select=*&limit=1', {
-    headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON }
-  })
-  .then(r => r.json())
-  .then(rows => {
-    if (!rows?.length) throw new Error('기록을 찾을 수 없습니다.');
-    _renderBenchDetail(rows[0]);
+  // L1 PocketBase에서 전체 판결문 로드
+  fetch(`${L1_KLAW_BENCHMARK_URL}/${supaId}`)
+  .then(r => { if (!r.ok) throw new Error('기록을 찾을 수 없습니다.'); return r.json(); })
+  .then(row => {
+    _renderBenchDetail(row);
   })
   .catch(e => {
     loading.style.display = 'none';

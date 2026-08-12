@@ -290,6 +290,11 @@ a { text-decoration: none; color: inherit; }
 
 <script>
 // ══ SUPABASE 초기화 ════════════════════════════════════════
+// ══ L1 PocketBase (klaw_cases 전용) ═══════════════════════
+// 2026-08-12 — klaw_cases 조회만 PocketBase로 전환. 아래 SUPA_URL/SUPA_ANON은
+// users 테이블(관리자 인증)에 계속 쓰이므로 그대로 둔다 — 별도로 안전하게
+// 처리 필요(README_SECRETS_INCIDENT.md 참조).
+const L1_KLAW_CASES_URL = 'https://l1-hanlim.hondi.net/api/collections/klaw_cases/records';
 const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
 const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
 const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
@@ -420,15 +425,17 @@ let userMap = {};
 
 async function loadAllData() {
   try {
-    const { data } = await supa
-      .from('klaw_cases')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const res = await fetch(`${L1_KLAW_CASES_URL}?sort=-created&perPage=200`);
+    const json = await res.json();
+    const data = json.items || [];
     allSessions = (data || []).map(r => ({
       ...r,
-      // dashboard 렌더 함수가 used_at을 참조하므로 별칭 부여
-      used_at: r.created_at
+      // dashboard 렌더 함수가 used_at을 참조하므로 별칭 부여 (PocketBase는 created)
+      used_at: r.created,
+      // 저장 측(desktop.html/benchmark.html)은 reporter로 저장하는데 읽는 쪽은
+      // user_id를 참조해 그동안 사용자별 통계가 undefined로 뭉개지고 있었음(v15.2
+      // 정합성 리뷰에서 발견) — used_at과 동일한 방식으로 별칭 부여
+      user_id: r.reporter
     }));
     document.getElementById('sb-sim-count').textContent = allSessions.length;
   } catch(e) { allSessions = []; }
