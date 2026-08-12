@@ -7,7 +7,6 @@
 <title>K-Law — 판결 시뮬레이터</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
 <!-- 2026-07-23: K-Law 가상 판결 시뮬레이션은 혼디 로그인이 불필요 → subsystem-auth.js 제거 -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -642,10 +641,10 @@ button{font-family:var(--font);cursor:pointer}
 </div>
 
 <script>
-// ══ SUPABASE 초기화 ════════════════════════════════════════
-const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
-const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+// ══ PocketBase(worker.js 프록시) 초기화 ═══════════════════
+// 2026-08-13: klaw_sessions/klaw_cases Supabase 직접호출 → hondi-proxy
+// worker.js의 /klaw/sessions/*, /klaw/cases 프록시(L1 hanlim)로 이전.
+const KLAW_API_BASE = 'https://hondi-proxy.tensor-city.workers.dev';
 
 // ══ PDV 보고 ═══════════════════════════════════════════════
 async function _sendPdvReport(user, action) {
@@ -689,44 +688,48 @@ window._onGopangAuth = function(user) {
   _loadKlawHistory();
 };
 
-// ══ K-Law 이력 (Supabase klaw_sessions) ══════════════════
+// ══ K-Law 이력 (klaw_sessions, PocketBase 경유) ═══════════
+// used_at 필드는 klaw_sessions 컬렉션에 없음(PocketBase 기본 created로
+// 대체) — 서버가 klaw_version/llm_model/created를 반환, created를
+// used_at으로 별칭 부여해 기존 렌더 함수와의 호환을 유지한다.
 async function _loadKlawHistory() {
   if (!currentUser?.ipv6) return;
   try {
-    const { data } = await supa
-      .from('klaw_sessions')
-      .select('klaw_version, llm_model, used_at')
-      .eq('user_id', currentUser.ipv6)
-      .order('used_at', { ascending: false })
-      .limit(50);
+    const res = await fetch(KLAW_API_BASE + '/klaw/sessions/history?user_id=' + encodeURIComponent(currentUser.ipv6));
+    const json = await res.json();
+    const data = json.ok ? json.items : [];
     userKlawSentVersions[currentUser.ipv6] = {};
-    (data||[]).forEach(r => { userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
+    (data||[]).forEach(r => { r.used_at = r.created; userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
     _renderKlawHistory(data||[]);
-  } catch(e) { console.warn('[Supa]', e.message); }
+  } catch(e) { console.warn('[K-Law]', e.message); }
 }
 
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
   const uid = currentUser?.ipv6;
   if (!uid) return;
   try {
-    const { error } = await supa.from('klaw_sessions').insert({
-      user_id:      uid,
-      klaw_version: klawVer,
-      llm_model:    llmModel,
-      used_at:      new Date().toISOString(),
-      case_type:    simData.caseType    || null,
-      case_level:   simData.caseLevel   || null,
-      case_summary: simData.caseSummary || null,
-      verdict:      simData.verdict     || null,
-      confidence:   simData.confidence  || null,
-      case_input:   simData.caseInput   || null
+    const res = await fetch(KLAW_API_BASE + '/klaw/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id:      uid,
+        klaw_version: klawVer,
+        llm_model:    llmModel,
+        case_type:    simData.caseType    || null,
+        case_level:   simData.caseLevel   || null,
+        case_summary: simData.caseSummary || null,
+        verdict:      simData.verdict     || null,
+        confidence:   simData.confidence  || null,
+        case_input:   simData.caseInput   || null
+      })
     });
-    if (error) { console.error('[Supa] klaw_sessions 저장 실패:', JSON.stringify(error)); return; }
+    const json = await res.json();
+    if (!json.ok) { console.error('[K-Law] klaw_sessions 저장 실패:', JSON.stringify(json)); return; }
     if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
     userKlawSentVersions[uid][klawVer] = true;
     console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
     _loadKlawHistory();
-  } catch(e) { console.warn('[Supa] 이력 저장 실패:', e.message); }
+  } catch(e) { console.warn('[K-Law] 이력 저장 실패:', e.message); }
 }
 
 function hasKlawBeenSent(klawVer) {
@@ -761,10 +764,9 @@ document.addEventListener('click', e => {
   if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
 });
 
-// Supabase klaw_cases 저장
-const _KLAW_SUPABASE_URL = SUPA_URL;
-const _KLAW_SUPABASE_KEY = SUPA_ANON;
-
+// klaw_cases 저장 (PocketBase 경유, worker.js /klaw/cases)
+// case_no는 원래 Supabase의 id(PK)였으나 새 스키마에서는 별도 인덱스
+// 필드 — PocketBase 레코드 id는 서버가 자동 생성한다.
 function _sendCaseToKlaw(klawResult, caseInput) {
   try {
     const caseNo = 'CASE-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
@@ -779,7 +781,7 @@ function _sendCaseToKlaw(klawResult, caseInput) {
       return null;
     }
     const record = {
-      id:            caseNo,
+      case_no:       caseNo,
       source:        'desktop',
       case_type:     klawResult?.caseType    || null,
       case_type_code:_typeCode(klawResult?.caseType),
@@ -797,16 +799,13 @@ function _sendCaseToKlaw(klawResult, caseInput) {
       reporter:      currentUser?.ipv6 || null,
       status:        'completed'
     };
-    fetch(_KLAW_SUPABASE_URL + '/rest/v1/klaw_cases', {
+    fetch(KLAW_API_BASE + '/klaw/cases', {
       method: 'POST',
-      headers: {
-        'apikey': _KLAW_SUPABASE_KEY, 'Authorization': 'Bearer ' + _KLAW_SUPABASE_KEY,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(record)
-    }).then(res => {
-      if (res.ok || res.status === 201) console.log('[K-Law] ✅ Supabase 저장 →', caseNo);
-      else res.text().then(t => console.warn('[K-Law] Supabase 오류:', res.status, t));
+    }).then(res => res.json()).then(json => {
+      if (json.ok) console.log('[K-Law] ✅ klaw_cases 저장 →', caseNo);
+      else console.warn('[K-Law] klaw_cases 저장 오류:', JSON.stringify(json));
     }).catch(e => console.warn('[K-Law] 네트워크 오류:', e.message));
   } catch(e) { console.warn('[K-Law] _sendCaseToKlaw 오류:', e.message); }
 }

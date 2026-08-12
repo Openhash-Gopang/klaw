@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law 관리자 대시보드</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -289,10 +288,10 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <script>
-// ══ SUPABASE 초기화 ════════════════════════════════════════
-const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
-const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+// ══ PocketBase(worker.js 프록시) 초기화 ═══════════════════
+// 2026-08-13: Supabase users 테이블 직접호출 → /klaw/admin-users/*
+// (hondi-proxy worker.js 경유, L1 hanlim klaw_admin_users 컬렉션)로 이전.
+const KLAW_API_BASE = 'https://hondi-proxy.tensor-city.workers.dev';
 
 let currentUser = null;
 let klawVersion = 'v15.1';
@@ -346,29 +345,25 @@ async function _initDashUser() {
     guid = paramGuid; fp = paramFp || '';
     currentUser = { guid, fp, phone: paramPhone, source: 'gopang' };
   } else {
-    // 시나리오 2: 기기 지문으로 Supabase users 테이블 조회
+    // 시나리오 2: 기기 지문으로 klaw_admin_users(PocketBase) 조회
     fp = await _buildDeviceFingerprint();
     try {
-      const res = await fetch(
-        SUPA_URL + '/rest/v1/users?device_fp=eq.' + fp + '&select=guid,device_fp,phone,is_admin&limit=1',
-        { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
-      );
-      const rows = await res.json();
-      if (Array.isArray(rows) && rows.length) {
-        guid = rows[0].guid;
-        currentUser = { guid, fp, phone: rows[0].phone || '', source: 'device_fp', isAdmin: !!rows[0].is_admin };
+      const res = await fetch(KLAW_API_BASE + '/klaw/admin-users/by-fp?device_fp=' + encodeURIComponent(fp));
+      const json = await res.json();
+      if (json.ok && json.item) {
+        guid = json.item.guid;
+        currentUser = { guid, fp, phone: json.item.phone || '', source: 'device_fp', isAdmin: !!json.item.is_admin };
       }
-    } catch(e) { console.warn('[Dash Auth] Supabase 조회 실패:', e.message); }
+    } catch(e) { console.warn('[Dash Auth] klaw_admin_users 조회 실패:', e.message); }
 
     // 시나리오 3: 미등록 기기 — guid 발급 후 등록
     if (!guid) {
       guid = crypto.randomUUID();
       try {
-        await fetch(SUPA_URL + '/rest/v1/users', {
+        await fetch(KLAW_API_BASE + '/klaw/admin-users', {
           method: 'POST',
-          headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON,
-                     'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ guid, device_fp: fp, registered_at: new Date().toISOString() })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guid, device_fp: fp })
         });
       } catch(e) { console.warn('[Dash Auth] 신규 등록 실패:', e.message); }
       currentUser = { guid, fp, source: 'new', isAdmin: false };
@@ -376,19 +371,16 @@ async function _initDashUser() {
   }
 
   // ── 관리자 여부 확인 ──────────────────────────────────────
-  // 1순위: Supabase users.is_admin 컬럼
+  // 1순위: klaw_admin_users.is_admin(PocketBase)
   // 2순위: 하드코딩 ADMIN_GUIDS 폴백
   let isAdmin = currentUser.isAdmin || ADMIN_GUIDS.has(currentUser.guid);
 
-  // Supabase에서 is_admin 재조회 (URL 파라미터로 접속한 경우 등)
+  // klaw_admin_users에서 is_admin 재조회 (URL 파라미터로 접속한 경우 등)
   if (!isAdmin && currentUser.guid) {
     try {
-      const res = await fetch(
-        SUPA_URL + '/rest/v1/users?guid=eq.' + currentUser.guid + '&select=is_admin&limit=1',
-        { headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON } }
-      );
-      const rows = await res.json();
-      if (Array.isArray(rows) && rows.length) isAdmin = !!rows[0].is_admin;
+      const res = await fetch(KLAW_API_BASE + '/klaw/admin-users/is-admin?guid=' + encodeURIComponent(currentUser.guid));
+      const json = await res.json();
+      if (json.ok) isAdmin = !!json.is_admin;
     } catch(e) {}
   }
 
@@ -420,15 +412,15 @@ let userMap = {};
 
 async function loadAllData() {
   try {
-    const { data } = await supa
-      .from('klaw_cases')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const res = await fetch(KLAW_API_BASE + '/klaw/cases/list?limit=200');
+    const json = await res.json();
+    const data = json.ok ? json.items : [];
     allSessions = (data || []).map(r => ({
       ...r,
-      // dashboard 렌더 함수가 used_at을 참조하므로 별칭 부여
-      used_at: r.created_at
+      // dashboard 렌더 함수가 created_at/used_at을 참조하므로 PocketBase의
+      // created(시스템 필드)를 두 이름 모두로 별칭 부여
+      created_at: r.created,
+      used_at: r.created
     }));
     document.getElementById('sb-sim-count').textContent = allSessions.length;
   } catch(e) { allSessions = []; }

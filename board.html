@@ -7,7 +7,6 @@
 <title>K-Law — 판결 시뮬레이션 게시판</title>
 <meta name="description" content="K-Law로 생성된 가상 대법원 판결 시뮬레이션 사건을 일련번호로 게재한 공개 게시판.">
 <link rel="stylesheet" href="klaw_shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 .board-stat-row{margin-bottom:20px}
 .board-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
@@ -120,10 +119,12 @@
 <script>
 (function tick(){const el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});setTimeout(tick,1000);})();
 
-// ── Supabase (desktop.html과 동일한 klaw_cases 테이블 사용)
-const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
-const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+// ── PocketBase(worker.js 프록시) — 2026-08-13: Supabase klaw_cases 직접
+// 조회(supa.from('klaw_cases')) → hondi-proxy worker.js의 /klaw/cases/*
+// 3개 엔드포인트(list/count/recent-for-avg)로 이전. desktop.html/
+// benchmark.html과 동일한 klaw_cases 컬렉션(L1 hanlim, klc0000000cases)을
+// 읽기 전용으로 조회.
+const KLAW_API_BASE = 'https://hondi-proxy.tensor-city.workers.dev';
 
 const PAGE_SIZE = 30;
 let offset = 0;
@@ -148,14 +149,17 @@ function _parseMatchRate(v) {
 async function _fetchPage(reset) {
   const typeF  = document.getElementById('filter-type').value;
   const modelF = document.getElementById('filter-model').value;
-  let q = supa.from('klaw_cases').select('*').eq('status', 'completed')
-    .order('created_at', { ascending: false })
-    .range(reset ? 0 : offset, (reset ? 0 : offset) + PAGE_SIZE - 1);
-  if (typeF)  q = q.ilike('case_type', `%${typeF}%`);
-  if (modelF) q = q.eq('llm_model', modelF);
-  const { data, error } = await q;
-  if (error) { console.warn('[Board] Supabase 오류:', error.message); return []; }
-  return data || [];
+  const off = reset ? 0 : offset;
+  const params = new URLSearchParams({ status: 'completed', offset: String(off), limit: String(PAGE_SIZE) });
+  if (typeF)  params.set('type', typeF);
+  if (modelF) params.set('model', modelF);
+  try {
+    const res = await fetch(KLAW_API_BASE + '/klaw/cases/list?' + params);
+    const json = await res.json();
+    if (!json.ok) { console.warn('[Board] klaw/cases/list 오류:', JSON.stringify(json)); return []; }
+    // 렌더 함수가 created_at을 참조하므로 PocketBase의 created를 별칭 부여
+    return (json.items || []).map(r => ({ ...r, created_at: r.created }));
+  } catch(e) { console.warn('[Board] klaw/cases/list 네트워크 오류:', e.message); return []; }
 }
 
 async function _reload() {
@@ -187,7 +191,7 @@ function _renderTable(reset) {
   }
   tbody.innerHTML = allLoaded.map((r, i) => `
     <tr class="case-row" onclick="_toggleDetail(${i})">
-      <td class="case-no">${esc(r.id)}</td>
+      <td class="case-no">${esc(r.case_no)}</td>
       <td><span class="chip ${chipForType(r.case_type)}">${esc(r.case_type || '미분류')}</span></td>
       <td>${esc(r.case_level || '-')}</td>
       <td class="case-summary-cell">${esc(r.case_summary || '(개요 없음)')}</td>
@@ -228,21 +232,24 @@ function _toggleDetail(i) {
 // ── 상단 요약 통계 (전체 게재 건수 / 일치도 누적 평균 / 오늘 게재 / 최근 게재 시각)
 async function _loadStats() {
   try {
-    const { count } = await supa.from('klaw_cases').select('id', { count: 'exact', head: true }).eq('status', 'completed');
+    const countRes = await fetch(KLAW_API_BASE + '/klaw/cases/count?status=completed');
+    const countJson = await countRes.json();
+    const count = countJson.ok ? countJson.count : null;
     document.getElementById('stat-total').textContent = (count ?? '—') + '건';
 
-    const { data: recentForAvg } = await supa.from('klaw_cases').select('match_rate, created_at')
-      .eq('status', 'completed').order('created_at', { ascending: false }).limit(500);
-    const rates = (recentForAvg || []).map(r => _parseMatchRate(r.match_rate)).filter(v => v !== null);
+    const avgRes = await fetch(KLAW_API_BASE + '/klaw/cases/recent-for-avg?limit=500');
+    const avgJson = await avgRes.json();
+    const recentForAvg = (avgJson.ok ? avgJson.items : []).map(r => ({ ...r, created_at: r.created }));
+    const rates = recentForAvg.map(r => _parseMatchRate(r.match_rate)).filter(v => v !== null);
     document.getElementById('stat-avg').textContent = rates.length
       ? (rates.reduce((a,b)=>a+b,0) / rates.length).toFixed(1) + '%'
       : '—';
 
     const todayStr = new Date().toISOString().slice(0,10);
-    const todayCount = (recentForAvg || []).filter(r => (r.created_at||'').slice(0,10) === todayStr).length;
+    const todayCount = recentForAvg.filter(r => (r.created_at||'').slice(0,10) === todayStr).length;
     document.getElementById('stat-today').textContent = todayCount + '건';
 
-    document.getElementById('stat-latest').textContent = recentForAvg && recentForAvg[0]
+    document.getElementById('stat-latest').textContent = recentForAvg[0]
       ? new Date(recentForAvg[0].created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
       : '—';
   } catch(e) { console.warn('[Board] 통계 로드 실패:', e.message); }
