@@ -643,8 +643,8 @@ button{font-family:var(--font);cursor:pointer}
 
 <script>
 // ══ SUPABASE 초기화 ════════════════════════════════════════
-const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+const SUPA_URL  = '' /* ★2026-08-12 시크릿 유출로 제거 — README_SECRETS_INCIDENT.md 참조 */;
+const SUPA_ANON = '' /* ★2026-08-12 시크릿 유출로 제거 — 회전 및 PocketBase 전환 필요, README_SECRETS_INCIDENT.md 참조 */;
 const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 
 // ══ PDV 보고 ═══════════════════════════════════════════════
