@@ -429,12 +429,13 @@ const INTERVIEW_SYSTEM_PROMPT = `당신은 대한민국 변호사 역할을 수�
 상태 마커를 한 줄로 덧붙인다(이 마커는 시스템이 파싱만 하고 사용자에게는
 보이지 않게 처리되므로, 자연스러운 대화 톤을 유지하는 데에만 신경 쓰면 된다):
 
-<<<STATE>>>{"level":"","type":"","who":"","when":"","where":"","what":"","how":"","why":"","extra":"","ready":false}<<<END>>>
+<<<STATE>>>{"level":"","type":"","who":"","when":"","where":"","what":"","how":"","why":"","extra":"","claim_amount":0,"ready":false}<<<END>>>
 
 - level: 1심/2심/3심/헌법재판 중 판단되면 채움(아직 모르면 빈 문자열)
 - type: 민사(본안)/형사/행정/가사/소액사건/노동/소년보호/지식재산/도산 중 판단되면 채움(가사사건 중 만 19세 미만 소년의 보호처분·형사 사건이면 가사가 아니라 소년보호로 분류)
 - who/when/where/what/how/why: 지금까지 대화에서 파악된 내용을 한국어로 간결히 "누적" 기록(이전 턴 내용도 유지하며 새 내용을 더한다). 모르면 빈 문자열.
-- extra: 6하원칙 외에 사건 유형상 중요한 추가 사실(금액·증거 유무 등)을 자유 기술로 누적
+- extra: 6하원칙 외에 사건 유형상 중요한 추가 사실(증거 유무 등)을 자유 기술로 누적
+- claim_amount: 소송가액·청구금액이 원(KRW) 단위 숫자로 파악되면 채움(예: 3천만원→30000000). 형사·가사 등 금전청구가 없는 사건이거나 아직 모르면 0. 이 필드는 판결 생성 요금 산정에 직접 쓰이므로, 대화에서 명확히 언급된 금액만 채우고 추측하지 않는다.
 - ready: 판결 시뮬레이션을 시작해도 좋다고 판단되면 true, 아직 더 물어봐야 하면 false`;
 
 function _parseInterviewState(raw) {
@@ -532,11 +533,18 @@ async function _pumpSSE(response, handleJson) {
 function _klawGuid() { return klawUser?.ipv6 || GWP_TOKEN || 'anonymous'; }
 
 async function _klawCall(tier, messages, opts = {}) {
-  const { maxTokens = 1200, stream = false, onChunk = null, stepCycle = false } = opts;
+  const { maxTokens = 1200, stream = false, onChunk = null, stepCycle = false, caseId = null, claimAmountKrw = null } = opts;
   const resp = await fetch(KLAW_RELAY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle, currentLocation: GWP_FACTS?.currentLocation || null })
+    body: JSON.stringify({
+      guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle,
+      currentLocation: GWP_FACTS?.currentLocation || null,
+      // 2026-08-12 신설 — 사건단위 정액과금(§klaw_case_charges)에 필요한
+      // 두 값. stepCycle이 아닐 때(STEP A/B/C)는 어차피 서버가 무시하지만,
+      // 매 호출 형태를 통일해 분기 코드를 줄인다.
+      case_id: caseId, claim_amount_krw: claimAmountKrw,
+    })
   });
 
   if (stream) {
@@ -560,12 +568,34 @@ async function _klawCall(tier, messages, opts = {}) {
 let conversationState = {
   phase: 'boot',            // boot → interviewing → generating → done
   messages: [],
-  caseState: { level:'', type:'', who:'', when:'', where:'', what:'', how:'', why:'', extra:'' },
-  turnCount: 0
+  caseState: { level:'', type:'', who:'', when:'', where:'', what:'', how:'', why:'', extra:'', claimAmount: 0 },
+  turnCount: 0,
+  // 2026-08-12 신설 — "동일 사건 재생성은 요금 1회"(K-Law 정액과금 사건단위
+  // 정책, PRICING_TIER_FINAL_v1_0 §4-A 후속)를 서버가 판정할 수 있으려면
+  // 클라이언트가 "같은 사건"임을 증명하는 안정적인 식별자를 매 STEP0 호출마다
+  // 동일하게 보내야 한다. 인터뷰가 시작되는 시점(첫 사용자 발화)에 한 번만
+  // 발급하고, 사용자가 명시적으로 "새 사건 시작"하지 않는 한(resetCaseForNewCase()
+  // 참고) 재생성 버튼을 눌러도 이 값을 그대로 재사용한다.
+  caseId: null,
 };
 let klawUser     = null;
 let klawNickname = '';
 let simCount     = 0;
+
+// 새 사건을 시작할 때만 호출 — caseId를 새로 발급해 서버가 이전 사건과
+// 완전히 구분되는 별개 사건으로(=별도 정액 요금 대상으로) 인식하게 한다.
+function _ensureCaseId() {
+  if (!conversationState.caseId) {
+    conversationState.caseId = (crypto.randomUUID ? crypto.randomUUID() : `case-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  }
+  return conversationState.caseId;
+}
+function resetCaseForNewCase() {
+  conversationState.caseId = null;
+  conversationState.caseState = { level:'', type:'', who:'', when:'', where:'', what:'', how:'', why:'', extra:'', claimAmount: 0 };
+  conversationState.turnCount = 0;
+  conversationState.phase = 'interviewing';
+}
 
 // ══════════════════════════════════════════════════════════════
 // 채팅 UI 헬퍼
@@ -738,6 +768,7 @@ async function _handleInterviewTurn(text) {
         how:   state.how   || conversationState.caseState.how,
         why:   state.why   || conversationState.caseState.why,
         extra: state.extra || conversationState.caseState.extra,
+        claimAmount: (Number(state.claim_amount) > 0) ? Number(state.claim_amount) : conversationState.caseState.claimAmount,
       };
     }
 
@@ -755,6 +786,15 @@ async function _handleInterviewTurn(text) {
   }
 }
 
+// 2026-08-12 신설 — "이 사건으로 다시 생성" 버튼 핸들러. caseId를 건드리지
+// 않고 그대로 runJudgementSim()을 재호출한다(§runJudgementSim 상단 주석
+// 참고 — caseId가 이미 있으면 _ensureCaseId()가 새로 발급하지 않음).
+window.regenerateSameCase = function() {
+  if (conversationState.phase !== 'done') return; // 이미 생성 중이면 중복 클릭 무시
+  conversationState.phase = 'generating';
+  runJudgementSim();
+};
+
 // ══════════════════════════════════════════════════════════════
 // STEP 0~C 판결 시뮬레이션 (desktop.html 파이프라인 재사용)
 // ══════════════════════════════════════════════════════════════
@@ -762,6 +802,13 @@ async function runJudgementSim() {
   const caseNo = 'SIM-' + new Date().getFullYear() + '-' + String(++simCount).padStart(4,'0');
   const cs     = conversationState.caseState || {};
   const level  = cs.level || '3심';
+  // 2026-08-12 신설 — caseNo(표시용, 매 실행마다 새로 발급되는 순번)와
+  // caseId(과금용, 같은 사건이면 재생성해도 동일 유지)를 반드시 구분할 것.
+  // 재생성 버튼(regenerateSameCase 등)에서 이 함수를 다시 호출해도
+  // conversationState.caseId는 이미 설정돼 있으므로 _ensureCaseId()가
+  // 새로 발급하지 않고 기존 값을 그대로 돌려준다 — 그래야 서버가 "같은
+  // 사건"으로 인식해 두 번째부터는 요금을 면제한다.
+  const caseId = _ensureCaseId();
   window._verdictParts  = {};
   window._verdictCaseNo = caseNo;
 
@@ -781,7 +828,18 @@ async function runJudgementSim() {
     const prompt = stepDef.prompt(contextWithPrev);
     const msgs = [{ role:'system', content: buildKlawSimPrompt(stepDef.id) }, { role:'user', content: prompt }];
     try {
-      const result = await _klawCall(KLAW_TIER_VERDICT, msgs, { maxTokens: 3000, stream: true, stepCycle: stepDef.id === 'step0' });
+      const isStep0 = stepDef.id === 'step0';
+      const result = await _klawCall(KLAW_TIER_VERDICT, msgs, {
+        maxTokens: 3000, stream: true, stepCycle: isStep0,
+        // 2026-08-12 수정(서버측 사고실험 발견1 대응) — case_id는 STEP0뿐
+        // 아니라 A/B/C에도 매번 실어 보낸다. 서버(worker.js handleKlawRelay)가
+        // "이 호출이 사건단위 정액 흐름에 속하는가"를 case_id 유무로
+        // 판정하도록 바뀌었기 때문에, STEP A/B/C에서 이 값이 빠지면 다시
+        // 예전처럼 토큰 종량제로 이중과금된다. claim_amount_krw는 여전히
+        // STEP0(결제 시도 시점)에서만 의미가 있어 나머지 단계는 null.
+        caseId: caseId,
+        claimAmountKrw: isStep0 ? (cs.claimAmount || null) : null,
+      });
       window._verdictParts[stepDef.id] = result;
     } catch(e) {
       progress.innerHTML = `⚠ ${stepDef.tag} 생성 중 오류: ${escHtml(e.message)}`;
@@ -795,7 +853,17 @@ async function runJudgementSim() {
   window._verdictText = fullText;
   appendBubble('ai', buildVerdictSummaryBubble(fullText, caseNo));
   openVerdictTab(fullText, caseNo);
-  appendBubble('ai', `📄 가상 판결문을 새 탭(마크다운)에 저장했습니다. 상당한 분량이니 <b>PC에서 열람하시는 것을 권장</b>합니다.<br>궁금한 문구나 표현이 있으면 여기서 바로 물어보세요.`);
+  appendBubble('ai',
+    `📄 가상 판결문을 새 탭(마크다운)에 저장했습니다. 상당한 분량이니 <b>PC에서 열람하시는 것을 권장</b>합니다.<br>` +
+    `궁금한 문구나 표현이 있으면 여기서 바로 물어보세요.<br><br>` +
+    // 2026-08-12 신설 — 결과가 마음에 안 들 때 "동일 사건"으로 다시 생성할
+    // 수 있는 명시적 진입점. onclick으로 regenerateSameCase()를 호출하면
+    // conversationState.caseId를 그대로 유지한 채 runJudgementSim()을 다시
+    // 돌리므로, 서버(klaw_case_charges 매칭)가 같은 사건으로 인식해 두
+    // 번째부터는 GDC를 다시 차감하지 않는다.
+    `<button onclick="regenerateSameCase()" style="margin-top:4px;padding:8px 14px;border:none;border-radius:8px;background:#0057A8;color:#fff;font-weight:600;cursor:pointer">` +
+    `🔁 이 사건으로 다시 생성 (추가 요금 없음)</button>`
+  );
   conversationState.phase = 'done';
   _sendPdvReport({ summary: 'K-Law 모바일 대화 판결 시뮬레이션 완료: ' + caseNo, goal: '가상 판결문 생성' });
 
