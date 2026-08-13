@@ -400,6 +400,30 @@ async function loadKlawVersion() {
 }
 loadKlawVersion();
 
+// ── 사고실험 사건7 대응 (2026-08-13, 정책: 즉시 환불) ────────────────
+// STEP0 결제 후 STEP C 완료 전에 페이지를 벗어나면(탭 닫기, 새로고침,
+// 다른 페이지 이동) 이 사건은 영구히 "결제됐지만 못 받은" 상태로 남는다.
+// navigator.sendBeacon은 페이지가 사라지는 순간에도 응답을 기다리지
+// 않고 요청을 전송해주므로(fetch는 이 시점에 취소될 수 있음) 이 용도에
+// 적합하다. pagehide가 beforeunload보다 모바일 브라우저 호환성이 좋아
+// 사용한다. visibilitychange(hidden)는 의도적으로 안 쓴다 — 단순 탭
+// 전환·화면 잠금에도 발동해서, 사용자가 STEP A/B/C 스트리밍 중 잠깐
+// 다른 탭을 보고 돌아오는 정상적인 경우까지 "이탈"로 오판해 환불시켜
+// 버릴 위험이 있다(백그라운드에서도 JS는 계속 실행되므로 이후 STEP C가
+// 정상 완료돼 completed_at까지 찍히면, 이미 나간 환불과 겹쳐 "무료로
+// 받고 환불도 받는" 새로운 손실 구멍이 생긴다). 이미 완료돼
+// window._klawActiveCaseId가 null이면 아무 일도 하지 않는다.
+function _klawReportAbandonIfActive() {
+  const caseId = window._klawActiveCaseId;
+  if (!caseId || !currentUser?.ipv6) return;
+  const payload = JSON.stringify({ guid: currentUser.ipv6, case_id: caseId });
+  try {
+    navigator.sendBeacon(KLAW_API_BASE + '/klaw/case/abandon', new Blob([payload], { type: 'application/json' }));
+  } catch (e) { /* sendBeacon 미지원 구형 브라우저 — 감수 (잔여 위험, 범위 밖) */ }
+}
+window.addEventListener('pagehide', _klawReportAbandonIfActive);
+
+
 // ══════════════════════════════════════════════════════════════
 // 인터뷰 SP — 변호사 페르소나, 6하원칙 슬롯 채우기, AI 주도 · 1턴 1질문
 // ══════════════════════════════════════════════════════════════
@@ -828,6 +852,7 @@ async function runJudgementSim() {
   // 새로 발급하지 않고 기존 값을 그대로 돌려준다 — 그래야 서버가 "같은
   // 사건"으로 인식해 두 번째부터는 요금을 면제한다.
   const caseId = _ensureCaseId();
+  window._klawActiveCaseId = caseId; // 사고실험 사건7 — STEP C 완료 전 이탈 시 환불 대상 표시
   window._verdictParts  = {};
   window._verdictCaseNo = caseNo;
 
@@ -876,6 +901,15 @@ async function runJudgementSim() {
     }
   }
   progress.remove();
+
+  // 사고실험 사건7 대응(2026-08-13, 정책: 즉시 환불) — STEP C까지 정상
+  // 도달했음을 서버에 알린다. 이게 기록돼야 사건이 "완결"로 표시되고,
+  // 이후 이 case_id로 페이지를 벗어나도 환불 대상에서 제외된다.
+  fetch(KLAW_API_BASE + '/klaw/case/complete', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ guid: currentUser?.ipv6, case_id: caseId }),
+  }).catch(e => console.warn('[K-Law] 완료 신호 전송 실패(무시):', e.message));
+  window._klawActiveCaseId = null; // 완료됐으니 더 이상 이탈 감시 대상 아님
 
   const fullText = Object.values(window._verdictParts).join('\n\n');
   window._verdictText = fullText;
