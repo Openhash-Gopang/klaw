@@ -420,7 +420,14 @@ async function loadAllData() {
       // dashboard 렌더 함수가 created_at/used_at을 참조하므로 PocketBase의
       // created(시스템 필드)를 두 이름 모두로 별칭 부여
       created_at: r.created,
-      used_at: r.created
+      used_at: r.created,
+      // v15.2 정합성 리뷰에서 발견 — 저장 측(desktop.html/benchmark.html)은
+      // 사용자 식별자를 reporter로 저장하는데, 아래 userSessions/verMap 집계
+      // 로직은 user_id를 참조하고 있어 별칭이 없으면 전부 undefined 한 칸으로
+      // 뭉개져 사용자별·버전별 순사용자 통계가 무의미해진다. 앞의 created_at/
+      // used_at 별칭과 같은 패턴으로 수정 — 지난 Supabase→PocketBase 이관
+      // 때는 이 필드만 누락되어 있었음.
+      user_id: r.reporter
     }));
     document.getElementById('sb-sim-count').textContent = allSessions.length;
   } catch(e) { allSessions = []; }

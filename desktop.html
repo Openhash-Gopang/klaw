@@ -1144,18 +1144,23 @@ const KLAW_RAW_BASE = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/ma
 
 let klawVersion    = '로딩 중…';
 let klawMethodText = '';
+let klawFormatText = ''; // 가상판결 출력형식 v13.3 원문 — v15.2 스모크테스트에서 발견:
+                          // 기존엔 이 파일을 아예 fetch하지 않아 STEP 0/A/B/C 전부
+                          // "형식을 준수하라"는 지시만 받고 실제 형식을 못 받는 상태였음.
 
-const _KLAW_CACHE_KEY = 'klaw_method_cache';
+const _KLAW_CACHE_KEY = 'klaw_method_cache_v2'; // v2: 출력형식 포함되며 캐시 구조 변경, 구버전 캐시와 충돌 방지 위해 키 갱신
 const _KLAW_CACHE_TTL  = 24 * 60 * 60 * 1000; // 24시간
+const KLAW_FORMAT_FILE = '가상판결_출력형식_v13_3.txt';
 
 async function loadKlawVersion() {
   // ── 캐시 확인: sessionStorage에 유효한 데이터가 있으면 재사용 ──
   try {
     const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
-    if (cached?.version && cached?.text && cached?.ts &&
+    if (cached?.version && cached?.text && cached?.format && cached?.ts &&
         (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
       klawVersion    = cached.version;
       klawMethodText = cached.text;
+      klawFormatText = cached.format;
       const badge = document.getElementById('klaw-ver-badge');
       if (badge) badge.textContent = klawVersion;
       console.log('[K-Law] 캐시 로드:', klawVersion);
@@ -1163,7 +1168,7 @@ async function loadKlawVersion() {
     }
   } catch(e) {}
 
-  // ── 캐시 없음: GitHub에서 최신 버전 fetch ──────────────
+  // ── 캐시 없음: GitHub에서 최신 버전 + 출력형식 fetch ──────────
   try {
     const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
     const files = await res.json();
@@ -1173,20 +1178,28 @@ async function loadKlawVersion() {
     const latestFile = vFiles[0] || 'klaw_v15_0.md';
     const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
     klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
-    const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache'});
-    klawMethodText = await raw.text();
+    // 방법론 원문과 출력형식 원문을 병렬로 fetch (둘 다 세션 내내 불변 —
+    // DeepSeek 프롬프트 캐시 적중을 위해 이후 절대 재조합하지 않고 그대로 재사용)
+    const [rawMethod, rawFormat] = await Promise.all([
+      fetch(KLAW_RAW_BASE + latestFile, {cache:'no-cache'}),
+      fetch(KLAW_RAW_BASE + encodeURIComponent(KLAW_FORMAT_FILE), {cache:'no-cache'}),
+    ]);
+    klawMethodText = await rawMethod.text();
+    klawFormatText = rawFormat.ok ? await rawFormat.text() : '';
+    if (!rawFormat.ok) console.warn('[K-Law] 출력형식 v13.3 로드 실패:', rawFormat.status);
     // ── 캐시 저장 ──────────────────────────────────────────
     try {
       sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({
         version: klawVersion,
         text:    klawMethodText,
+        format:  klawFormatText,
         ts:      Date.now(),
       }));
     } catch(e) {}
     console.log('[K-Law] 로드 완료 (캐시 저장):', klawVersion);
   } catch(e) {
     console.warn('[K-Law] GitHub 로드 실패:', e.message);
-    klawVersion = 'v15.1'; klawMethodText = '';
+    klawVersion = 'v15.1'; klawMethodText = ''; klawFormatText = '';
   }
   const badge = document.getElementById('klaw-ver-badge');
   if (badge) badge.textContent = klawVersion;
@@ -1217,20 +1230,28 @@ function calcMatchRate(complexity) {
   return rate.toFixed(0) + '%';
 }
 
-function buildKlawSimPrompt(caseNo, level) {
-  // ⚠️ 2026-06-27 수정: 이전엔 "이미 전달됨" 시 방법론 본문을 통째로 생략하고
-  // 5000자(=v15.1 패치노트뿐, 방법론 본문 아님)만 보냈음. 각 STEP 호출은
-  // 완전히 독립된 stateless API 요청이라 LLM이 이전 세션을 "기억"할 수
-  // 없으므로, 매번 방법론 원문 전체를 보낸다. 토큰 비용은 동일 system
-  // 프리픽스를 매 호출 반복 전송하는 것이므로 제공사의 프롬프트 캐싱으로
-  // 절감한다(생략이 아니라 캐싱으로 절약).
+// v15.2 스모크테스트에서 발견 — 이 함수는 이전엔 "아래 가상판결 출력형식
+// v13.3을 준수하세요"라고 지시하면서 그 출력형식 텍스트 자체를 프롬프트에
+// 넣지 않고 있었다(가상판결_출력형식_v13_3.txt를 fetch하는 코드가 없었음).
+// STEP 0/A/B/C 전부 이 상태로 생성되고 있었다는 뜻 — 형식 태그·부록 A 서식
+// 준수가 사실상 LLM의 즉흥 판단에 맡겨져 있었다.
+//
+// 캐시 설계: 이 함수는 인자를 받지 않으며, klawVersion·klawMethodText·
+// klawFormatText가 로드된 이후로는 세션 내내(그리고 여러 사건에 걸쳐)
+// 완전히 동일한 문자열을 반환한다. 사건번호·심급 등 호출마다 달라지는
+// 값은 절대 여기 넣지 않고 user 메시지(contextWithPrev)에만 싣는다 —
+// 그래야 STEP0→A→B→C 및 이어지는 다음 사건까지 DeepSeek 프롬프트 캐시가
+// 이 prefix 전체(방법론+출력형식, 약 4만자)를 계속 재사용한다.
+function buildKlawSimPrompt() {
   const methodBody = klawMethodText
     ? '[K-Law 방법론 원문]\n' + klawMethodText + '\n\n---\n\n'
     : '[⚠️ K-Law 방법론 원문 로드 실패 — 페이지를 새로고침하거나 GitHub 연결을 확인하세요]\n\n';
+  const formatBody = klawFormatText
+    ? '[가상판결 출력형식 v13.3]\n' + klawFormatText + '\n\n---\n\n'
+    : '[⚠️ 가상판결 출력형식 v13.3 로드 실패]\n\n';
   return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
-${methodBody}아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
-
-[K-Law ${klawVersion} 적용 | 사건번호: ${caseNo} | 심급: ${level}]
+${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
+사건번호·심급 등 이번 사건의 구체적인 정보는 이어지는 사용자 메시지에서 확인하세요.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
@@ -1555,9 +1576,14 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
   card.scrollIntoView({behavior:'smooth', block:'nearest'});
 
   const prevParts    = Object.values(window._verdictParts).join('\n\n');
-  const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
-  const prompt = stepDef.prompt(contextWithPrev).replace(/{CASENO}/g, caseNo).replace(/{LEVEL}/g, level);
-  const msgs = [{ role:'system', content: buildKlawSimPrompt(caseNo, level) }, { role:'user', content: prompt }];
+  // v15.2 스모크테스트 — 사건번호·심급은 캐시 프리픽스(system)에서 빼고
+  // user 메시지 쪽에 배치한다. system은 이제 세션 내내 완전히 불변이라
+  // DeepSeek 프롬프트 캐시가 STEP0→A→B→C, 그리고 이어지는 다음 사건까지
+  // 전부 이 prefix를 그대로 재사용한다.
+  const contextWithPrev = `[사건번호: ${caseNo} | 심급: ${level}]\n\n` +
+    (prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`);
+  const prompt = stepDef.prompt(contextWithPrev);
+  const msgs = [{ role:'system', content: buildKlawSimPrompt() }, { role:'user', content: prompt }];
 
   try {
     const bodyEl = document.getElementById('vsb-' + stepDef.id);

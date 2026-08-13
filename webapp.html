@@ -301,36 +301,27 @@ const KLAW_TIER_VERDICT   = 'klaw-pro';
 
 let klawVersion     = '로딩 중…';
 let klawMethodText  = '';
-let klawMethodSplit = null; // { core, step0, stepA, stepB, stepC } — STEP별 분할 결과
-const _KLAW_CACHE_KEY = 'klaw_method_cache';
+let klawFormatText  = ''; // 가상판결 출력형식 v13.3 원문
+const _KLAW_CACHE_KEY = 'klaw_method_cache_v2'; // v2: 출력형식 포함, 구버전 캐시(분할 방식)와 충돌 방지
 const _KLAW_CACHE_TTL = 24 * 60 * 60 * 1000;
+const KLAW_FORMAT_FILE = '가상판결_출력형식_v13_3.txt';
 
-// ── 방법론 원문 STEP별 분할 ──────────────────────────────────
-// 매 STEP 호출마다 방법론 전문(~15만자)을 통째로 보내면 (1) 토큰 낭비 (2)
-// 관련 없는 다른 STEP 절차까지 섞여 모델이 "대충 훑고 다 읽은 척" 하거나
-// 엉뚱한 절차를 참조하는 hallucination 위험이 커진다. "### STEP 0/A/B/C..."
-// 제목(부록의 "### STEP B-3" 등 하위 보강 조항 포함)을 기준으로 자동
-// 분류한다 — 제목 앞부분(공리·원칙 등 제1부)은 모든 STEP에 공통으로 필요하므로
-// core에 담아 매번 함께 보낸다. klaw_v15.x가 개정되어도 "### STEP X" 제목
-// 컨벤션만 유지되면 재작업 없이 그대로 동작한다.
-function _splitKlawMethodology(text) {
-  const lines = (text || '').split('\n');
-  const buckets = { core: [], step0: [], stepA: [], stepB: [], stepC: [] };
-  let current = 'core';
-  const headerRe = /^###\s+STEP\s+([0ABC])\b/;
-  for (const line of lines) {
-    const m = line.match(headerRe);
-    if (m) current = 'step' + m[1];
-    buckets[current].push(line);
-  }
-  return {
-    core:  buckets.core.join('\n'),
-    step0: buckets.step0.join('\n'),
-    stepA: buckets.stepA.join('\n'),
-    stepB: buckets.stepB.join('\n'),
-    stepC: buckets.stepC.join('\n'),
-  };
-}
+// v15.2 스모크테스트에서 발견 — 기존 _splitKlawMethodology()는 "### STEP 0/A/B/C"
+// 제목으로 방법론을 4조각 내어 매 STEP 호출마다 해당 조각만 보냈다. 그런데
+// klaw_v15_1.md 말미의 패치노트 블록에 "### STEP B-3 사실관계 매트릭스 8축
+// (v14.4 확대)" 같은 하위 제목이 있었고, 이게 같은 정규식에 다시 걸려 STEP B로
+// current를 되돌려버렸다. 그 결과 부록 A(모든 STEP이 참조하는 출력 서식 원본,
+// [A-1]~[A-12])가 통째로 stepC 버킷에 갇혀 STEP 0/A/B 호출은 형식 원본을 전혀
+// 받지 못하는 상태였다. 게다가 가상판결_출력형식_v13_3.txt 자체도 애초에
+// fetch하지 않고 있었다(desktop.html도 동일 결함 확인, 별도 수정).
+//
+// 근본 해결: 더 이상 STEP별로 쪼개지 않는다. 방법론 전문 + 출력형식 전문을
+// 그대로 매 호출 보낸다(desktop.html/benchmark.html과 동일 전략). 대신
+// "이번엔 어느 STEP만 쓸지"는 user 메시지(STEP_DEFS.prompt)에서 지시한다.
+// system 문자열이 STEP0→A→B→C, 그리고 이어지는 다음 사건까지 완전히 동일하게
+// 유지되므로 DeepSeek 프롬프트 캐시가 이 prefix(약 4만자) 전체를 계속 재사용한다
+// — 쪼개서 보내던 이전 방식은 STEP마다 system이 달라져 core 부분만 캐시되고
+// STEP 텍스트 부분은 매번 캐시가 깨졌다.
 
 // ══════════════════════════════════════════════════════════════
 // 관할(사건유형)별 부록 B-1 발췌 — 인터뷰에서 이미 파악한 cs.type을
@@ -369,9 +360,8 @@ function extractB1Buckets(fullText, bucketNames) {
 async function loadKlawVersion() {
   try {
     const cached = JSON.parse(sessionStorage.getItem(_KLAW_CACHE_KEY) || 'null');
-    if (cached?.version && cached?.text && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
-      klawVersion = cached.version; klawMethodText = cached.text;
-      klawMethodSplit = _splitKlawMethodology(klawMethodText);
+    if (cached?.version && cached?.text && cached?.format && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
+      klawVersion = cached.version; klawMethodText = cached.text; klawFormatText = cached.format;
       document.getElementById('klaw-ver-badge').textContent = klawVersion;
       return;
     }
@@ -393,14 +383,18 @@ async function loadKlawVersion() {
     klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
     const ac2 = new AbortController();
     const timer2 = setTimeout(() => ac2.abort(), 8000);
-    const raw = await fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache', signal: ac2.signal});
-    klawMethodText = await raw.text();
+    const [rawMethod, rawFormat] = await Promise.all([
+      fetch(KLAW_RAW_BASE+latestFile, {cache:'no-cache', signal: ac2.signal}),
+      fetch(KLAW_RAW_BASE+encodeURIComponent(KLAW_FORMAT_FILE), {cache:'no-cache', signal: ac2.signal}),
+    ]);
+    klawMethodText = await rawMethod.text();
+    klawFormatText = rawFormat.ok ? await rawFormat.text() : '';
+    if (!rawFormat.ok) console.warn('[K-Law] 출력형식 v13.3 로드 실패:', rawFormat.status);
     clearTimeout(timer2);
-    klawMethodSplit = _splitKlawMethodology(klawMethodText);
-    try { sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({version:klawVersion,text:klawMethodText,ts:Date.now()})); } catch(e) {}
+    try { sessionStorage.setItem(_KLAW_CACHE_KEY, JSON.stringify({version:klawVersion,text:klawMethodText,format:klawFormatText,ts:Date.now()})); } catch(e) {}
   } catch(e) {
     console.warn('[K-Law] GitHub 로드 실패(타임아웃 포함):', e.message);
-    klawVersion = 'v15.1'; klawMethodText = ''; klawMethodSplit = null;
+    klawVersion = 'v15.1'; klawMethodText = ''; klawFormatText = '';
   }
   document.getElementById('klaw-ver-badge').textContent = klawVersion;
 }
@@ -461,19 +455,22 @@ function calcMatchRate(complexity) {
 // 전달한다. 그래야 같은 stepKey에 대해 모든 사용자·모든 사건이 완전히 동일한
 // system 문자열을 공유해 DeepSeek 프롬프트 캐시가 적중한다. 이전 버전은 사건번호를
 // 여기 삽입해 방법론 STEP 분할의 절약 효과를 사실상 무효화시키고 있었다.
-function buildKlawSimPrompt(stepKey) {
-  let methodBody;
-  if (!klawMethodSplit) {
-    methodBody = '[⚠️ K-Law 방법론 원문 로드 실패 — 페이지를 새로고침하거나 GitHub 연결을 확인하세요]\n\n';
-  } else {
-    const core = klawMethodSplit.core || '';
-    const stepText = klawMethodSplit[stepKey] || '';
-    methodBody = '[K-Law 방법론 — 공통 원칙]\n' + core + '\n\n[K-Law 방법론 — ' + stepKey.toUpperCase() + ' 절차]\n' + stepText + '\n\n---\n\n';
-  }
+// v15.2 스모크테스트 근본 수정 — 더 이상 STEP별로 쪼개지 않는다. system은
+// klawVersion·klawMethodText·klawFormatText가 로드된 이후로는 세션 내내(그리고
+// 여러 사건에 걸쳐) 완전히 동일한 문자열을 반환한다. 사건번호·심급 등 호출마다
+// 달라지는 값과 "이번엔 어느 STEP만 쓸지"는 user 메시지(STEP_DEFS.prompt)에만
+// 싣는다 — 그래야 STEP0→A→B→C 및 이어지는 다음 사건까지 DeepSeek 프롬프트
+// 캐시가 이 prefix(방법론+출력형식 전문, 약 4만자) 전체를 계속 재사용한다.
+function buildKlawSimPrompt() {
+  const methodBody = klawMethodText
+    ? '[K-Law 방법론 원문]\n' + klawMethodText + '\n\n---\n\n'
+    : '[⚠️ K-Law 방법론 원문 로드 실패 — 페이지를 새로고침하거나 GitHub 연결을 확인하세요]\n\n';
+  const formatBody = klawFormatText
+    ? '[가상판결 출력형식 v13.3]\n' + klawFormatText + '\n\n---\n\n'
+    : '[⚠️ 가상판결 출력형식 v13.3 로드 실패]\n\n';
   return `당신은 K-Law 판결 방법론 ${klawVersion}을 적용하는 대한민국 법원 판결 AI입니다.
-${methodBody}아래 가상판결 출력형식 v13.3을 준수하여 판결문을 작성하세요.
-지금은 STEP 전체가 아니라 위에 주어진 STEP 절차문에 해당하는 부분만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.
-사건번호·심급 등 이번 사건의 구체적인 정보는 이어지는 사용자 메시지에서 확인하세요.
+${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
+사건번호·심급 등 이번 사건의 구체적인 정보, 그리고 지금 작성할 STEP은 이어지는 사용자 메시지에서 확인하세요.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
@@ -483,13 +480,13 @@ ${methodBody}아래 가상판결 출력형식 v13.3을 준수하여 판결문을
 
 const STEP_DEFS = [
   { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정',
-    prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
+    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP 0만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
   { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석',
-    prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
+    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP A만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
-    prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP B만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
-    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP C만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
 ];
 
 function caseTypeColor(type) {
@@ -848,7 +845,7 @@ async function runJudgementSim() {
     const prevParts = Object.values(window._verdictParts).join('\n\n');
     const contextWithPrev = prevParts ? `[이전 STEP 출력]\n${prevParts}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`;
     const prompt = stepDef.prompt(contextWithPrev);
-    const msgs = [{ role:'system', content: buildKlawSimPrompt(stepDef.id) }, { role:'user', content: prompt }];
+    const msgs = [{ role:'system', content: buildKlawSimPrompt() }, { role:'user', content: prompt }];
     try {
       const isStep0 = stepDef.id === 'step0';
       const result = await _klawCall(KLAW_TIER_VERDICT, msgs, {
