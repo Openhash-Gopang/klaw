@@ -190,9 +190,86 @@ body > *{display:none}
 .model-note{font-size:10.5px;color:var(--hint);line-height:1.6}
 .ensemble-count{font-size:11px;color:var(--pri);font-weight:700;margin-bottom:8px;display:none}
 .ensemble-count.show{display:block}
+/* ── 전화번호 로그인 오버레이 (2026-09-02 신설 — 주피터 지시) ──
+   klaw/dashboard.html의 #dash-auth-overlay/.auth-box 시각 패턴을 그대로
+   가져오되, 그쪽은 "관리자 아닌 기기 차단"이고 이쪽은 "사건 입력 전
+   전화번호 인증 유도"라 목적이 달라 클래스명은 klaw-login- 접두로
+   분리했다(같은 페이지에 두 오버레이가 동시에 존재할 일은 없지만,
+   훗날 합쳐질 경우를 대비해 이름 충돌을 미리 피함). */
+#klaw-login-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(150deg, var(--gov) 0%, var(--nav) 60%, #003C82 100%);
+  display: none; align-items: center; justify-content: center; padding: 24px;
+}
+#klaw-login-overlay.show { display: flex; }
+.klaw-login-box { background: var(--sur); border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.35); width: 100%; max-width: 380px; overflow: hidden; }
+.klaw-login-header { background: linear-gradient(135deg, var(--gov) 0%, var(--pri) 100%); padding: 24px 28px; text-align: center; color: #fff; }
+.klaw-login-logo { font-size: 32px; margin-bottom: 8px; }
+.klaw-login-title { font-size: 20px; font-weight: 900; }
+.klaw-login-subtitle { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 3px; }
+.klaw-login-body { padding: 24px 28px; }
+.klaw-login-desc { font-size: 13px; color: var(--sub); margin-bottom: 16px; line-height: 1.6; text-align: center; }
+.klaw-login-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.klaw-login-row input {
+  flex: 1; min-width: 0; font-family: var(--font); font-size: 14px; padding: 11px 12px;
+  border: 1px solid var(--bdr); border-radius: 8px; color: var(--txt); background: #fff;
+}
+.klaw-login-row input:focus { outline: none; border-color: var(--pri); }
+.klaw-login-row button {
+  flex-shrink: 0; font-family: var(--font); font-size: 13px; font-weight: 700; color: #fff;
+  background: var(--pri); border: none; border-radius: 8px; padding: 0 16px; cursor: pointer; white-space: nowrap;
+}
+.klaw-login-row button:disabled { background: var(--hint); cursor: not-allowed; }
+.klaw-login-primary {
+  width: 100%; font-family: var(--font); font-size: 14px; font-weight: 800; color: #fff;
+  background: var(--pri); border: none; border-radius: 8px; padding: 12px; cursor: pointer; margin-top: 4px;
+}
+.klaw-login-primary:disabled { background: var(--hint); cursor: not-allowed; }
+.klaw-login-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 16px; }
+.klaw-login-msg.err { color: var(--red); }
+.klaw-login-msg.ok  { color: var(--grn); }
+.klaw-login-resend { font-size: 11px; color: var(--hint); text-align: center; margin-top: 10px; }
+.klaw-login-resend a { color: var(--pri); cursor: pointer; text-decoration: underline; }
 </style>
 </head>
 <body>
+
+<!-- ── 전화번호 로그인 오버레이 — 첫 사건 입력(_handleInterviewTurn) 시점에
+     _ensureKlawLogin()이 .show를 붙여 표시한다. dashboard.html의
+     #dash-auth-overlay와 같은 구조(그라디언트 배경 + 흰 카드), 다른 목적. -->
+<div id="klaw-login-overlay">
+  <div class="klaw-login-box">
+    <div class="klaw-login-header">
+      <div class="klaw-login-logo">⚖</div>
+      <div class="klaw-login-title">K-Law 로그인</div>
+      <div class="klaw-login-subtitle">사건 상담을 시작하려면 전화번호 인증이 필요합니다</div>
+    </div>
+    <div class="klaw-login-body">
+      <div class="klaw-login-desc" id="klaw-login-desc">
+        본인 확인 후 GDC 잔액에서 사용한 만큼만 청구됩니다.<br>가입된 전화번호를 입력해 주세요.
+      </div>
+
+      <div id="klaw-login-step-phone">
+        <div class="klaw-login-row">
+          <input type="tel" id="klaw-login-phone" placeholder="010-0000-0000" autocomplete="tel">
+          <button type="button" id="klaw-login-send-btn" onclick="_klawLoginSendOtp()">인증번호 받기</button>
+        </div>
+      </div>
+
+      <div id="klaw-login-step-code" style="display:none">
+        <div class="klaw-login-row">
+          <input type="text" id="klaw-login-code" placeholder="인증번호 6자리" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+          <button type="button" id="klaw-login-verify-btn" onclick="_klawLoginVerifyOtp()">확인</button>
+        </div>
+        <div class="klaw-login-resend">
+          번호가 틀렸나요? <a onclick="_klawLoginResetPhoneStep()">다시 입력</a>
+        </div>
+      </div>
+
+      <div class="klaw-login-msg" id="klaw-login-msg"></div>
+    </div>
+  </div>
+</div>
 
 <header id="top-bar">
   <div class="tb-brand">
@@ -288,6 +365,14 @@ const KLAW_REPO_API        = 'https://api.github.com/repos/Openhash-Gopang/klaw/
 const KLAW_RAW_BASE        = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
 const PROXY                = 'https://hondi-proxy.tensor-city.workers.dev';
 const KLAW_RELAY_URL       = PROXY + '/klaw/relay';
+// ── 베타 기간 정액과금 일시중단 미러링 (2026-09-02 신설) ──────────────
+// worker.js의 KLAW_BETA_USAGE_BILLING_UNTIL과 반드시 같은 값으로 유지할
+// 것. 이 기간 동안은 "이 사건으로 다시 생성"도 서버에서 실제 사용량만큼
+// 새로 청구되므로(§gopang 패치 커밋 메시지 참고), 재생성 버튼 문구가
+// "추가 요금 없음"이라고 말하면 안 된다 — 사고실험으로 발견: 버튼
+// 문구와 실제 과금 동작이 어긋나는 것은 사용자 민원으로 직결된다.
+const KLAW_BETA_USAGE_BILLING_UNTIL = '2026-12-31T23:59:59+09:00';
+function _klawBetaUsageBillingActive() { return Date.now() <= new Date(KLAW_BETA_USAGE_BILLING_UNTIL).getTime(); }
 
 // ── 공유 계정 릴레이 ──────────────────────────────────────────
 // DeepSeek API Key는 클라이언트에 전혀 존재하지 않는다. hondi-proxy의
@@ -529,34 +614,196 @@ async function _pumpSSE(response, handleJson) {
 // ── 공유 계정 릴레이 호출 (BYOK 없음 — 클라이언트는 API Key를 절대 갖지 않는다) ──
 function _klawGuid() { return klawUser?.ipv6 || GWP_TOKEN || 'anonymous'; }
 
+// ══════════════════════════════════════════════════════════════
+// 전화번호 로그인 (2026-09-02 신설 — 주피터 지시)
+// worker.js /klaw/relay가 이제 phone_verify_token을 요구한다(guid는
+// 서버가 이 토큰에서 직접 도출하고 클라이언트 guid는 버림 — 백엔드
+// 패치 커밋 메시지 참고). "사건 입력 단계에서 로그인하도록 유도"하기
+// 위해 페이지 진입 시 바로 막지 않고, _handleInterviewTurn(실제 상담
+// 첫 발화)이 시작될 때만 _ensureKlawLogin()으로 dashboard.html의
+// 로그인 오버레이 시각 패턴을 재사용한 이 모달을 띄운다.
+// ══════════════════════════════════════════════════════════════
+let klawPhoneVerifyToken    = sessionStorage.getItem('klaw_phone_verify_token') || null;
+let klawPhoneVerifyTokenExp = Number(sessionStorage.getItem('klaw_phone_verify_token_exp') || 0);
+let _klawPendingE164        = ''; // OTP 확인 단계에서 재사용(재발송 등)
+// ★ 2026-09-02 사고실험으로 발견·수정 — 원래 단일 변수(_klawLoginResolve)였다.
+// 사용자가 메시지를 연달아 보내는 등 _ensureKlawLogin()이 로그인 완료 전에
+// 두 번 이상 호출되면, 두 번째 호출이 변수를 덮어써 첫 번째 호출의 resolve가
+// 유실되어 그 호출이 영원히 멈추는(응답 없이 조용히 죽는) 결함이 있었다 —
+// 배열로 바꿔 대기 중인 모든 호출을 한 번에 깨운다.
+let _klawLoginWaiters       = [];
+
+function _klawHasValidLogin() {
+  // 10분 TTL(PHONE_VERIFY_TOKEN_TTL_MS) 대비 30초 안전마진 — 만료 직전에
+  // 통과시켰다가 서버에서 막히는 것보다 조금 일찍 재로그인을 유도하는 편이 낫다.
+  return !!klawPhoneVerifyToken && Date.now() < klawPhoneVerifyTokenExp - 30000;
+}
+
+function _klawLoginSetMsg(text, kind) {
+  const el = document.getElementById('klaw-login-msg');
+  el.textContent = text || '';
+  el.className = 'klaw-login-msg' + (kind ? ' ' + kind : '');
+}
+
+function _klawLoginResetPhoneStep() {
+  document.getElementById('klaw-login-step-code').style.display = 'none';
+  document.getElementById('klaw-login-step-phone').style.display = '';
+  document.getElementById('klaw-login-code').value = '';
+  _klawLoginSetMsg('', '');
+}
+
+async function _klawLoginSendOtp() {
+  const phone = document.getElementById('klaw-login-phone').value.trim();
+  if (!phone) { _klawLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
+  const btn = document.getElementById('klaw-login-send-btn');
+  btn.disabled = true;
+  _klawLoginSetMsg('인증번호 발송 중…', '');
+  try {
+    const res = await fetch(PROXY + '/biz/phone-otp-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ e164: phone }),
+    });
+    const data = await res.json().catch(() => ({}));
+    // ★ 2026-09-02 사고실험으로 발견 — worker.js의 phone-otp 계열
+    // 엔드포인트는 message가 아니라 detail 필드로 에러를 반환한다
+    // (desktop.html의 동일 플로우도 같은 이유로 친절한 한국어 기본
+    // 문구로 폴백한다 — 그 관례를 그대로 따름. data.message는 대개
+    // 비어 있을 것이므로 기본 문구가 실제로 노출되는 게 정상이다).
+    if (!res.ok || !data.ok) throw new Error(data.message || '인증번호 발송에 실패했습니다.');
+    _klawPendingE164 = phone;
+    document.getElementById('klaw-login-step-phone').style.display = 'none';
+    document.getElementById('klaw-login-step-code').style.display = '';
+    document.getElementById('klaw-login-code').focus();
+    _klawLoginSetMsg('인증번호를 문자로 보내드렸습니다.', 'ok');
+  } catch (e) {
+    _klawLoginSetMsg(e.message || '인증번호 발송에 실패했습니다.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function _klawLoginVerifyOtp() {
+  const code = document.getElementById('klaw-login-code').value.trim();
+  if (!code) { _klawLoginSetMsg('인증번호를 입력해 주세요.', 'err'); return; }
+  const btn = document.getElementById('klaw-login-verify-btn');
+  btn.disabled = true;
+  _klawLoginSetMsg('확인 중…', '');
+  try {
+    const res = await fetch(PROXY + '/biz/phone-otp-verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ e164: _klawPendingE164, code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.phone_verify_token) throw new Error(data.message || '인증번호가 일치하지 않습니다.');
+
+    // ★ 2026-09-02 사고실험으로 발견·수정 — 여기서 바로 로그인 완료로
+    // 처리하면, "SMS 인증엔 성공했지만 이 번호로 등록된 고팡 프로필이
+    // 없는"(handleUserGdcBalance의 PROFILE_NOT_FOUND) 경우를 놓친다.
+    // 그러면 오버레이가 닫히고 토큰이 "유효"로 캐시된 채, 실제 상담
+    // 첫 호출(/klaw/relay)에서야 뒤늦게 원인 불명의 오류로 실패하고,
+    // 그 뒤로는 _klawHasValidLogin()이 계속 true를 반환해 오버레이가
+    // 다시는 뜨지 않는(재로그인으로 복구할 방법이 없는) 상태에 갇힌다.
+    // desktop.html의 "함께 완성하기" 잔액조회 플로우가 이미 검증
+    // 완료한 것과 같은 2단계(OTP 검증 → /user/gdc-balance로 프로필
+    // 존재 확인)를 그대로 따라, 여기서 미리 확인해 막는다.
+    const balRes = await fetch(PROXY + '/user/gdc-balance', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone_verify_token: data.phone_verify_token }),
+    });
+    const balData = await balRes.json().catch(() => ({}));
+    if (!balRes.ok || !balData?.ok) {
+      throw new Error(balData?.message || '이 전화번호로 등록된 고팡 계정을 찾을 수 없습니다. 고팡 앱에서 먼저 가입해 주세요.');
+    }
+
+    klawPhoneVerifyToken    = data.phone_verify_token;
+    klawPhoneVerifyTokenExp = new Date(data.expires_at).getTime();
+    sessionStorage.setItem('klaw_phone_verify_token', klawPhoneVerifyToken);
+    sessionStorage.setItem('klaw_phone_verify_token_exp', String(klawPhoneVerifyTokenExp));
+
+    document.getElementById('klaw-login-overlay').classList.remove('show');
+    _klawLoginSetMsg('', '');
+    const waiters = _klawLoginWaiters; _klawLoginWaiters = [];
+    waiters.forEach(resolve => resolve());
+  } catch (e) {
+    _klawLoginSetMsg(e.message || '인증번호가 일치하지 않습니다.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// _handleInterviewTurn 맨 앞에서 호출 — 이미 로그인돼 있으면 즉시 반환,
+// 아니면 오버레이를 띄우고 사용자가 인증을 마칠 때까지 대기한다. 이미
+// 오버레이가 떠서 대기 중인 호출이 있어도 새 대기자를 큐에 추가만 하고
+// 오버레이를 다시 열지는 않는다(멱등) — Fix C 참고.
+function _ensureKlawLogin() {
+  if (_klawHasValidLogin()) return Promise.resolve();
+  return new Promise((resolve) => {
+    _klawLoginWaiters.push(resolve);
+    document.getElementById('klaw-login-overlay').classList.add('show');
+  });
+}
+
+// 로그인 관련 오류(재로그인하면 해결되는 것)만 판정 — PROFILE_NOT_FOUND처럼
+// 재로그인해도 못 고치는 오류는 여기 포함하지 않는다(재시도 무한루프 방지).
+function _klawIsRecoverableAuthError(message) {
+  return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
+}
+
 async function _klawCall(tier, messages, opts = {}) {
   const { maxTokens = 1200, stream = false, onChunk = null, stepCycle = false, caseId = null, claimAmountKrw = null } = opts;
-  const resp = await fetch(KLAW_RELAY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle,
-      currentLocation: GWP_FACTS?.currentLocation || null,
-      // 2026-08-12 신설 — 사건단위 정액과금(§klaw_case_charges)에 필요한
-      // 두 값. stepCycle이 아닐 때(STEP A/B/C)는 어차피 서버가 무시하지만,
-      // 매 호출 형태를 통일해 분기 코드를 줄인다.
-      case_id: caseId, claim_amount_krw: claimAmountKrw,
-    })
-  });
 
-  if (stream) {
-    let fullText = '';
-    await _pumpSSE(resp, (json) => {
-      const delta = json.choices?.[0]?.delta?.content || '';
-      if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
+  const doRequest = async () => {
+    const resp = await fetch(KLAW_RELAY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle,
+        currentLocation: GWP_FACTS?.currentLocation || null,
+        phone_verify_token: klawPhoneVerifyToken,
+        // 2026-08-12 신설 — 사건단위 정액과금(§klaw_case_charges)에 필요한
+        // 두 값. stepCycle이 아닐 때(STEP A/B/C)는 어차피 서버가 무시하지만,
+        // 매 호출 형태를 통일해 분기 코드를 줄인다.
+        case_id: caseId, claim_amount_krw: claimAmountKrw,
+      })
     });
-    return fullText;
-  }
 
-  let data;
-  try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
-  if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
-  return data.choices?.[0]?.message?.content || '';
+    if (stream) {
+      let fullText = '';
+      await _pumpSSE(resp, (json) => {
+        const delta = json.choices?.[0]?.delta?.content || '';
+        if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
+      });
+      return fullText;
+    }
+
+    let data;
+    try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
+    if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
+    return data.choices?.[0]?.message?.content || '';
+  };
+
+  try {
+    return await doRequest();
+  } catch (e) {
+    // ★ 2026-09-02 사고실험으로 발견·보완 — 인터뷰가 길어지거나 STEP0~C
+    // 판결 생성이 오래 걸리면 phone_verify_token(서버 TTL 10분)이 그
+    // 도중에 만료될 수 있다. 이전엔 이 경우 해당 STEP에서 그대로
+    // 중단되고, 이미 GDC가 청구된 이전 STEP 산출물까지 통째로 버린 채
+    // 사용자가 사건 설명을 처음부터 다시 입력해야 했다(§runJudgementSim
+    // catch 블록 참고 — 실패 시 phase를 interviewing으로 되돌림).
+    // 재로그인으로 해결 가능한 오류로 보이면, 한 번만 재인증을 유도한
+    // 뒤 같은 요청을 자동으로 다시 시도한다 — 응답이 아직 스트리밍
+    // 시작 전(resp.ok가 아니면 _pumpSSE가 바로 던지므로 부분 출력이
+    // 없다)이라 재시도해도 중복 텍스트가 섞이지 않는다.
+    if (_klawIsRecoverableAuthError(e.message)) {
+      klawPhoneVerifyToken = null; klawPhoneVerifyTokenExp = 0;
+      sessionStorage.removeItem('klaw_phone_verify_token');
+      sessionStorage.removeItem('klaw_phone_verify_token_exp');
+      await _ensureKlawLogin();
+      return await doRequest();
+    }
+    throw e;
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -739,6 +986,12 @@ async function sendMessage() {
 
 // ── 변호사 페르소나 인터뷰 — AI가 주도, 1턴 1질문, 6하원칙 슬롯을 상태로 누적 ──
 async function _handleInterviewTurn(text) {
+  // 2026-09-02 — 사건 입력(첫 인터뷰 발화)이 실제로 시작되기 직전에만
+  // 로그인을 유도한다. 사용자 발화 말풍선은 호출부(sendMessage·
+  // startGreeting의 GWP_CTX 분기)에서 이미 그려진 뒤이므로, 로그인
+  // 오버레이가 그 위에 겹쳐 뜨고 인증을 마치면 그대로 이어서 진행된다.
+  await _ensureKlawLogin();
+
   let userContent = text;
   if (GWP_CTX && !_gwpSeedUsed) {
     userContent = `[사용자가 사전에 "나만의 AI 비서"와 나눈 맥락 — 참고만 하고 그대로 인용하지 말 것]\n${GWP_CTX}\n\n[사용자의 이번 발화]\n${text}`;
@@ -789,7 +1042,14 @@ async function _handleInterviewTurn(text) {
 // 실제 차단은 서버가 하므로, 표시 실패가 기능을 막으면 안 된다.
 async function _updateKlawRegenQuotaLabel(btnId) {
   try {
-    const res = await fetch(PROXY + '/klaw/quota?guid=' + encodeURIComponent(_klawGuid()));
+    // ★ 2026-09-02 사고실험으로 발견·수정 — 예전엔 _klawGuid()(기기
+    // 지문/고팡 guid)로 조회했는데, /klaw/relay가 전화번호 인증 guid로
+    // 사용량을 기록하도록 바뀐 뒤로는 이 조회가 엉뚱한 guid를 보고 있어
+    // "오늘 3/3 남음"처럼 항상 틀린 값을 보여주는 표시 버그가 있었다
+    // (실제 차단은 서버가 하므로 안전 문제는 아니지만, 안내가 계속
+    // 틀리면 신뢰를 잃는다). worker.js도 phone_verify_token을 받도록
+    // 함께 고쳤다.
+    const res = await fetch(PROXY + '/klaw/quota?phone_verify_token=' + encodeURIComponent(klawPhoneVerifyToken || ''));
     const json = await res.json();
     if (!json.ok) return;
     const btn = document.getElementById(btnId);
@@ -800,7 +1060,8 @@ async function _updateKlawRegenQuotaLabel(btnId) {
       btn.style.opacity = '0.5';
       btn.style.cursor = 'not-allowed';
     } else {
-      btn.textContent = `🔁 이 사건으로 다시 생성 (추가 요금 없음 · 오늘 ${json.remaining}/${json.limit} 남음)`;
+      const feeNote = _klawBetaUsageBillingActive() ? '실사용량만큼 과금' : '추가 요금 없음';
+      btn.textContent = `🔁 이 사건으로 다시 생성 (${feeNote} · 오늘 ${json.remaining}/${json.limit} 남음)`;
     }
   } catch (e) { /* 안내용 표시일 뿐이므로 실패해도 조용히 무시 */ }
 }
@@ -894,8 +1155,13 @@ async function runJudgementSim() {
     // 횟수(1일 3회) 한도는 재생성에도 그대로 소진된다. 버튼 문구가 그
     // 사실을 안 알려주면 사용자가 "추가 요금 없음"만 보고 몇 번이고
     // 눌러도 될 거라 오해할 수 있어, 남은 횟수를 조회해 표시한다.
+    // ★ 2026-09-02 — 아래 초기 문구는 _updateKlawRegenQuotaLabel()의
+    // 비동기 조회가 끝나기 전(또는 그 조회 자체가 실패했을 때) 잠깐
+    // 그대로 남을 수 있으므로, 처음부터 베타 여부에 맞는 문구로 적어
+    // "추가 요금 없음"이 실제로는 과금되는 베타 기간에 잘못 노출되는
+    // 일이 없게 한다.
     `<button id="${_regenBtnId}" onclick="regenerateSameCase()" style="margin-top:4px;padding:8px 14px;border:none;border-radius:8px;background:#0057A8;color:#fff;font-weight:600;cursor:pointer">` +
-    `🔁 이 사건으로 다시 생성 (추가 요금 없음)</button>`
+    `🔁 이 사건으로 다시 생성 (${_klawBetaUsageBillingActive() ? '실사용량만큼 과금' : '추가 요금 없음'})</button>`
   );
   _updateKlawRegenQuotaLabel(_regenBtnId);
   conversationState.phase = 'done';
