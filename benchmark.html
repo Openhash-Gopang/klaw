@@ -7,6 +7,16 @@
 <title>K-Law — 벤치마크</title>
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
 <script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
+<!-- K-서비스 공용 전화번호 인증 모듈(2026-09-06, 잠정 부착 — 주피터 지시,
+     전수 재점검으로 발견) — plan.hondi.net 등에서 이미 로그인했으면
+     .hondi.net 쿠키로 여기서도 자동 로그인된다. 기존 고팡 지갑 SSO
+     (subsystem-auth.js, 크로스 도메인 릴레이 버그로 고장난 상태)는
+     그대로 두고 공용 모듈만 부착했다. -->
+<script>
+window.K_AUTH_CONFIG = { serviceLabel: 'K-Law 벤치마크' };
+</script>
+<script src="https://hondi.net/auth/k-service-auth-client.js"></script>
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
