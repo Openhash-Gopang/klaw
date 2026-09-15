@@ -443,7 +443,7 @@ button{font-family:var(--font);cursor:pointer}
           </span>
         </div>
         <div class="panel-bd">
-          <div style="font-size:12px;color:#1e40af;background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:8px 12px;margin-bottom:10px;line-height:1.7">
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
             ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
           </div>
           <textarea class="case-textarea" id="case-input"
@@ -535,7 +535,7 @@ button{font-family:var(--font);cursor:pointer}
           </div>
 
           <!-- 모집단 기준 추정 일치도 -->
-          <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
+          <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             📊 한국 사회에서 발생하는 모든 사건이 대법원까지 진행한다고 가정할 경우,
             K-Law의 가상 판결문과 대법원 실제 판결문 간의 일치도는 <b>99.9% 이상</b>으로 추정됩니다.
             <span style="color:var(--txt3);font-size:11.5px">(근거: 논문 초고 참조 — 위 표는 이미 대법원까지 도달한 쟁점 사건만을 대상으로 한 수치입니다.)</span>
@@ -549,13 +549,13 @@ button{font-family:var(--font);cursor:pointer}
           </div>
 
           <!-- 웹 검색 차단 안내 -->
-          <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
+          <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             🔒 판결 시뮬레이터는 LLM의 <b>웹 검색 기능을 의도적으로 차단</b>하였습니다.
             웹 검색을 허용하면 일치도가 상승하겠지만, 실제 사건 정보를 획득할 수 있게 되어 <b>순수한 법리 추론 능력을 검증하려는 목적이 훼손될 수 있습니다.</b>
           </div>
 
           <!-- 입력 완전성 주의 -->
-          <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
+          <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             ⚠️ <b>주의 — 입력 완전성에 대하여</b><br>
             본 시뮬레이터는 <b>K-Law 방법론 원문 · 일치도 평가 기준 · 가상판결 출력형식</b> 문서를 매 STEP마다 LLM에 전달합니다.
             다만 LLM마다 컨텍스트 윈도우 크기가 다르고, 모델에 따라 긴 입력을 받아도 끝까지 반영하지 못하거나 일부를 누락할 수 있습니다.
@@ -567,22 +567,22 @@ button{font-family:var(--font);cursor:pointer}
             </ul>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
               <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v15_1.md" download
-                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #bfdbfe;border-radius:var(--r);background:#fff;color:#1e40af;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
                 ⬇ K-Law 방법론 원문 (v15.1)
               </a>
               <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download
-                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #bfdbfe;border-radius:var(--r);background:#fff;color:#1e40af;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
                 ⬇ 가상판결 출력형식 (v13.3)
               </a>
               <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" download
-                style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #bfdbfe;border-radius:var(--r);background:#fff;color:#1e40af;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap">
+                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
                 ⬇ 일치도 평가 기준 (v1.6)
               </a>
             </div>
           </div>
 
           <!-- 버전 안내 -->
-          <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
+          <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             ℹ️ <b>버전 안내</b><br>
             2026년 9월 현재, K-Law의 버전은 <b>v20.0(Ensemble)</b>이며, 이 사이트는 <b>v15.1</b>을 적용하였습니다.
             v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
