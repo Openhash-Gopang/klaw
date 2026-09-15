@@ -17,7 +17,15 @@
   --red:#ef4444; --red-bg:#fef2f2; --org:#f59e0b; --org-bg:#fffbeb;
   --blue:#3b82f6; --blue-bg:#eff6ff;
   --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
-  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:6px;
+  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:10px; --r-lg:16px;
+  /* ── Material Design 입체감 토큰 (2026-09-15 신설) ──────────────
+     구글 Material의 2단 그림자(주변광+지향광) 원리를 따르되, 애플 UI
+     특유의 낮은 채도·부드러운 확산을 위해 순검정 대신 짙은 슬레이트
+     톤(15,23,42)을 옅게 얹었다. 숫자가 클수록 더 "떠 있는" 요소. */
+  --shadow-1:0 1px 2px rgba(15,23,42,.05),0 1px 3px rgba(15,23,42,.08);
+  --shadow-2:0 2px 6px rgba(15,23,42,.06),0 6px 16px rgba(15,23,42,.10);
+  --shadow-3:0 6px 16px rgba(15,23,42,.09),0 16px 32px rgba(15,23,42,.14);
+  --ease:cubic-bezier(.4,0,.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -25,7 +33,7 @@ body{font-family:var(--font);font-size:13px;color:var(--txt);background:var(--bg
 a{text-decoration:none;color:inherit}
 button{font-family:var(--font);cursor:pointer}
 
-.topbar{height:var(--head-h);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0;z-index:100;position:relative}
+.topbar{height:var(--head-h);background:var(--sur);border-bottom:1px solid var(--bdr);box-shadow:0 1px 3px rgba(15,23,42,.04);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0;z-index:100;position:relative}
 .topbar-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--txt);padding-right:16px;border-right:1px solid var(--bdr);margin-right:12px;flex-shrink:0}
 .topbar-brand svg{color:var(--pri)}
 .topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);flex:1}
@@ -95,10 +103,11 @@ button{font-family:var(--font);cursor:pointer}
 .page-title{font-size:18px;font-weight:600;color:var(--txt)}
 .page-subtitle{font-size:13px;color:var(--txt3);margin-top:2px}
 .page-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);transition:background .12s,border-color .12s}
-.btn:hover{background:var(--bg);border-color:var(--bdr2)}
-.btn-primary{background:var(--pri);color:#fff;border-color:var(--pri-dk)}
-.btn-primary:hover{background:var(--pri-dk)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);box-shadow:var(--shadow-1);transition:background .12s,border-color .12s,box-shadow .2s var(--ease),transform .12s var(--ease)}
+.btn:hover{background:var(--bg);border-color:var(--bdr2);box-shadow:var(--shadow-2);transform:translateY(-1px)}
+.btn:active{box-shadow:var(--shadow-1);transform:translateY(0)}
+.btn-primary{background:var(--pri);color:#fff;border-color:var(--pri-dk);box-shadow:var(--shadow-2)}
+.btn-primary:hover{background:var(--pri-dk);box-shadow:var(--shadow-3)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .page-tabs{display:flex;gap:0;margin-top:0}
 .page-tab{padding:10px 16px;font-size:13px;color:var(--txt3);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .12s,border-color .12s;font-family:var(--font)}
@@ -107,7 +116,46 @@ button{font-family:var(--font);cursor:pointer}
 
 .content{padding:24px 28px;flex:1}
 
-.panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+/* ── 핵심 자료 다운로드 카드 (2026-09-15 신설) ────────────────────
+   페이지에서 가장 눈에 띄어야 할 유일한 요소 — Material 3단 그림자로
+   "떠 있는" 느낌을 주고, 애플식으로 장식은 절제한다. */
+.resource-card{
+  background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);
+  padding:18px 20px;margin-bottom:20px;
+  box-shadow:var(--shadow-2);
+  transition:box-shadow .25s var(--ease),transform .25s var(--ease);
+}
+.resource-card:hover{box-shadow:var(--shadow-3);transform:translateY(-2px)}
+.resource-card-hd{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.resource-card-icon{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:var(--blue-bg);color:var(--blue);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:inset 0 0 0 1px #bfdbfe;
+}
+.resource-card-title{font-size:14px;font-weight:700;color:var(--txt)}
+.resource-card-sub{font-size:12px;color:var(--txt3);margin-top:2px}
+.resource-links{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:760px){.resource-links{grid-template-columns:1fr}}
+.resource-link{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border:1px solid var(--bdr);border-radius:var(--r);background:var(--bg);
+  box-shadow:var(--shadow-1);
+  transition:box-shadow .18s var(--ease),transform .18s var(--ease),border-color .18s;
+}
+.resource-link:hover{box-shadow:var(--shadow-2);transform:translateY(-2px);border-color:var(--bdr2)}
+.resource-link:active{box-shadow:var(--shadow-1);transform:translateY(0)}
+.resource-link-icon{
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  background:var(--sur);color:var(--blue);border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.resource-link-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+.resource-link-text strong{font-size:12.5px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.resource-link-text small{font-size:11px;color:var(--txt4)}
+
+
+.panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow-1);transition:box-shadow .2s var(--ease)}
 .panel-hd{padding:11px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
 .panel-title{font-size:11px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
 .panel-title svg{color:var(--txt3)}
@@ -129,13 +177,13 @@ button{font-family:var(--font);cursor:pointer}
 .chip-remove{cursor:pointer;color:var(--txt4)}
 .chip-remove:hover{color:var(--txt2)}
 
-.llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
+.llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;box-shadow:var(--shadow-1);max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
 .llm-panel.visible{max-height:420px;opacity:1}
 .llm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
-.llm-card{padding:14px 16px;border-right:1px solid var(--bdr);cursor:pointer;transition:background .12s;position:relative;background:var(--sur)}
+.llm-card{padding:14px 16px;border-right:1px solid var(--bdr);cursor:pointer;transition:background .12s,box-shadow .2s var(--ease);position:relative;background:var(--sur)}
 .llm-card:last-child{border-right:none}
 .llm-card:hover{background:var(--bg)}
-.llm-card.selected{background:var(--pri-bg)}
+.llm-card.selected{background:var(--pri-bg);box-shadow:inset 0 0 0 1px var(--pri-bd),inset 0 1px 4px rgba(43,170,116,.10)}
 .llm-sel-dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--sur)}
 .llm-card.selected .llm-sel-dot{background:var(--pri);border-color:var(--pri)}
 .llm-icon{margin-bottom:8px;color:var(--txt3)}
@@ -219,7 +267,7 @@ button{font-family:var(--font);cursor:pointer}
 .btn-sm-pri:hover{background:var(--pri-dk)}
 
 .sim-panel{margin-bottom:32px;display:none}
-.verdict-doc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.verdict-doc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-1)}
 .verdict-hd{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .verdict-title-row{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:8px}
 .verdict-meta{font-size:11px;color:var(--txt4);margin-top:3px;font-family:var(--mono)}
@@ -441,6 +489,30 @@ button{font-family:var(--font);cursor:pointer}
 
     <div class="content">
 
+      <div class="resource-card">
+        <div class="resource-card-hd">
+          <div class="resource-card-icon">📚</div>
+          <div>
+            <div class="resource-card-title">K-Law 판결 방법론 원문 자료</div>
+            <div class="resource-card-sub">사용 중인 LLM에 직접 검증해보고 싶다면 원문을 내려받으세요</div>
+          </div>
+        </div>
+        <div class="resource-links">
+          <a class="resource-link" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v15_1.md" download>
+            <span class="resource-link-icon">⬇</span>
+            <span class="resource-link-text"><strong>K-Law 방법론 원문</strong><small>v15.1 · Markdown</small></span>
+          </a>
+          <a class="resource-link" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download>
+            <span class="resource-link-icon">⬇</span>
+            <span class="resource-link-text"><strong>가상판결 출력형식</strong><small>v13.3 · TXT</small></span>
+          </a>
+          <a class="resource-link" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" download>
+            <span class="resource-link-icon">⬇</span>
+            <span class="resource-link-text"><strong>일치도 평가 기준</strong><small>v1.6 · DOCX</small></span>
+          </a>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-hd">
           <div class="panel-title">
@@ -572,22 +644,8 @@ button{font-family:var(--font);cursor:pointer}
             <ul style="margin:6px 0 8px 18px;padding:0">
               <li>충분히 큰 컨텍스트 윈도우를 지원하는 모델을 권장합니다.</li>
               <li>결과에 <code style="background:#fff;padding:1px 4px;border-radius:3px">[STEP-0-COMPLETE]</code> 등 완료 태그가 모두 출력됐는지 확인하세요 — 누락 시 입력이 온전히 처리되지 않았을 가능성이 있습니다.</li>
-              <li>아래에서 원문을 직접 내려받아 사용 중인 LLM에 직접 검증해보실 수 있습니다.</li>
+              <li>페이지 상단의 <b>K-Law 판결 방법론 원문 자료</b> 카드에서 원문을 직접 내려받아 사용 중인 LLM에 검증해보실 수 있습니다.</li>
             </ul>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v15_1.md" download
-                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
-                ⬇ K-Law 방법론 원문 (v15.1)
-              </a>
-              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download
-                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
-                ⬇ 가상판결 출력형식 (v13.3)
-              </a>
-              <a href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" download
-                style="display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-weight:600;text-decoration:underline;white-space:nowrap">
-                ⬇ 일치도 평가 기준 (v1.6)
-              </a>
-            </div>
           </div>
 
           <!-- 버전 안내 -->
