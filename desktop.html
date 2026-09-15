@@ -678,6 +678,14 @@ function _klawGuid() { return currentUser?.ipv6 || 'anonymous'; }
 function _klawIsRecoverableAuthError(message) {
   return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
 }
+// 2026-09-15 신설 — finish_reason:'length'(토큰 한도로 강제 종료)를 그냥
+// 잘린 텍스트로 조용히 넘기지 않고, 사용자가 원인을 알 수 있게 눈에 띄는
+// 안내를 덧붙인다. 사고실험 발견: 복잡한 사건에서 이 사실을 모른 채
+// "K-Law가 갑자기 말을 끊었다"로 오인하는 사례가 있었다.
+function _klawAppendTruncationNotice(content, finishReason) {
+  if (finishReason !== 'length') return content;
+  return content + '\n\n⚠️ [응답이 토큰 한도에 도달해 중간에 잘렸습니다 — 사건이 복잡하거나 입력이 길 때 발생할 수 있습니다. "재생성"을 시도하거나 사건 개요를 간결히 줄여 다시 입력해 보세요.]';
+}
 async function _klawCall(tier, messages, opts = {}) {
   const { maxTokens = 1200, stream = false, onChunk = null, stepCycle = false } = opts;
 
@@ -694,17 +702,19 @@ async function _klawCall(tier, messages, opts = {}) {
 
     if (stream) {
       let fullText = '';
+      let finishReason = null;
       await _pumpSSE(resp, (json) => {
         const delta = json.choices?.[0]?.delta?.content || '';
+        if (json.choices?.[0]?.finish_reason) finishReason = json.choices[0].finish_reason;
         if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
       });
-      return fullText;
+      return _klawAppendTruncationNotice(fullText, finishReason);
     }
 
     let data;
     try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
     if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
-    return data.choices?.[0]?.message?.content || '';
+    return _klawAppendTruncationNotice(data.choices?.[0]?.message?.content || '', data.choices?.[0]?.finish_reason);
   };
 
   try {
@@ -1122,8 +1132,11 @@ async function callLLM(messages, maxTokens = 2000, opts = {}) {
   }
   // DeepSeek — 본인 API Key가 있으면 브라우저에서 직접 호출(BYOK).
   // 없으면 hondi.net 로그인 + K-Law 공유 계정 relay로 대신 호출한다.
+  // forceProTier — stepCycle(판결문 생성)이 아니어도(예: 사건 분석)
+  // 사건이 복잡하다고 판단되면 klaw-flash 대신 klaw-pro를 쓴다.
   if (!apiKey) {
-    return await _klawCall(opts.stepCycle ? KLAW_TIER_VERDICT : KLAW_TIER_INTERVIEW, messages,
+    const useProTier = opts.stepCycle || opts.forceProTier;
+    return await _klawCall(useProTier ? KLAW_TIER_VERDICT : KLAW_TIER_INTERVIEW, messages,
       { maxTokens, stepCycle: !!opts.stepCycle });
   }
   const resp = await fetch(DEEPSEEK_ENDPOINT, {
@@ -1133,7 +1146,7 @@ async function callLLM(messages, maxTokens = 2000, opts = {}) {
   });
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  return data.choices?.[0]?.message?.content || '';
+  return _klawAppendTruncationNotice(data.choices?.[0]?.message?.content || '', data.choices?.[0]?.finish_reason);
 }
 
 // ══ 스트리밍 응답 (판결문 생성 STEP 카드용) ═══════════════════
@@ -1217,11 +1230,13 @@ async function callLLMStream(messages, maxTokens = 3000, onChunk, opts = {}) {
     headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
     body: JSON.stringify({ model: conversationState.selectedModel || 'deepseek-v4-pro', messages, max_tokens:maxTokens, temperature:0.2, stream:true })
   });
+  let _finishReason = null;
   await _pumpSSE(resp, (json) => {
     if (json.error) throw new Error(json.error.message || JSON.stringify(json.error));
+    if (json.choices?.[0]?.finish_reason) _finishReason = json.choices[0].finish_reason;
     emit(json.choices?.[0]?.delta?.content || '');
   });
-  return fullText;
+  return _klawAppendTruncationNotice(fullText, _finishReason);
 }
 
 // ══ K-Law 버전 동적 로드 ════════════════════════════════
@@ -1293,6 +1308,21 @@ async function loadKlawVersion() {
 loadKlawVersion();
 
 // ══ 분석 프롬프트 ════════════════════════════════════════
+// ══ 복잡한 사건 판정 (2026-09-15 신설) ══════════════════════
+// 당사자 수·글자 수를 기준으로 한 단순 휴리스틱 — 정교한 판정보다는
+// "이 정도면 flash 응답이 잘릴 위험이 있다"는 보수적 신호로 충분하다.
+// true면 분석 단계도 klaw-flash 대신 klaw-pro로 보낸다(callLLM opts.
+// forceProTier 참고). 임계값은 최초 발견 사례(당사자 6곳, 사건 개요
+// 약 2,000자 이상)보다 넉넉히 낮춰 잡았다 — 과탐(過探)의 비용은 "이번
+// 분석 1회만 pro 요금"인 반면, 누락 시 비용은 "잘린 응답"이라 전자가
+// 훨씬 싸다.
+function _klawCaseIsComplex(caseInput) {
+  if (!caseInput) return false;
+  const len = caseInput.length;
+  const partyMarkers = (caseInput.match(/원고|피고|당사자|법인|회사|공사(?!법)/g) || []).length;
+  return len > 900 || partyMarkers > 12;
+}
+
 const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다.
 사용자가 제출한 사건의 개요를 분석하여 아래 형식으로 정확히 응답하세요.
 
@@ -1389,7 +1419,13 @@ async function runSimulation() {
   showAnalysisPanel(true);
 
   try {
-    const result = await callLLM(conversationState.messages, 1400);
+    // 복잡한 사건(당사자 다수·다국적 계약 등)은 분석 단계도 klaw-flash
+    // 대신 klaw-pro로 넘긴다 — 2026-09-15 사고실험 발견: 당사자 6곳·
+    // 계약 4단계짜리 국제 조세 사건에서 flash가 maxTokens 1400 안에
+    // 【추가질문】까지 다 쓰지 못하고 중간에 끊긴 사례 대응. maxTokens도
+    // 1400→2400으로 상향해 근본 여유를 늘리되, 그래도 넘치는 극단적
+    // 사례는 아래 finish_reason 검사가 잡아 사용자에게 알린다.
+    const result = await callLLM(conversationState.messages, 2400, { forceProTier: _klawCaseIsComplex(caseInput) });
     conversationState.messages.push({ role:'assistant', content: result });
     conversationState.caseData = parseAnalysis(result);
     showAnalysisPanel(false);
