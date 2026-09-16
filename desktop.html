@@ -513,7 +513,7 @@ button{font-family:var(--font);cursor:pointer}
       </div>
       <div class="page-tabs">
         <button class="page-tab active">입력 및 분석</button>
-        <button class="page-tab" onclick="toggleHistoryPanel()">이력</button>
+        <button class="page-tab" id="history-tab-btn" onclick="toggleHistoryPanel()">이력</button>
       </div>
     </div>
 
@@ -1087,7 +1087,12 @@ function closeHistoryPanel() {
 document.addEventListener('click', e => {
   const panel = document.getElementById('klaw-history-panel');
   const bar   = document.getElementById('user-info-bar');
-  if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
+  const tab   = document.getElementById('history-tab-btn');
+  // 2026-09-18 수정 — "이력" 탭 버튼도 열기 트리거이므로 예외 처리해야
+  // 한다. 빠져 있으면 클릭 한 번에 (1)탭의 onclick으로 열리고 (2)같은
+  // 클릭이 document까지 버블링되며 이 리스너가 "바깥 클릭"으로 오인해
+  // 곧바로 닫아버려, 사용자에게는 "탭이 아예 반응 안 하는" 것처럼 보인다.
+  if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target) && !(tab && tab.contains(e.target))) closeHistoryPanel();
 });
 
 // ══ "K-Law는 어떻게 동작하나요" 접이식 패널 (2026-09-17 신설) ═══════
