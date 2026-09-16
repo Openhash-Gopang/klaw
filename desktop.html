@@ -780,12 +780,15 @@ async function _klawCall(tier, messages, opts = {}) {
   await KAuth.ensureLogin();
   _klawRefreshAuthBadge();
 
-  const doRequest = async () => {
+  // doRequest는 이제 finish_reason 판단을 상위(_klawCall 본문)로 넘기기
+  // 위해 { text, finishReason }를 반환한다 — 잘림 안내 문구는 최종
+  // 시도(재시도가 있었다면 그 결과) 딱 한 번만 붙인다.
+  const doRequest = async (useTier) => {
     const resp = await fetch(KLAW_RELAY_URL, {
       method: 'POST',
       headers: { 'Content-Type':'application/json' },
       body: JSON.stringify({
-        guid: _klawGuid(), tier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle,
+        guid: _klawGuid(), tier: useTier, messages, max_tokens: maxTokens, stream, step_cycle: stepCycle,
         phone_verify_token: KAuth.getToken(),
         case_id: null, claim_amount_krw: null,
       })
@@ -799,29 +802,47 @@ async function _klawCall(tier, messages, opts = {}) {
         if (json.choices?.[0]?.finish_reason) finishReason = json.choices[0].finish_reason;
         if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
       });
-      return _klawAppendTruncationNotice(fullText, finishReason);
+      return { text: fullText, finishReason };
     }
 
     let data;
     try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
     if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
-    return _klawAppendTruncationNotice(data.choices?.[0]?.message?.content || '', data.choices?.[0]?.finish_reason);
+    return { text: data.choices?.[0]?.message?.content || '', finishReason: data.choices?.[0]?.finish_reason };
   };
 
-  try {
-    return await doRequest();
-  } catch (e) {
-    // 로그인이 필요하거나(최초 1회) 토큰이 만료된 경우 — 로그인 오버레이를
-    // 띄우고 완료되면 같은 요청을 한 번 더 시도한다.
-    if (_klawIsRecoverableAuthError(e.message)) {
-      KAuth.logout();
-      _klawRefreshAuthBadge();
-      await KAuth.ensureLogin();
-      _klawRefreshAuthBadge();
-      return await doRequest();
+  const attempt = async (useTier) => {
+    try {
+      return await doRequest(useTier);
+    } catch (e) {
+      // 로그인이 필요하거나(최초 1회) 토큰이 만료된 경우 — 로그인 오버레이를
+      // 띄우고 완료되면 같은 요청을 한 번 더 시도한다.
+      if (_klawIsRecoverableAuthError(e.message)) {
+        KAuth.logout();
+        _klawRefreshAuthBadge();
+        await KAuth.ensureLogin();
+        _klawRefreshAuthBadge();
+        return await doRequest(useTier);
+      }
+      throw e;
     }
-    throw e;
+  };
+
+  let { text, finishReason } = await attempt(tier);
+
+  // 2026-09-16 신설(주피터 지시) — "토큰 한도가 모자라면 flash에서
+  // pro로 자동 전환". 사전 복잡도 판정(_klawCaseIsComplex)이 놓친
+  // 사례를 사후에 구제한다: klaw-flash 응답이 실제로 토큰 한도에
+  // 걸려 잘렸다면(finish_reason:'length'), klaw-pro로 딱 한 번 자동
+  // 재시도한다. pro도 잘리면 그때는 정말 사건이 길어서 어쩔 수 없는
+  // 경우이므로 재시도하지 않고 잘림 안내만 붙인다(무한 재시도 방지).
+  if (finishReason === 'length' && tier === KLAW_TIER_INTERVIEW) {
+    const retried = await attempt(KLAW_TIER_VERDICT);
+    text = retried.text;
+    finishReason = retried.finishReason;
   }
+
+  return _klawAppendTruncationNotice(text, finishReason);
 }
 
 
