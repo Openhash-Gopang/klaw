@@ -1836,7 +1836,11 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
   try {
     const bodyEl = document.getElementById('vsb-' + stepDef.id);
     let streamStarted = false;
-    const result = await callLLMStream(msgs, 3000, (delta, fullSoFar) => {
+    // 2026-09-16 수정 — 사고실험 재발견: 지난번 maxTokens 상향(1400→2400)은
+    // "사건 분석" 단계에만 적용됐고, 정작 STEP 0~C 판결문 생성(가장 긴
+    // 출력이 나오는 STEP B "최종 판결문" 포함)은 여전히 3000에 묶여 있어
+    // 복잡한 사건에서 계속 잘렸다. 이쪽도 상향한다.
+    const result = await callLLMStream(msgs, 4500, (delta, fullSoFar) => {
       if (!streamStarted) {
         streamStarted = true;
         bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
