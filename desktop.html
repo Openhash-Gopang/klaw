@@ -829,7 +829,6 @@ async function _sendPdvReport(user, action) {
 // ══ 고팡 인증 콜백 ════════════════════════════════════════
 // subsystem-auth.js가 인증 완료 후 호출
 let currentUser = null;
-let userKlawSentVersions = {};
 
 window._onGopangAuth = function(user) {
   currentUser = user;
@@ -880,30 +879,38 @@ setInterval(_klawRefreshAuthBadge, 2000);
 window.addEventListener('focus', _klawRefreshAuthBadge);
 
 // ══ K-Law 이력 (klaw_sessions, PocketBase 경유) ═══════════
-// used_at 필드는 klaw_sessions 컬렉션에 없음(PocketBase 기본 created로
-// 대체) — 서버가 klaw_version/llm_model/created를 반환, created를
-// used_at으로 별칭 부여해 기존 렌더 함수와의 호환을 유지한다.
+// 2026-09-16 수정 (주피터 지시 — "이력은 반드시 작성자 본인만 열람,
+// 일치도 점수만 표시") — 이전엔 currentUser?.ipv6(2026-07-23에 제거된
+// 죽은 고팡 SSO 콜백이 채워야 하는 값이라 사실상 항상 비어 있었다)를
+// 식별자로 써서, 저장도 조회도 조용히 항상 실패하고 있었다. 이제
+// 과금과 동일한 hondi 인증(KAuth phone_verify_token)을 그대로 써서
+// 서버가 guid를 직접 재확인한다 — 클라이언트는 자기 자신의 것 외엔
+// 애초에 조회/기록할 방법이 없다(worker.js /klaw/sessions 참고).
+// userKlawSentVersions(uid별 다중 사용자 캐시)도 더 이상 필요 없다 —
+// 브라우저 하나엔 로그인된 hondi 사용자가 한 명뿐이므로 평문 객체로
+// 단순화했다.
+let klawSentVersions = {};
+
 async function _loadKlawHistory() {
-  if (!currentUser?.ipv6) return;
+  if (typeof KAuth === 'undefined' || !KAuth.hasValidLogin()) return;
   try {
-    const res = await fetch(KLAW_API_BASE + '/klaw/sessions/history?user_id=' + encodeURIComponent(currentUser.ipv6));
+    const res = await fetch(KLAW_API_BASE + '/klaw/sessions/history?phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
     const json = await res.json();
     const data = json.ok ? json.items : [];
-    userKlawSentVersions[currentUser.ipv6] = {};
-    (data||[]).forEach(r => { r.used_at = r.created; userKlawSentVersions[currentUser.ipv6][r.klaw_version] = true; });
+    klawSentVersions = {};
+    (data||[]).forEach(r => { r.used_at = r.created; klawSentVersions[r.klaw_version] = true; });
     _renderKlawHistory(data||[]);
   } catch(e) { console.warn('[K-Law]', e.message); }
 }
 
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
-  const uid = currentUser?.ipv6;
-  if (!uid) return;
+  if (typeof KAuth === 'undefined' || !KAuth.hasValidLogin()) return;
   try {
     const res = await fetch(KLAW_API_BASE + '/klaw/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id:      uid,
+        phone_verify_token: KAuth.getToken(),
         klaw_version: klawVer,
         llm_model:    llmModel,
         case_type:    simData.caseType    || null,
@@ -911,22 +918,20 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
         case_summary: simData.caseSummary || null,
         verdict:      simData.verdict     || null,
         confidence:   simData.confidence  || null,
+        match_rate:   simData.matchRate   || null,
         case_input:   simData.caseInput   || null
       })
     });
     const json = await res.json();
     if (!json.ok) { console.error('[K-Law] klaw_sessions 저장 실패:', JSON.stringify(json)); return; }
-    if (!userKlawSentVersions[uid]) userKlawSentVersions[uid] = {};
-    userKlawSentVersions[uid][klawVer] = true;
+    klawSentVersions[klawVer] = true;
     console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
     _loadKlawHistory();
   } catch(e) { console.warn('[K-Law] 이력 저장 실패:', e.message); }
 }
 
 function hasKlawBeenSent(klawVer) {
-  const uid = currentUser?.ipv6;
-  if (!uid) return false;
-  return !!(userKlawSentVersions[uid]?.[klawVer]);
+  return !!klawSentVersions[klawVer];
 }
 
 function _renderKlawHistory(rows) {
@@ -934,14 +939,15 @@ function _renderKlawHistory(rows) {
   const sc = document.getElementById('sidebar-counter');
   if (sc) sc.textContent = rows.length;
   if (!rows.length) { body.innerHTML = '<div class="hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
-  const modelLabel = { deepseek:'DeepSeek v4', claude:'Claude', gemini:'Gemini' };
+  // 본인만 보는 목록이므로 일치도 점수와 시각만 표시한다(사건 요약·
+  // 모델·버전 등은 노출하지 않음 — "일치도 점수만 표시" 지시 반영).
   body.innerHTML = rows.map(r => `
     <div class="hp-row">
-      <div class="hp-ver">${escHtml(r.klaw_version)}</div>
-      <div class="hp-model">${escHtml(modelLabel[r.llm_model] || r.llm_model)}</div>
-      <div class="hp-time">${new Date(r.used_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="hp-ver" style="min-width:auto;font-weight:700;color:var(--pri-dk)">${escHtml(r.match_rate || '—')}</div>
+      <div class="hp-time" style="margin-left:auto">${new Date(r.used_at).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
     </div>`).join('');
 }
+
 
 function toggleHistoryPanel() {
   document.getElementById('klaw-history-panel').classList.toggle('open');
@@ -1737,6 +1743,11 @@ async function runJudgementSim() {
   const confM    = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
+  // 2026-09-16 신설 — 이력에 표시할 "일치도 점수". appendConfidenceBlock와
+  // 동일한 파싱·폴백 규칙(LLM 자체 보고값 → 복잡도 기반 추정 → 기본
+  // 범위)을 그대로 따른다.
+  const matchM   = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+  const matchRate = matchM ? matchM[1].trim() : complexM ? calcMatchRate(complexM[1]) : '90~99.99%';
 
   await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
     caseType:    conversationState.caseData?.type    || null,
@@ -1744,6 +1755,7 @@ async function runJudgementSim() {
     caseSummary: summM ? summM[1].trim().slice(0,150) : null,
     verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
     confidence:  confM ? confM[1] + '/10' : null,
+    matchRate:   matchRate,
     caseInput:   (conversationState.caseText || '').slice(0, 200)
   });
 
