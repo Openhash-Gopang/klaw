@@ -161,6 +161,18 @@ button{font-family:var(--font);cursor:pointer}
 .panel-title svg{color:var(--txt3)}
 .panel-bd{padding:16px}
 
+/* ── "K-Law는 어떻게 동작하나요" 접이식 섹션 (2026-09-17 신설) ──────
+   기본 숨김 — 제목 클릭 시 아래로 슬라이드 아웃(펼침), 제목을 다시
+   클릭하거나 패널 바깥을 클릭하면 슬라이드 인(접힘). 기존 .llm-panel의
+   max-height 트랜지션 패턴을 그대로 따르되, 내용이 훨씬 길어 여유
+   있는 max-height 값을 쓴다. */
+.howto-hd{cursor:pointer;user-select:none}
+.howto-hd:hover{background:var(--pri-bg)}
+.howto-chevron{margin-left:auto;color:var(--txt3);transition:transform .3s var(--ease);flex-shrink:0}
+.howto-panel-bd{max-height:0;overflow:hidden;opacity:0;padding:0 16px;transition:max-height .4s var(--ease),opacity .3s ease,padding .4s var(--ease)}
+.howto-panel-bd.open{max-height:4000px;opacity:1;padding:16px}
+
+
 .case-textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--txt);background:var(--sur);outline:none;resize:none;height:100px;line-height:1.65;transition:height .3s ease,border-color .15s,box-shadow .15s}
 .case-textarea.expanded{height:200px;overflow-y:auto}
 .case-textarea:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(62,207,142,.15)}
@@ -572,14 +584,15 @@ button{font-family:var(--font);cursor:pointer}
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-hd">
+      <div class="panel" id="howto-panel">
+        <div class="panel-hd howto-hd" onclick="toggleHowtoPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             K-Law는 어떻게 동작하나요
           </div>
+          <svg class="howto-chevron" id="howto-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="panel-bd" style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel-bd howto-panel-bd" id="howto-panel-bd" style="display:flex;flex-direction:column;gap:16px">
 
           <!-- 자동차-네비 비유 -->
           <div style="font-size:13px;color:var(--txt2);line-height:1.85">
@@ -983,6 +996,24 @@ document.addEventListener('click', e => {
   const panel = document.getElementById('klaw-history-panel');
   const bar   = document.getElementById('user-info-bar');
   if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target)) closeHistoryPanel();
+});
+
+// ══ "K-Law는 어떻게 동작하나요" 접이식 패널 (2026-09-17 신설) ═══════
+function toggleHowtoPanel() {
+  const bd = document.getElementById('howto-panel-bd');
+  const chevron = document.getElementById('howto-chevron');
+  const isOpen = bd.classList.toggle('open');
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(180deg)' : '';
+}
+function closeHowtoPanel() {
+  const bd = document.getElementById('howto-panel-bd');
+  const chevron = document.getElementById('howto-chevron');
+  if (bd) bd.classList.remove('open');
+  if (chevron) chevron.style.transform = '';
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('howto-panel');
+  if (panel && !panel.contains(e.target)) closeHowtoPanel();
 });
 
 // klaw_cases 저장 (PocketBase 경유, worker.js /klaw/cases)
