@@ -398,6 +398,10 @@ button{font-family:var(--font);cursor:pointer}
         <span class="nav-item-label">판결 이력</span>
         <span class="nav-badge" id="sidebar-counter">0</span>
       </a>
+      <a class="nav-item" href="public-board.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+        <span class="nav-item-label">공개 게시판</span>
+      </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">모델</div>
@@ -2166,15 +2170,12 @@ async function runJudgementSim() {
     verdictFull: fullText
   });
 
-  _sendCaseToKlaw({
-    caseType:    conversationState.caseData?.type,
-    caseLevel:   conversationState.caseData?.level,
-    caseSummary: summM ? summM[1].trim().slice(0,500) : null,
-    verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
-    confidence:  confM ? confM[1]+'/10' : null,
-    complexity:  complexM ? complexM[1] : null,
-    matchRate:   complexM ? calcMatchRate(complexM[1]) : null,
-  }, conversationState.caseText || '');
+  // 2026-09-18 제거(주피터 지시 — "기본적으로 비공개, 선택적으로 공개") —
+  // _sendCaseToKlaw()는 klaw_cases에 예외 없이 모든 시뮬레이션 결과를
+  // 자동으로 올렸다(공개 여부 선택지 자체가 없었음). 이제 klaw_sessions의
+  // is_public 플래그(기본 false, my-history.html에서 사후 전환)가 이
+  // 역할을 대체하므로 자동 게시를 중단한다. 함수 정의(_sendCaseToKlaw)
+  // 자체는 남겨두되 더 이상 호출하지 않는다.
 
   // PDV 보고 — 판결 시뮬레이션 완료
   await _sendPdvReport(currentUser, {
@@ -2340,7 +2341,7 @@ function appendConfidenceBlock(fullText) {
       법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
     </div>
     <div style="text-align:center;margin-top:10px">
-      <a href="board.html" target="_blank" style="font-size:12px;font-weight:700;color:var(--pri);text-decoration:none">📰 게시판에서 게재된 사건 전체 보기 →</a>
+      <a href="public-board.html" style="font-size:12px;font-weight:700;color:var(--pri);text-decoration:none">📰 공개 게시판에서 다른 사건 보기 →</a>
     </div>`;
   body.insertBefore(div, body.firstChild);
 }
