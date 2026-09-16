@@ -1609,15 +1609,20 @@ async function runSimulation() {
     // 복잡한 사건(당사자 다수·다국적 계약 등)은 분석 단계도 klaw-flash
     // 대신 klaw-pro로 넘긴다 — 2026-09-15 사고실험 발견: 당사자 6곳·
     // 계약 4단계짜리 국제 조세 사건에서 flash가 maxTokens 1400 안에
-    // 【추가질문】까지 다 쓰지 못하고 중간에 끊긴 사례 대응. maxTokens도
-    // 1400→2400으로 상향해 근본 여유를 늘리되, 그래도 넘치는 극단적
-    // 사례는 아래 finish_reason 검사가 잡아 사용자에게 알린다.
-    // 2026-09-17 — 진행 표시를 실제 DeepSeek 스트리밍 원문으로 보여주기
-    // 위해 non-stream callLLM 대신 callLLMStream을 쓴다.
+    // 【추가질문】까지 다 쓰지 못하고 중간에 끊긴 사례 대응.
+    // 2026-09-17 재발견(worker.js 확인) — klaw-pro는 DeepSeek "thinking"
+    // (추론) 모드가 항상 켜져 있고, 추론 토큰도 같은 max_tokens 예산을
+    // 함께 먹는다. 그래서 pro로 넘어간 경우 2400 정도로는 추론만 하다
+    // 끝나고 실제 태그(【사건의 개요】 등)는 한 글자도 못 쓰는 사례가
+    // 나왔다(사용자 보고: "사건의 개요를 전혀 파악 못함"). flash(추론
+    // 없음)는 2400으로 충분하니 그대로 두고, pro로 넘어갈 때만 6000으로
+    // 크게 올린다 — max_tokens는 상한일 뿐 실제 쓴 만큼만 과금되므로
+    // 넉넉히 잡아도 비용 부담은 없다.
+    const isComplex = _klawCaseIsComplex(caseInput);
     const liveTextEl = document.getElementById('analyze-live-text');
-    const result = await callLLMStream(conversationState.messages, 2400, (delta, fullSoFar) => {
+    const result = await callLLMStream(conversationState.messages, isComplex ? 6000 : 2400, (delta, fullSoFar) => {
       if (liveTextEl) liveTextEl.textContent = (fullSoFar.length > 140 ? '…' : '') + fullSoFar.slice(-140);
-    }, { forceProTier: _klawCaseIsComplex(caseInput) });
+    }, { forceProTier: isComplex });
     _stopAnalyzeProgress(true);
     conversationState.messages.push({ role:'assistant', content: result });
     conversationState.caseData = parseAnalysis(result);
@@ -1916,7 +1921,12 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
     // "사건 분석" 단계에만 적용됐고, 정작 STEP 0~C 판결문 생성(가장 긴
     // 출력이 나오는 STEP B "최종 판결문" 포함)은 여전히 3000에 묶여 있어
     // 복잡한 사건에서 계속 잘렸다. 이쪽도 상향한다.
-    const result = await callLLMStream(msgs, 4500, (delta, fullSoFar) => {
+    // 2026-09-17 재상향 — worker.js 확인 결과 STEP 0~C는 항상 klaw-pro라
+    // DeepSeek "thinking"(추론) 모드가 항상 켜져 있고, 추론 토큰도 같은
+    // max_tokens 예산을 함께 먹는다. 4500으로도 추론만 하다 끝나 본문이
+    // 하나도 안 나온 사례가 나와서 대폭(9000) 상향한다 — 실제 쓴 만큼만
+    // 과금되므로 상한을 넉넉히 잡는 데 비용 부담은 없다.
+    const result = await callLLMStream(msgs, 9000, (delta, fullSoFar) => {
       if (!streamStarted) {
         streamStarted = true;
         bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
