@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law — 판결 이력</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://hondi.net/auth/k-service-auth-client.js"></script>
+<script>window.K_AUTH_CONFIG = { serviceLabel: 'K-Law' };</script>
+<style>
+:root {
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --red:#ef4444; --red-bg:#fef2f2;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
+  --mono:'SF Mono','Fira Code','Consolas',monospace; --r:10px; --r-lg:16px;
+  --shadow-1:0 1px 2px rgba(15,23,42,.05),0 1px 3px rgba(15,23,42,.08);
+  --shadow-3:0 6px 16px rgba(15,23,42,.09),0 16px 32px rgba(15,23,42,.14);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt2)}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 100px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:18px}
+.back-link:hover{color:var(--txt)}
+.hero{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.hero h1{font-size:20px;color:var(--txt)}
+.hero p{font-size:12.5px;color:var(--txt3);margin-top:4px}
+.board{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-1)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--bg);border-bottom:1px solid var(--bdr);padding:10px 12px;text-align:left;font-weight:600;color:var(--txt3);font-size:11px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{border-bottom:1px solid var(--bdr);padding:11px 12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-clickable{cursor:pointer}
+tr.row-clickable:hover{background:var(--bg)}
+.title-cell{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);font-weight:500}
+.rate-chip{display:inline-block;font-weight:700;color:var(--pri-dk)}
+.items-chip{display:inline-flex;flex-wrap:wrap;gap:4px}
+.item-badge{font-size:10.5px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:1px 6px;color:var(--txt3);white-space:nowrap}
+.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--bdr2);border-radius:20px;transition:background .15s var(--ease);cursor:pointer}
+.toggle-track::before{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .15s var(--ease);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle input:checked + .toggle-track{background:var(--pri)}
+.toggle input:checked + .toggle-track::before{transform:translateX(16px)}
+.empty{padding:60px 20px;text-align:center;color:var(--txt4);font-size:13px}
+.loading{padding:60px 20px;text-align:center;color:var(--txt4);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px}
+.spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.public-badge{font-size:10px;font-weight:700;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 5px;margin-left:6px}
+
+/* 상세 보기 모달 */
+.klaw-hd-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.45);align-items:center;justify-content:center;padding:24px}
+.klaw-hd-modal.open{display:flex}
+.klaw-hd-box{background:var(--sur);border-radius:var(--r-lg);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow-3);overflow:hidden}
+.klaw-hd-hd{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--txt)}
+.klaw-hd-body{padding:18px;overflow-y:auto}
+.klaw-hd-meta{font-size:12px;color:var(--txt3);line-height:1.7;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;margin-bottom:14px}
+.klaw-hd-meta div{margin-bottom:2px}
+.klaw-hd-meta b{color:var(--txt2);font-weight:600}
+.klaw-hd-items{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px}
+.klaw-hd-items td{border:1px solid var(--bdr);padding:6px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="desktop.html">← 판결 시뮬레이터로 돌아가기</a>
+
+  <div class="hero">
+    <div>
+      <h1>판결 이력</h1>
+      <p>본인이 생성한 가상 판결문 목록입니다. 기본적으로 본인만 볼 수 있고, 공개로 전환하면 게시판에도 노출됩니다.</p>
+    </div>
+  </div>
+
+  <div class="board">
+    <table>
+      <thead>
+        <tr>
+          <th>생성 시각</th>
+          <th>제목</th>
+          <th>종합 일치도</th>
+          <th>항목별 평가</th>
+          <th>공개</th>
+        </tr>
+      </thead>
+      <tbody id="board-body">
+        <tr><td colspan="5"><div class="loading"><div class="spinner"></div>불러오는 중…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 상세 보기 모달 -->
+<div class="klaw-hd-modal" id="klaw-history-detail-modal" onclick="if(event.target===this) closeKlawHistoryDetail()">
+  <div class="klaw-hd-box">
+    <div class="klaw-hd-hd">
+      <span>판결문 전문</span>
+      <button onclick="closeKlawHistoryDetail()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="klaw-hd-body" id="klaw-history-detail-body"></div>
+  </div>
+</div>
+
+<script>
+const KLAW_API_BASE = 'https://hondi-proxy.tensor-city.workers.dev';
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function _klawIsRecoverableAuthError(message) {
+  return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
+}
+
+let _klawRows = [];
+
+async function loadBoard() {
+  const body = document.getElementById('board-body');
+  if (typeof KAuth === 'undefined') { body.innerHTML = '<tr><td colspan="5"><div class="empty">인증 모듈을 불러오지 못했습니다. 새로고침해 주세요.</div></td></tr>'; return; }
+
+  const doFetch = () => fetch(KLAW_API_BASE + '/klaw/sessions/history?phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
+
+  try {
+    await KAuth.ensureLogin();
+    let res = await doFetch();
+    let json = await res.json();
+    if (!json.ok && _klawIsRecoverableAuthError(json.message)) {
+      KAuth.logout();
+      await KAuth.ensureLogin();
+      res = await doFetch();
+      json = await res.json();
+    }
+    if (!json.ok) { body.innerHTML = `<tr><td colspan="5"><div class="empty">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div></td></tr>`; return; }
+    _klawRows = json.items || [];
+    renderBoard();
+  } catch(e) {
+    body.innerHTML = `<tr><td colspan="5"><div class="empty">⚠ 오류: ${escHtml(e.message)}</div></td></tr>`;
+  }
+}
+
+function renderBoard() {
+  const body = document.getElementById('board-body');
+  if (!_klawRows.length) { body.innerHTML = '<tr><td colspan="5"><div class="empty">아직 생성한 판결문이 없습니다</div></td></tr>'; return; }
+
+  body.innerHTML = _klawRows.map(r => {
+    let items = {};
+    try { items = JSON.parse(r.match_items || '{}'); } catch(e) {}
+    const itemBadges = Object.entries(items)
+      .filter(([k]) => k !== '종합 일치도')
+      .map(([k,v]) => `<span class="item-badge">${escHtml(k)} ${escHtml(v)}</span>`).join('');
+    const when = new Date(r.created).toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `
+      <tr class="row-clickable" onclick="viewKlawHistoryDetail('${escHtml(r.id)}')">
+        <td style="white-space:nowrap;color:var(--txt3)">${escHtml(when)}</td>
+        <td class="title-cell">${escHtml(r.title || '(제목 없음)')}</td>
+        <td><span class="rate-chip">${escHtml(r.match_rate || '—')}</span></td>
+        <td><div class="items-chip">${itemBadges || '<span style="color:var(--txt4)">평가 전</span>'}</div></td>
+        <td onclick="event.stopPropagation()">
+          <label class="toggle">
+            <input type="checkbox" ${r.is_public ? 'checked' : ''} onchange="toggleVisibility('${escHtml(r.id)}', this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+async function toggleVisibility(id, isPublic) {
+  try {
+    const res = await fetch(KLAW_API_BASE + '/klaw/sessions/visibility', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, phone_verify_token: KAuth.getToken(), is_public: isPublic })
+    });
+    const json = await res.json();
+    if (!json.ok) { alert('공개 설정 변경 실패: ' + (json.message || '')); loadBoard(); return; }
+    const row = _klawRows.find(r => r.id === id);
+    if (row) row.is_public = isPublic;
+  } catch(e) {
+    alert('공개 설정 변경 중 오류: ' + e.message);
+    loadBoard();
+  }
+}
+
+async function viewKlawHistoryDetail(id) {
+  if (typeof KAuth === 'undefined') return;
+  const modal = document.getElementById('klaw-history-detail-modal');
+  const body  = document.getElementById('klaw-history-detail-body');
+  modal.classList.add('open');
+  body.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--txt4);font-size:13px"><div class="spinner"></div>불러오는 중…</div>';
+
+  const doFetch = () => fetch(KLAW_API_BASE + '/klaw/sessions/detail?id=' + encodeURIComponent(id) +
+    '&phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
+
+  try {
+    let res = await doFetch();
+    let json = await res.json();
+    if (!json.ok && _klawIsRecoverableAuthError(json.message)) {
+      KAuth.logout();
+      await KAuth.ensureLogin();
+      res = await doFetch();
+      json = await res.json();
+    }
+    if (!json.ok) { body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div>`; return; }
+
+    const when = json.created ? new Date(json.created).toLocaleString('ko-KR') : '';
+    const metaRows = [
+      json.case_type ? `<div><b>사건 종류</b> — ${escHtml(json.case_type)}</div>` : '',
+      json.case_input ? `<div><b>사건 개요</b> — ${escHtml(json.case_input)}</div>` : '',
+      json.verdict ? `<div><b>주문</b> — ${escHtml(json.verdict)}</div>` : '',
+      json.case_summary ? `<div><b>판결 요약</b> — ${escHtml(json.case_summary)}</div>` : '',
+    ].filter(Boolean).join('');
+
+    let items = {};
+    try { items = JSON.parse(json.match_items || '{}'); } catch(e) {}
+    const itemRows = Object.entries(items).map(([k,v]) =>
+      `<tr><td>${escHtml(k)}</td><td style="text-align:right;font-weight:700;color:var(--pri-dk)">${escHtml(v)}</td></tr>`).join('');
+    const itemsTable = itemRows ? `<table class="klaw-hd-items">${itemRows}</table>` : '';
+
+    body.innerHTML = `
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
+        ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
+        ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
+      </div>
+      ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
+      ${itemsTable}
+      <pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;line-height:1.7;color:var(--txt2);margin:0">${escHtml(json.verdict_full || '(저장된 전문이 없습니다)')}</pre>
+    `;
+  } catch(e) {
+    body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오는 중 오류: ${escHtml(e.message)}</div>`;
+  }
+}
+function closeKlawHistoryDetail() {
+  document.getElementById('klaw-history-detail-modal').classList.remove('open');
+}
+
+loadBoard();
+</script>
+</body>
+</html>

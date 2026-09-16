@@ -346,32 +346,6 @@ button{font-family:var(--font);cursor:pointer}
   <div class="progress-toast-label" id="progress-toast-label"></div>
 </div>
 
-<div class="history-panel" id="klaw-history-panel">
-  <div class="history-hd">
-    <span style="display:flex;align-items:center;gap:6px">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-      사용 이력
-    </span>
-    <button onclick="closeHistoryPanel()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div id="klaw-hp-body"><div class="hp-empty">이력이 없습니다</div></div>
-</div>
-
-<!-- 이력 전문 보기 모달 (2026-09-18 신설) -->
-<div class="klaw-hd-modal" id="klaw-history-detail-modal" onclick="if(event.target===this) closeKlawHistoryDetail()">
-  <div class="klaw-hd-box">
-    <div class="klaw-hd-hd">
-      <span>판결문 전문</span>
-      <button onclick="closeKlawHistoryDetail()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="klaw-hd-body" id="klaw-history-detail-body"></div>
-  </div>
-</div>
-
 <header class="topbar">
   <a class="topbar-brand" href="klaw_intro.html" style="cursor:pointer">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.5 9h15M3 18h18M7 9l-3 9M17 9l3 9"/></svg>
@@ -387,7 +361,7 @@ button{font-family:var(--font);cursor:pointer}
     <span class="topbar-clock" id="clock">--:--:--</span>
     <div class="tsep"></div>
     <span class="badge badge-free" id="sim-counter" style="font-family:var(--mono)">0건</span>
-    <button class="user-btn" id="user-info-bar" onclick="toggleHistoryPanel()">
+    <button class="user-btn" id="user-info-bar" onclick="location.href='my-history.html'">
       <div class="user-avatar" id="user-avatar">G</div>
       <span id="user-email-display" style="color:var(--txt3)">게스트</span>
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -419,11 +393,11 @@ button{font-family:var(--font);cursor:pointer}
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">이력</div>
-      <button class="nav-item" onclick="toggleHistoryPanel()">
+      <a class="nav-item" href="my-history.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
         <span class="nav-item-label">판결 이력</span>
         <span class="nav-badge" id="sidebar-counter">0</span>
-      </button>
+      </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">모델</div>
@@ -516,7 +490,7 @@ button{font-family:var(--font);cursor:pointer}
       </div>
       <div class="page-tabs">
         <button class="page-tab active">입력 및 분석</button>
-        <button class="page-tab" id="history-tab-btn" onclick="toggleHistoryPanel()">이력</button>
+        <button class="page-tab" id="history-tab-btn" onclick="location.href='my-history.html'">이력</button>
       </div>
     </div>
 
@@ -1015,6 +989,15 @@ async function _loadKlawHistory() {
   } catch(e) { console.warn('[K-Law]', e.message); }
 }
 
+// 2026-09-18 신설 — "게시판 형식의 이력 페이지" 표시용 제목을 사건
+// 종류·요약에서 뽑는다. 사용자가 별도로 제목을 입력하는 입력란은
+// 없으므로 기존에 이미 저장하던 값만으로 구성한다.
+function _klawDeriveTitle(caseType, caseSummary) {
+  const head = caseType ? `[${caseType}] ` : '';
+  const body = (caseSummary || '').trim().slice(0, 40);
+  return (head + (body || '제목 없음')).slice(0, 100);
+}
+
 async function recordKlawUsage(klawVer, llmModel, simData = {}) {
   if (typeof KAuth === 'undefined' || !KAuth.hasValidLogin()) return;
   try {
@@ -1036,11 +1019,19 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
         // 있도록 STEP 0~C 전문을 함께 저장한다. PocketBase klaw_sessions
         // 컬렉션에 verdict_full 필드가 있어야 실제로 저장된다.
         verdict_full: simData.verdictFull || null,
+        // 2026-09-18 신설(주피터 지시 — "게시판 형식의 이력 페이지") —
+        // 제목은 자동 생성, 공개 여부는 기본 false(비공개). 공개 전환은
+        // my-history.html에서 사후에 토글한다.
+        title:        _klawDeriveTitle(simData.caseType, simData.caseSummary),
+        is_public:    false,
       })
     });
     const json = await res.json();
     if (!json.ok) { console.error('[K-Law] klaw_sessions 저장 실패:', JSON.stringify(json)); return; }
     klawSentVersions[klawVer] = true;
+    // 2026-09-18 신설 — 이후 "일치도 평가"가 완료되면 이 레코드에
+    // 항목별 점수를 채워넣어야 하므로 id를 기억해둔다.
+    window._klawCurrentSessionId = json.id || null;
     console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
     _loadKlawHistory();
   } catch(e) { console.warn('[K-Law] 이력 저장 실패:', e.message); }
@@ -1051,85 +1042,12 @@ function hasKlawBeenSent(klawVer) {
 }
 
 function _renderKlawHistory(rows) {
-  const body = document.getElementById('klaw-hp-body');
+  // 2026-09-18 수정(주피터 지시 — "팝업이 아니라 게시판 형식의 이력
+  // 페이지") — 목록 렌더링은 my-history.html로 이전했다. 여기서는
+  // 사이드바 배지 숫자만 갱신한다.
   const sc = document.getElementById('sidebar-counter');
   if (sc) sc.textContent = rows.length;
-  if (!rows.length) { body.innerHTML = '<div class="hp-empty">K-Law 사용 이력이 없습니다</div>'; return; }
-  // 본인만 보는 목록이므로 일치도 점수와 시각만 표시한다(사건 요약·
-  // 모델·버전 등은 노출하지 않음 — "일치도 점수만 표시" 지시 반영).
-  // 2026-09-18 수정 — 행을 클릭하면 그 판결문 전문을 다시 열람할 수
-  // 있게 한다(주피터 지시).
-  body.innerHTML = rows.map(r => `
-    <div class="hp-row" style="cursor:pointer" onclick="viewKlawHistoryDetail('${escHtml(r.id)}')">
-      <div class="hp-ver" style="min-width:auto;font-weight:700;color:var(--pri-dk)">${escHtml(r.match_rate || '—')}</div>
-      <div class="hp-time" style="margin-left:auto">${new Date(r.used_at).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
-    </div>`).join('');
 }
-
-// ══ 이력 전문 보기 (2026-09-18 신설) ═══════════════════════
-// worker.js /klaw/sessions/detail이 phone_verify_token으로 본인 것인지
-// 재확인한 뒤에만 verdict_full을 돌려준다 — record id를 안다고 아무나
-// 열람할 수 있는 게 아니다.
-async function viewKlawHistoryDetail(id) {
-  if (typeof KAuth === 'undefined') return;
-  const modal = document.getElementById('klaw-history-detail-modal');
-  const body  = document.getElementById('klaw-history-detail-body');
-  modal.classList.add('open');
-  body.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--txt4);font-size:13px"><div class="spinner"></div>불러오는 중…</div>';
-
-  const doFetch = () => fetch(KLAW_API_BASE + '/klaw/sessions/detail?id=' + encodeURIComponent(id) +
-    '&phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
-
-  try {
-    let res = await doFetch();
-    let json = await res.json();
-    if (!json.ok && _klawIsRecoverableAuthError(json.message)) {
-      KAuth.logout();
-      await KAuth.ensureLogin();
-      res = await doFetch();
-      json = await res.json();
-    }
-    if (!json.ok) { body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div>`; return; }
-    const when = json.created ? new Date(json.created).toLocaleString('ko-KR') : '';
-    const metaRows = [
-      json.case_type ? `<div><b>사건 종류</b> — ${escHtml(json.case_type)}</div>` : '',
-      json.case_input ? `<div><b>사건 개요</b> — ${escHtml(json.case_input)}</div>` : '',
-      json.verdict ? `<div><b>주문</b> — ${escHtml(json.verdict)}</div>` : '',
-      json.case_summary ? `<div><b>판결 요약</b> — ${escHtml(json.case_summary)}</div>` : '',
-    ].filter(Boolean).join('');
-    body.innerHTML = `
-      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
-        ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
-        · 일치도 <b style="color:var(--pri-dk)">${escHtml(json.match_rate || '—')}</b>
-      </div>
-      ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
-      <pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;line-height:1.7;color:var(--txt2);margin:0">${escHtml(json.verdict_full || '(저장된 전문이 없습니다)')}</pre>
-    `;
-  } catch(e) {
-    body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오는 중 오류: ${escHtml(e.message)}</div>`;
-  }
-}
-function closeKlawHistoryDetail() {
-  document.getElementById('klaw-history-detail-modal').classList.remove('open');
-}
-
-
-function toggleHistoryPanel() {
-  document.getElementById('klaw-history-panel').classList.toggle('open');
-}
-function closeHistoryPanel() {
-  document.getElementById('klaw-history-panel').classList.remove('open');
-}
-document.addEventListener('click', e => {
-  const panel = document.getElementById('klaw-history-panel');
-  const bar   = document.getElementById('user-info-bar');
-  const tab   = document.getElementById('history-tab-btn');
-  // 2026-09-18 수정 — "이력" 탭 버튼도 열기 트리거이므로 예외 처리해야
-  // 한다. 빠져 있으면 클릭 한 번에 (1)탭의 onclick으로 열리고 (2)같은
-  // 클릭이 document까지 버블링되며 이 리스너가 "바깥 클릭"으로 오인해
-  // 곧바로 닫아버려, 사용자에게는 "탭이 아예 반응 안 하는" 것처럼 보인다.
-  if (panel && bar && !panel.contains(e.target) && !bar.contains(e.target) && !(tab && tab.contains(e.target))) closeHistoryPanel();
-});
 
 // ══ "K-Law는 어떻게 동작하나요" 접이식 패널 (2026-09-17 신설) ═══════
 function toggleHowtoPanel() {
@@ -1748,7 +1666,11 @@ ${window._verdictText}
 [실제 대법원 판결문]
 ${actualJudgment}
 
-위 방법론에 따라 항목별 평가와 최종 일치도(%)를 포함한 평가 보고서를 작성하세요.`
+위 방법론에 따라 항목별 평가가 포함된 평가 보고서를 작성하세요. 보고서 서술이 끝난 뒤, 반드시 아래와 같은 형식으로 방법론이 정의하는 평가 항목을 모두(항목 개수는 방법론에 따라 다를 수 있음) 한 줄씩 나열하고, 맨 마지막 줄에 종합 일치도를 추가하세요 — 이 태그들은 시스템이 자동으로 파싱하므로 형식을 정확히 지켜야 합니다:
+[항목: (항목명)] [점수: (0~100 사이 숫자)%]
+[항목: (항목명)] [점수: (0~100 사이 숫자)%]
+...
+[항목: 종합 일치도] [점수: (0~100 사이 숫자)%]`
     }];
     const onChunk = (delta, fullSoFar) => { if (liveTextEl) liveTextEl.textContent = (fullSoFar.length > 140 ? '…' : '') + fullSoFar.slice(-140); };
 
@@ -1771,7 +1693,44 @@ ${actualJudgment}
       return;
     }
     _stopMatchEvalProgress(true);
-    resultEl.innerHTML = `<div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;color:var(--txt2);margin-top:14px">${escHtml(result)}</div>`;
+
+    // 2026-09-18 신설(주피터 지시 — "일치도 평가 방법론에 따른 각 평가
+    // 항목별 일치도 점수") — 항목명을 코드에 하드코딩하지 않고, 모델이
+    // 출력한 [항목: X] [점수: Y%] 태그를 그대로 파싱해 {항목명: 점수}
+    // 객체를 만든다. 방법론 문서가 버전업되어 항목 구성이 바뀌어도
+    // 이 파싱 로직은 수정할 필요가 없다.
+    const itemRe = /\[항목:\s*([^\]]+)\]\s*\[점수:\s*([\d.]+%)\]/g;
+    const matchItems = {};
+    let m;
+    while ((m = itemRe.exec(result)) !== null) { matchItems[m[1].trim()] = m[2].trim(); }
+    const itemEntries = Object.entries(matchItems);
+
+    // 기존 klaw_sessions 레코드(시뮬레이션 완료 시 이미 생성됨)에 항목별
+    // 점수를 채워넣는다 — 본인 확인은 서버가 phone_verify_token으로 재확인.
+    if (window._klawCurrentSessionId && itemEntries.length) {
+      try {
+        await fetch(KLAW_API_BASE + '/klaw/sessions/visibility', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: window._klawCurrentSessionId,
+            phone_verify_token: KAuth.getToken(),
+            match_items: JSON.stringify(matchItems),
+          })
+        });
+        _loadKlawHistory();
+      } catch(e) { console.warn('[K-Law] 항목별 점수 저장 실패:', e.message); }
+    }
+
+    const itemsTable = itemEntries.length ? `
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px">
+        ${itemEntries.map(([k,v]) => `<tr><td style="padding:6px 10px;border:1px solid var(--bdr);color:var(--txt2)">${escHtml(k)}</td><td style="padding:6px 10px;border:1px solid var(--bdr);text-align:right;font-weight:700;color:var(--pri-dk)">${escHtml(v)}</td></tr>`).join('')}
+      </table>` : '';
+
+    resultEl.innerHTML = `
+      ${itemsTable}
+      <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;color:var(--txt2)">${escHtml(result)}</div>
+    `;
   } catch(e) {
     _stopMatchEvalProgress(false);
     resultEl.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-top:14px">⚠ 평가 중 오류: ${escHtml(e.message)}</div>`;
