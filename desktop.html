@@ -8,6 +8,9 @@
 <meta name="description" content="사건의 개요 한 문장으로 AI가 판결을 예측합니다. 대법원 법리 공리 체계 기반 K-Law 시뮬레이션.">
 <!-- 2026-07-23: K-Law 가상 판결 시뮬레이션은 혼디 로그인이 불필요 → subsystem-auth.js 제거 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<!-- 2026-09-18 신설 — "일치도 평가 기준" 원문이 .docx라 클라이언트에서
+     텍스트로 뽑아 프롬프트에 넣으려면 파서가 필요하다. -->
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <style>
 :root {
   --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
@@ -558,6 +561,39 @@ button{font-family:var(--font);cursor:pointer}
               <div class="analyze-progress-fill" id="analyze-progress-fill"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- 일치도 평가 (2026-09-18 신설) -->
+      <div class="panel" id="match-eval-panel">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            일치도 평가
+          </div>
+        </div>
+        <div class="panel-bd">
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
+            🧾 실제 대법원 판결문 전문을 붙여넣으면, 방금 생성된 K-Law 가상 판결문과 비교하여
+            <b>"일치도 평가 기준"</b> 방법론에 따라 평가 보고서를 작성합니다.
+            먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.
+          </div>
+          <textarea class="case-textarea" id="match-eval-input"
+            placeholder="실제 대법원 판결문 전문을 붙여넣으세요. (예: 종합법률정보 등에서 복사)"></textarea>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="match-eval-btn" onclick="runMatchEvaluation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              일치도 평가 시작
+            </button>
+            <span id="match-eval-ver-note" style="font-size:11px;color:var(--txt4)"></span>
+          </div>
+          <div class="analyze-progress-wrap" id="match-eval-progress-wrap">
+            <div class="analyze-live-text" id="match-eval-live-text"></div>
+            <div class="analyze-progress-track">
+              <div class="analyze-progress-fill" id="match-eval-progress-fill"></div>
+            </div>
+          </div>
+          <div id="match-eval-result"></div>
         </div>
       </div>
 
@@ -1610,6 +1646,140 @@ async function loadKlawVersion() {
   if (badge) badge.textContent = klawVersion;
 }
 loadKlawVersion();
+
+// ══ 일치도 평가 기준 동적 로드 (2026-09-18 신설) ══════════════════
+// "K-Law와 일치도 평가 방법론을 항상 최신 버전으로 적용" — loadKlawVersion과
+// 동일한 방식으로 저장소 파일 목록을 스캔해 가장 높은 버전을 고른다.
+// 원문이 .docx라 그대로는 프롬프트에 못 넣으므로, mammoth.js로 클라이언트에서
+// 텍스트만 추출해 쓴다(즉, 문서가 새 버전으로 교체되기만 하면 코드 수정 없이
+// 자동으로 새 버전을 반영한다).
+let matchEvalVersion = '로딩 중…';
+let matchEvalText    = '';
+const _MATCH_EVAL_CACHE_KEY = 'klaw_matcheval_cache_v1';
+
+async function loadMatchEvalCriteria() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_MATCH_EVAL_CACHE_KEY) || 'null');
+    if (cached?.version && cached?.text && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
+      matchEvalVersion = cached.version;
+      matchEvalText    = cached.text;
+      return;
+    }
+  } catch(e) {}
+
+  try {
+    const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
+    const files = await res.json();
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^일치도_평가_기준_v[\d_]+\.docx$/i.test(n));
+    function parseVer(name){ const m=name.match(/v([\d]+)_?([\d]*)\.docx/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
+    vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
+    const latestFile = vFiles[0] || '일치도_평가_기준_v1_6.docx';
+    const verMatch = latestFile.match(/v([\d]+_?[\d]*)\.docx/i);
+    matchEvalVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v1.6';
+
+    const rawRes = await fetch(KLAW_RAW_BASE + encodeURIComponent(latestFile), {cache:'no-cache'});
+    if (!rawRes.ok) throw new Error(`HTTP ${rawRes.status}`);
+    const arrayBuffer = await rawRes.arrayBuffer();
+    const parsed = await mammoth.extractRawText({ arrayBuffer });
+    matchEvalText = parsed.value || '';
+
+    try {
+      sessionStorage.setItem(_MATCH_EVAL_CACHE_KEY, JSON.stringify({ version: matchEvalVersion, text: matchEvalText, ts: Date.now() }));
+    } catch(e) {}
+    console.log('[K-Law] 일치도 평가 기준 로드 완료:', matchEvalVersion);
+  } catch(e) {
+    console.warn('[K-Law] 일치도 평가 기준 로드 실패:', e.message);
+    matchEvalVersion = 'v1.6'; matchEvalText = '';
+  }
+  const note = document.getElementById('match-eval-ver-note');
+  if (note) note.textContent = matchEvalText ? `일치도 평가 기준 ${matchEvalVersion} 적용` : '⚠ 평가 기준 원문 로드 실패 — 일반 기준으로 평가됩니다';
+}
+loadMatchEvalCriteria();
+
+// ── 일치도 평가 진행 표시 (analyze-progress-*와 동일한 패턴, 별도 ID로 독립) ──
+let _matchEvalProgressTimer = null;
+function _startMatchEvalProgress() {
+  const wrap = document.getElementById('match-eval-progress-wrap');
+  const fill = document.getElementById('match-eval-progress-fill');
+  const live = document.getElementById('match-eval-live-text');
+  if (wrap) wrap.classList.add('active');
+  if (fill) fill.style.width = '0%';
+  if (live) live.textContent = '';
+  const t0 = Date.now();
+  _matchEvalProgressTimer = setInterval(() => {
+    const elapsedSec = (Date.now() - t0) / 1000;
+    const pct = 92 * (1 - Math.exp(-elapsedSec / 7));
+    if (fill) fill.style.width = pct.toFixed(1) + '%';
+  }, 150);
+}
+function _stopMatchEvalProgress(success) {
+  if (_matchEvalProgressTimer) { clearInterval(_matchEvalProgressTimer); _matchEvalProgressTimer = null; }
+  const wrap = document.getElementById('match-eval-progress-wrap');
+  const fill = document.getElementById('match-eval-progress-fill');
+  if (fill && success) fill.style.width = '100%';
+  if (wrap) setTimeout(() => wrap.classList.remove('active'), success ? 300 : 0);
+}
+
+// ══ 일치도 평가 실행 (2026-09-18 신설) ═══════════════════════════
+async function runMatchEvaluation() {
+  const actualJudgment = (document.getElementById('match-eval-input').value || '').trim();
+  if (!actualJudgment) { alert('실제 대법원 판결문을 입력해주세요.'); return; }
+  if (!window._verdictText) { alert('먼저 위에서 판결 시뮬레이션(STEP 0~C)을 완료해야 일치도를 평가할 수 있습니다.'); return; }
+
+  const btn = document.getElementById('match-eval-btn');
+  const resultEl = document.getElementById('match-eval-result');
+  btn.disabled = true; btn.textContent = '평가 중...';
+  resultEl.innerHTML = '';
+  _startMatchEvalProgress();
+
+  try {
+    if (!matchEvalText) await loadMatchEvalCriteria(); // 아직 안 됐으면(드물게) 한 번 더 시도, 이미 캐시됐으면 즉시 반환
+    const liveTextEl = document.getElementById('match-eval-live-text');
+    const buildPrompt = () => [{
+      role: 'user',
+      content: `당신은 K-Law 일치도 평가관입니다. 아래 "일치도 평가 방법론"에 따라, K-Law가 생성한 가상 판결문과 실제 대법원 판결문을 비교하여 일치도를 평가한 보고서를 작성하세요.
+
+[일치도 평가 방법론 ${matchEvalVersion}]
+${matchEvalText || '(방법론 원문 로드 실패 — 법리 구성·사실관계 인정·결론(주문)의 일치 여부를 기준으로 항목별로 평가하세요)'}
+
+[K-Law 가상 판결문]
+${window._verdictText}
+
+[실제 대법원 판결문]
+${actualJudgment}
+
+위 방법론에 따라 항목별 평가와 최종 일치도(%)를 포함한 평가 보고서를 작성하세요.`
+    }];
+    const onChunk = (delta, fullSoFar) => { if (liveTextEl) liveTextEl.textContent = (fullSoFar.length > 140 ? '…' : '') + fullSoFar.slice(-140); };
+
+    // 2026-09-18 — 이 세션에서 발견한 "빈 결과 안전장치" 패턴을 그대로 적용:
+    // klaw-pro thinking 모드가 예산을 추론에 다 쓰면 응답이 완전히 빌 수 있어,
+    // 조용히 넘기지 않고 더 큰 예산으로 한 번 재시도한다.
+    let result = await callLLMStream(buildPrompt(), 16000, onChunk, { forceProTier: true });
+    if (!result.trim()) {
+      console.warn('[K-Law] 일치도 평가 결과 비어있음 — 더 큰 예산으로 자동 재시도');
+      if (liveTextEl) liveTextEl.textContent = '⚠ 응답이 비어 있어 더 큰 예산으로 재시도합니다…';
+      result = await callLLMStream(buildPrompt(), 24000, onChunk, { forceProTier: true });
+    }
+
+    if (!result.trim()) {
+      _stopMatchEvalProgress(false);
+      resultEl.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-top:14px">
+        ⚠ 두 번 시도했지만 평가 보고서를 받지 못했습니다(응답이 비어 있음).
+        <button class="btn" onclick="runMatchEvaluation()" style="margin-left:8px">다시 시도</button>
+      </div>`;
+      return;
+    }
+    _stopMatchEvalProgress(true);
+    resultEl.innerHTML = `<div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;color:var(--txt2);margin-top:14px">${escHtml(result)}</div>`;
+  } catch(e) {
+    _stopMatchEvalProgress(false);
+    resultEl.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-top:14px">⚠ 평가 중 오류: ${escHtml(e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '일치도 평가 시작';
+  }
+}
+
 
 // ══ 분석 프롬프트 ════════════════════════════════════════
 // ══ 복잡한 사건 판정 (2026-09-15 신설) ══════════════════════
