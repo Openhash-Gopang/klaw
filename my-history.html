@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — 판결 이력</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<!-- "항목별 평가"에 최신 "일치도 평가 기준" 방법론의 평가 항목을 그대로
+     나열하기 위해, .docx 원문을 클라이언트에서 텍스트로 뽑아야 한다. -->
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://hondi.net/auth/k-service-auth-client.js"></script>
 <script>window.K_AUTH_CONFIG = { serviceLabel: 'K-Law' };</script>
 <style>
@@ -22,23 +25,30 @@
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt2)}
-.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 100px}
+.wrap{max-width:1200px;margin:0 auto;padding:32px 24px 100px}
 .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:18px}
 .back-link:hover{color:var(--txt)}
 .hero{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
 .hero h1{font-size:20px;color:var(--txt)}
 .hero p{font-size:12.5px;color:var(--txt3);margin-top:4px}
-.board{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-1)}
+.board{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow-x:auto;box-shadow:var(--shadow-1)}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 th{background:var(--bg);border-bottom:1px solid var(--bdr);padding:10px 12px;text-align:left;font-weight:600;color:var(--txt3);font-size:11px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
 td{border-bottom:1px solid var(--bdr);padding:11px 12px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr.row-clickable{cursor:pointer}
 tr.row-clickable:hover{background:var(--bg)}
-.title-cell{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);font-weight:500}
-.rate-chip{display:inline-block;font-weight:700;color:var(--pri-dk)}
-.items-chip{display:inline-flex;flex-wrap:wrap;gap:4px}
-.item-badge{font-size:10.5px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:1px 6px;color:var(--txt3);white-space:nowrap}
+/* 생성 시각 — 폭을 줄이고 한 줄로 압축 표기 */
+.when-cell{white-space:nowrap;color:var(--txt3);font-family:var(--mono);font-size:11.5px;width:1%}
+.title-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);font-weight:500}
+.rate-chip{display:inline-block;font-weight:700;color:var(--pri-dk);white-space:nowrap}
+/* 항목별 평가 — "핵심" 정보이므로 폭이 부족해도 절대 잘리거나
+   말줄임표로 가려지지 않게 한다. 필요하면 줄바꿈하되 내용은 다 보인다. */
+.items-cell{white-space:normal}
+.items-chip{display:flex;flex-wrap:wrap;gap:4px;min-width:340px}
+.item-badge{font-size:10.5px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 7px;color:var(--txt3);white-space:nowrap;display:inline-flex;gap:4px}
+.item-badge b{color:var(--pri-dk);font-weight:700}
+.item-badge.pending{color:var(--txt4)}
 .toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
 .toggle-track{position:absolute;inset:0;background:var(--bdr2);border-radius:20px;transition:background .15s var(--ease);cursor:pointer}
@@ -51,7 +61,6 @@ tr.row-clickable:hover{background:var(--bg)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .public-badge{font-size:10px;font-weight:700;color:var(--pri-dk);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:4px;padding:1px 5px;margin-left:6px}
 
-/* 상세 보기 모달 */
 .klaw-hd-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.45);align-items:center;justify-content:center;padding:24px}
 .klaw-hd-modal.open{display:flex}
 .klaw-hd-box{background:var(--sur);border-radius:var(--r-lg);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow-3);overflow:hidden}
@@ -81,7 +90,7 @@ tr.row-clickable:hover{background:var(--bg)}
         <tr>
           <th>생성 시각</th>
           <th>제목</th>
-          <th>종합 일치도</th>
+          <th>일치도 예상</th>
           <th>항목별 평가</th>
           <th>공개</th>
         </tr>
@@ -107,13 +116,90 @@ tr.row-clickable:hover{background:var(--bg)}
 </div>
 
 <script>
-const KLAW_API_BASE = 'https://hondi-proxy.tensor-city.workers.dev';
+const KLAW_API_BASE  = 'https://hondi-proxy.tensor-city.workers.dev';
+const KLAW_REPO_API   = 'https://api.github.com/repos/Openhash-Gopang/klaw/contents/';
+const KLAW_RAW_BASE   = 'https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/';
+const _KLAW_CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
 function escHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function _klawIsRecoverableAuthError(message) {
   return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
+}
+
+// 2026-09-18 신설 — 생성 시각을 "2026.01.16.13:45"처럼 짧게 표기해
+// 칼럼 폭을 줄인다.
+function _klawFormatCompactDate(iso) {
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}.${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// 2026-09-18 신설 — title 필드가 없는 옛 레코드(이 기능 도입 이전 생성분)를
+// 위한 대체 제목. case_type·case_summary가 있으면 그걸로, 전혀 없으면
+// 버전·시각 기반의 최소 식별 가능한 라벨을 만든다("제목 없음"만 나오는
+// 문제 해결 — 주피터 지시).
+function _klawFallbackTitle(row) {
+  if (row.title && row.title.trim()) return row.title.trim();
+  const head = row.case_type ? `[${row.case_type}] ` : '';
+  const body = (row.case_summary || '').trim().slice(0, 40);
+  if (head || body) return (head + (body || '판결 시뮬레이션')).slice(0, 100);
+  return `판결 시뮬레이션 · ${row.klaw_version || ''} · ${_klawFormatCompactDate(row.created)}`;
+}
+
+// ══ "일치도 평가 기준" 최신 버전에서 평가 항목 목록 가져오기 ══════════
+// (2026-09-18 신설, 주피터 지시 — "항목별 평가가 핵심, 저장소의 평가
+// 방법론 최신 문서를 불러와서 평가 항목을 나열") desktop.html의
+// loadMatchEvalCriteria와 동일한 버전 자동 감지 방식을 쓴다.
+let _klawEvalItemNames = [];
+const _MATCH_EVAL_CACHE_KEY = 'klaw_matcheval_cache_v1';
+
+// 실제 v1.6 문서를 mammoth로 추출해 확인한 결과, "제N장 평가 항목 및
+// 배점" 표가 (항목, 배점, 설명) 3줄 반복 패턴으로 풀린다. 이 패턴이
+// 유지되는 한 항목 이름을 하드코딩하지 않고도 정확히 뽑아낼 수 있다.
+function _klawExtractEvalItemNames(text) {
+  if (!text) return [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const headIdx = lines.findIndex(l => /평가\s*항목\s*및\s*배점/.test(l));
+  if (headIdx === -1) return [];
+  let i = headIdx + 1;
+  if (lines[i] === '항목') i += 3; // "항목"/"배점"/"설명" 헤더 셀 건너뛰기
+  const names = [];
+  while (i + 2 < lines.length) {
+    const name = lines[i], score = lines[i+1];
+    if (!/^[\d.]+\s*점$/.test(score)) break; // 표가 끝나면 배점 형식이 아닌 줄이 나옴
+    if (!/^종합/.test(name)) names.push(name); // "종합 점수"는 별도 "일치도 예상" 칼럼과 중복이라 제외
+    i += 3;
+  }
+  return names;
+}
+
+async function loadMatchEvalCriteriaItemNames() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_MATCH_EVAL_CACHE_KEY) || 'null');
+    if (cached?.text && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
+      _klawEvalItemNames = _klawExtractEvalItemNames(cached.text);
+      return;
+    }
+  } catch(e) {}
+  try {
+    const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
+    const files = await res.json();
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^일치도_평가_기준_v[\d_]+\.docx$/i.test(n));
+    function parseVer(name){ const m=name.match(/v([\d]+)_?([\d]*)\.docx/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
+    vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
+    const latestFile = vFiles[0] || '일치도_평가_기준_v1_6.docx';
+
+    const rawRes = await fetch(KLAW_RAW_BASE + encodeURIComponent(latestFile), {cache:'no-cache'});
+    if (!rawRes.ok) throw new Error(`HTTP ${rawRes.status}`);
+    const arrayBuffer = await rawRes.arrayBuffer();
+    const parsed = await mammoth.extractRawText({ arrayBuffer });
+    _klawEvalItemNames = _klawExtractEvalItemNames(parsed.value || '');
+  } catch(e) {
+    console.warn('[K-Law] 평가 항목 로드 실패:', e.message);
+    _klawEvalItemNames = [];
+  }
 }
 
 let _klawRows = [];
@@ -126,6 +212,7 @@ async function loadBoard() {
 
   try {
     await KAuth.ensureLogin();
+    await loadMatchEvalCriteriaItemNames(); // 항목 목록은 목록 렌더링에 필요하므로 먼저 대기
     let res = await doFetch();
     let json = await res.json();
     if (!json.ok && _klawIsRecoverableAuthError(json.message)) {
@@ -142,31 +229,37 @@ async function loadBoard() {
   }
 }
 
+function _klawRenderItemBadges(matchItemsJson) {
+  let scored = {};
+  try { scored = JSON.parse(matchItemsJson || '{}'); } catch(e) {}
+  // "항목별 평가"는 이 사건 하나만의 결과가 아니라 방법론이 정의하는
+  // 항목 전체를 항상 나열한다 — 아직 평가 전이면 점수 없이 항목명만.
+  const names = _klawEvalItemNames.length ? _klawEvalItemNames : Object.keys(scored).filter(k => !/^종합/.test(k));
+  if (!names.length) return '<span style="color:var(--txt4)">평가 항목 로드 실패</span>';
+  return names.map(n => {
+    const v = Object.entries(scored).find(([k]) => k.includes(n) || n.includes(k));
+    return v ? `<span class="item-badge">${escHtml(n)} <b>${escHtml(v[1])}</b></span>`
+              : `<span class="item-badge pending">${escHtml(n)} 미평가</span>`;
+  }).join('');
+}
+
 function renderBoard() {
   const body = document.getElementById('board-body');
   if (!_klawRows.length) { body.innerHTML = '<tr><td colspan="5"><div class="empty">아직 생성한 판결문이 없습니다</div></td></tr>'; return; }
 
-  body.innerHTML = _klawRows.map(r => {
-    let items = {};
-    try { items = JSON.parse(r.match_items || '{}'); } catch(e) {}
-    const itemBadges = Object.entries(items)
-      .filter(([k]) => k !== '종합 일치도')
-      .map(([k,v]) => `<span class="item-badge">${escHtml(k)} ${escHtml(v)}</span>`).join('');
-    const when = new Date(r.created).toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `
+  body.innerHTML = _klawRows.map(r => `
       <tr class="row-clickable" onclick="viewKlawHistoryDetail('${escHtml(r.id)}')">
-        <td style="white-space:nowrap;color:var(--txt3)">${escHtml(when)}</td>
-        <td class="title-cell">${escHtml(r.title || '(제목 없음)')}</td>
+        <td class="when-cell">${escHtml(_klawFormatCompactDate(r.created))}</td>
+        <td class="title-cell">${escHtml(_klawFallbackTitle(r))}</td>
         <td><span class="rate-chip">${escHtml(r.match_rate || '—')}</span></td>
-        <td><div class="items-chip">${itemBadges || '<span style="color:var(--txt4)">평가 전</span>'}</div></td>
+        <td class="items-cell"><div class="items-chip">${_klawRenderItemBadges(r.match_items)}</div></td>
         <td onclick="event.stopPropagation()">
           <label class="toggle">
             <input type="checkbox" ${r.is_public ? 'checked' : ''} onchange="toggleVisibility('${escHtml(r.id)}', this.checked)">
             <span class="toggle-track"></span>
           </label>
         </td>
-      </tr>`;
-  }).join('');
+      </tr>`).join('');
 }
 
 async function toggleVisibility(id, isPublic) {
@@ -224,6 +317,7 @@ async function viewKlawHistoryDetail(id) {
     body.innerHTML = `
       <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
         ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
+        · 일치도 예상 <b style="color:var(--pri-dk)">${escHtml(json.match_rate || '—')}</b>
         ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
       </div>
       ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
