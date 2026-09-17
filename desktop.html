@@ -996,7 +996,12 @@ async function _loadKlawHistory() {
 // 2026-09-18 신설 — "게시판 형식의 이력 페이지" 표시용 제목을 사건
 // 종류·요약에서 뽑는다. 사용자가 별도로 제목을 입력하는 입력란은
 // 없으므로 기존에 이미 저장하던 값만으로 구성한다.
-function _klawDeriveTitle(caseType, caseSummary) {
+// 2026-09-18 수정(주피터 지시) — 사건 분석 프롬프트에 【사건명】 태그를
+// 추가해, "건축인허가 처분 취소 청구"처럼 실제 사건의 핵심 청구를 담은
+// 제목을 우선 사용한다. 사건명이 없을 때만 종류+요약으로 대체 생성하고,
+// 어느 경우든 날짜는 제목에 넣지 않는다(생성 시각은 별도 칼럼에 있음).
+function _klawDeriveTitle(caseType, caseSummary, caseName) {
+  if (caseName && caseName.trim()) return caseName.trim().slice(0, 100);
   const head = caseType ? `[${caseType}] ` : '';
   const body = (caseSummary || '').trim().slice(0, 40);
   return (head + (body || '제목 없음')).slice(0, 100);
@@ -1026,7 +1031,7 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
         // 2026-09-18 신설(주피터 지시 — "게시판 형식의 이력 페이지") —
         // 제목은 자동 생성, 공개 여부는 기본 false(비공개). 공개 전환은
         // my-history.html에서 사후에 토글한다.
-        title:        _klawDeriveTitle(simData.caseType, simData.caseSummary),
+        title:        _klawDeriveTitle(simData.caseType, simData.caseSummary, simData.caseName),
         is_public:    false,
       })
     });
@@ -1826,6 +1831,7 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 【심급】1심 / 2심 / 3심 / 헌법재판 중 하나
 【사건분류】민사(본안) / 형사 / 행정 / 가사 / 소액사건 / 노동 중 하나
 【사건종류_상세】사건의 구체적 유형
+【사건명】실제 법원 사건명처럼 핵심 청구를 담은 짧은 한 문구 (예: "건축인허가 처분 취소 청구", "OO시청과 건설사 간 계약 이행 분쟁"). 날짜·당사자 상세 정보 없이 15자 내외로.
 【사건의 개요】입력된 내용을 바탕으로 명확하게 정리
 【원고의 주장】원고(신청인) 측 주장 정리 (없으면 "정보 부족"으로 표기)
 【피고의 주장】피고(상대방) 측 주장 정리 (없으면 "정보 부족"으로 표기)
@@ -2003,7 +2009,7 @@ function autoRunSim() {
 function parseAnalysis(text) {
   const get = tag => { const m = text.match(new RegExp('【' + tag + '】\\s*([\\s\\S]*?)(?=【|$)')); return m ? m[1].trim() : ''; };
   return {
-    level: get('심급'), type: get('사건분류'), typeDetail: get('사건종류_상세'),
+    level: get('심급'), type: get('사건분류'), typeDetail: get('사건종류_상세'), caseName: get('사건명'),
     overview: get('사건의 개요'), plaintiff: get('원고의 주장'), defendant: get('피고의 주장'),
     agreed: get('다툼이 없는 사실'), dispute: get('다툼의 요지'), extraQ: get('추가질문')
   };
@@ -2179,12 +2185,16 @@ async function runJudgementSim() {
   // 2026-09-16 신설 — 이력에 표시할 "일치도 점수". appendConfidenceBlock와
   // 동일한 파싱·폴백 규칙(LLM 자체 보고값 → 복잡도 기반 추정 → 기본
   // 범위)을 그대로 따른다.
-  const matchM   = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+  // 2026-09-18 수정(주피터 지시) — 이력의 "일치도 예상" 칼럼에는 순수
+  // 퍼센트만 저장한다. 화면(appendConfidenceBlock)에는 "(복잡도 N/10
+  // 기준)" 부연설명을 계속 보여주지만, 그건 이 정규식과 별개다.
+  const matchM   = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%)/);
   const matchRate = matchM ? matchM[1].trim() : complexM ? calcMatchRate(complexM[1]) : '90~99.99%';
 
   await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
     caseType:    conversationState.caseData?.type    || null,
     caseLevel:   conversationState.caseData?.level   || level,
+    caseName:    conversationState.caseData?.caseName || null,
     caseSummary: summM ? summM[1].trim().slice(0,150) : null,
     verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
     confidence:  confM ? confM[1] + '/10' : null,

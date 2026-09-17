@@ -45,8 +45,9 @@ tr.row-clickable:hover{background:var(--bg)}
 /* 항목별 평가 — "핵심" 정보이므로 폭이 부족해도 절대 잘리거나
    말줄임표로 가려지지 않게 한다. 필요하면 줄바꿈하되 내용은 다 보인다. */
 .items-cell{white-space:normal}
-.items-chip{display:flex;flex-wrap:wrap;gap:4px;min-width:340px}
-.item-badge{font-size:10.5px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 7px;color:var(--txt3);white-space:nowrap;display:inline-flex;gap:4px}
+.items-chip{display:flex;flex-wrap:nowrap;gap:4px}
+.item-badge{font-size:10.5px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 7px;color:var(--txt3);white-space:nowrap;display:inline-flex;gap:4px;flex-shrink:0}
+.public-toggle-cell{width:1%;white-space:nowrap}
 .item-badge b{color:var(--pri-dk);font-weight:700}
 .item-badge.pending{color:var(--txt4)}
 .toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
@@ -136,16 +137,23 @@ function _klawFormatCompactDate(iso) {
   return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}.${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// 2026-09-18 신설(주피터 지시) — "일치도 예상"은 순수 %만 표시한다.
+// 이 수정 이전에 생성된 레코드는 "93.33% (복잡도 7/10 기준)"처럼
+// 부연설명이 값 안에 그대로 저장돼 있으므로, 화면에서 걸러낸다.
+function _klawStripMatchRate(rate) {
+  return (rate || '').replace(/\s*\(복잡도[^)]*\)\s*/g, '').trim();
+}
+
 // 2026-09-18 신설 — title 필드가 없는 옛 레코드(이 기능 도입 이전 생성분)를
 // 위한 대체 제목. case_type·case_summary가 있으면 그걸로, 전혀 없으면
-// 버전·시각 기반의 최소 식별 가능한 라벨을 만든다("제목 없음"만 나오는
-// 문제 해결 — 주피터 지시).
+// 최소 라벨만 표시한다. 생성 시각은 별도 칼럼에 이미 있으므로 제목에는
+// 날짜를 절대 넣지 않는다(주피터 지시).
 function _klawFallbackTitle(row) {
   if (row.title && row.title.trim()) return row.title.trim();
   const head = row.case_type ? `[${row.case_type}] ` : '';
   const body = (row.case_summary || '').trim().slice(0, 40);
   if (head || body) return (head + (body || '판결 시뮬레이션')).slice(0, 100);
-  return `판결 시뮬레이션 · ${row.klaw_version || ''} · ${_klawFormatCompactDate(row.created)}`;
+  return '(제목 없음)';
 }
 
 // ══ "일치도 평가 기준" 최신 버전에서 평가 항목 목록 가져오기 ══════════
@@ -233,13 +241,15 @@ function _klawRenderItemBadges(matchItemsJson) {
   let scored = {};
   try { scored = JSON.parse(matchItemsJson || '{}'); } catch(e) {}
   // "항목별 평가"는 이 사건 하나만의 결과가 아니라 방법론이 정의하는
-  // 항목 전체를 항상 나열한다 — 아직 평가 전이면 점수 없이 항목명만.
+  // 항목 전체를 항상 나열한다 — 아직 평가 전이면 점수 없이 항목명만
+  // (2026-09-18 수정: "미평가" 텍스트 제거 — 흐린 색상만으로 미평가
+  // 상태를 표시해 배지를 짧게 유지, 한 줄에 다 들어가게 함).
   const names = _klawEvalItemNames.length ? _klawEvalItemNames : Object.keys(scored).filter(k => !/^종합/.test(k));
   if (!names.length) return '<span style="color:var(--txt4)">평가 항목 로드 실패</span>';
   return names.map(n => {
     const v = Object.entries(scored).find(([k]) => k.includes(n) || n.includes(k));
     return v ? `<span class="item-badge">${escHtml(n)} <b>${escHtml(v[1])}</b></span>`
-              : `<span class="item-badge pending">${escHtml(n)} 미평가</span>`;
+              : `<span class="item-badge pending">${escHtml(n)}</span>`;
   }).join('');
 }
 
@@ -251,9 +261,9 @@ function renderBoard() {
       <tr class="row-clickable" onclick="viewKlawHistoryDetail('${escHtml(r.id)}')">
         <td class="when-cell">${escHtml(_klawFormatCompactDate(r.created))}</td>
         <td class="title-cell">${escHtml(_klawFallbackTitle(r))}</td>
-        <td><span class="rate-chip">${escHtml(r.match_rate || '—')}</span></td>
+        <td><span class="rate-chip">${escHtml(_klawStripMatchRate(r.match_rate) || '—')}</span></td>
         <td class="items-cell"><div class="items-chip">${_klawRenderItemBadges(r.match_items)}</div></td>
-        <td onclick="event.stopPropagation()">
+        <td class="public-toggle-cell" onclick="event.stopPropagation()">
           <label class="toggle">
             <input type="checkbox" ${r.is_public ? 'checked' : ''} onchange="toggleVisibility('${escHtml(r.id)}', this.checked)">
             <span class="toggle-track"></span>
@@ -317,7 +327,7 @@ async function viewKlawHistoryDetail(id) {
     body.innerHTML = `
       <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
         ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
-        · 일치도 예상 <b style="color:var(--pri-dk)">${escHtml(json.match_rate || '—')}</b>
+        · 일치도 예상 <b style="color:var(--pri-dk)">${escHtml(_klawStripMatchRate(json.match_rate) || '—')}</b>
         ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
       </div>
       ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
