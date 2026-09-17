@@ -62,11 +62,16 @@ th{background:var(--bg);font-weight:600;color:var(--txt2);white-space:nowrap}
     <div class="toc-title">목차</div>
     <a href="#auth">1. hondi 인증 · 과금 연동</a>
     <a href="#stability">2. 토큰 예산 · 안정성</a>
-    <a href="#history">3. 이력 기능 확장</a>
+    <a href="#history">3. 이력 기능 확장 (1차)</a>
     <a href="#ui">4. UI/UX 변경 이력</a>
     <a href="#infra">5. 인프라 · 기타</a>
-    <a href="#findings">6. 사고실험으로 발견한 문제들</a>
-    <a href="#known-issues">7. 알려진 제약 · 남은 과제</a>
+    <a href="#history-tab-bug">6. 이력 탭 즉시 닫힘 버그</a>
+    <a href="#match-eval">7. 일치도 평가 기능 신설</a>
+    <a href="#history-v2">8. 이력 시스템 전면 개편 (게시판화)</a>
+    <a href="#public-board">9. 공개 게시판 신설 + 레거시 제거</a>
+    <a href="#display-polish">10. 표시 다듬기 (제목·일치도·항목별 평가)</a>
+    <a href="#findings">11. 사고실험으로 발견한 문제들</a>
+    <a href="#known-issues">12. 알려진 제약 · 남은 과제</a>
   </div>
 
   <div class="card" id="auth">
@@ -105,7 +110,7 @@ th{background:var(--bg);font-weight:600;color:var(--txt2);white-space:nowrap}
   </div>
 
   <div class="card" id="history">
-    <h2>3. 이력 기능 확장 <span class="badge badge-feat">FEATURE</span> <span class="badge badge-security">SECURITY</span></h2>
+    <h2>3. 이력 기능 확장 (1차) <span class="badge badge-feat">FEATURE</span> <span class="badge badge-security">SECURITY</span></h2>
     <div class="sub">klaw #21, #34, #35 · hondi #274, #278, #280</div>
     <h3>3-1. 본인 전용 + 프라이버시 (#21)</h3>
     <p>기존 이력 기능은 <code>currentUser?.ipv6</code>(2026-07-23 제거된 죽은 코드가 채워야 하는 값)에 의존해 저장·조회가 항상 조용히 실패하고 있었다. 게다가 백엔드가 클라이언트가 보내는 <code>user_id</code>를 그대로 신뢰해, 값만 바꾸면 남의 이력을 보거나 남의 이름으로 기록을 남길 수 있는 취약점 발견.</p>
@@ -152,8 +157,62 @@ th{background:var(--bg);font-weight:600;color:var(--txt2);white-space:nowrap}
     </ul>
   </div>
 
+  <div class="card" id="history-tab-bug">
+    <h2>6. 이력 탭 즉시 닫힘 버그 <span class="badge badge-fix">FIX</span></h2>
+    <div class="sub">klaw #37</div>
+    <p>"이력" 탭을 클릭해도 반응이 없다는 제보. 재현해보니 실제로는 한 클릭 안에서 두 가지가 동시에 일어나고 있었다: ① 탭의 <code>onclick="toggleHistoryPanel()"</code>이 실행되어 패널이 <b>열리고</b>, ② 같은 클릭 이벤트가 <code>document</code>까지 계속 버블링되며 "패널 바깥 클릭 시 닫기" 리스너가 발동해 <b>곧바로 닫혀버렸다.</b> 같은 패널을 여는 우측 상단 아바타 버튼(<code>#user-info-bar</code>)은 그 리스너의 예외 목록에 들어있어 정상 작동했지만, 나중에 추가된 "이력" 탭 버튼은 예외 목록에서 빠져 있던 게 원인.</p>
+    <p>탭 버튼에 <code>id="history-tab-btn"</code>을 부여하고 리스너 조건에 추가해 해결. Playwright로 "아바타는 정상, 탭은 열렸다 즉시 닫힘" 상태를 직접 재현해 원인을 확정한 뒤 수정했다.</p>
+  </div>
+
+  <div class="card" id="match-eval">
+    <h2>7. 일치도 평가 기능 신설 <span class="badge badge-feat">FEATURE</span></h2>
+    <div class="sub">klaw #38</div>
+    <p>"사건의 개요" 입력란 아래에 <b>"일치도 평가"</b> 패널을 신설. 사용자가 실제 대법원 판결문 전문을 붙여넣으면, 방금 생성된 K-Law 가상 판결문과 비교하여 "일치도 평가 기준" 방법론에 따른 평가 보고서를 생성한다.</p>
+    <ul>
+      <li><b>mammoth.js 도입</b> — K-Law 방법론(.md)·출력형식(.txt)과 달리 "일치도 평가 기준" 원문은 <code>.docx</code>라 그대로 프롬프트에 넣을 수 없다. <code>mammoth.browser.min.js</code>로 클라이언트에서 텍스트만 추출.</li>
+      <li><b>버전 자동 감지</b> — <code>loadKlawVersion()</code>과 동일한 패턴으로 저장소 파일 목록을 스캔해 <code>일치도_평가_기준_v[숫자].docx</code> 중 가장 높은 버전을 자동 선택. 문서가 새 버전으로 교체되기만 하면 코드 수정 없이 반영됨.</li>
+      <li><b>빈 결과 안전장치 재사용</b> — 이 호출도 klaw-pro(thinking 모드)를 타므로, 앞서 STEP 0~C에 적용한 것과 동일하게 결과가 비면 더 큰 예산(24000)으로 자동 재시도 후 명확한 오류를 표시하도록 처음부터 구현.</li>
+    </ul>
+  </div>
+
+  <div class="card" id="history-v2">
+    <h2>8. 이력 시스템 전면 개편 — 팝업 → 게시판 페이지 <span class="badge badge-feat">FEATURE</span></h2>
+    <div class="sub">klaw #39, #41, #42 · hondi #278, #280, #301, board-detail</div>
+    <p>"팝업이 아니라 게시판 형식의 이력 페이지를 보여달라"는 지시로, 작은 플라이아웃 패널을 완전히 걷어내고 <code>my-history.html</code> 신규 페이지로 교체.</p>
+    <h3>8-1. 판결문 전문 저장 · 열람</h3>
+    <ul>
+      <li>STEP 0~C 완료 시 이미 클라이언트에 조립되어 있던 <code>window._verdictText</code> 전문을 <code>verdict_full</code> 필드로 저장(최대 200,000자, 초과 시 무음 절단 대신 <code>[⚠ 저장 용량 한도로 잘림]</code> 명시).</li>
+      <li><code>/klaw/sessions/detail</code> — record id + phone_verify_token으로 조회, 레코드의 <code>user_id</code>가 요청자 guid와 정확히 일치할 때만 반환.</li>
+    </ul>
+    <h3>8-2. 항목별 일치도 점수</h3>
+    <p>일치도 평가 프롬프트가 방법론 원문에서 <b>자동 추출한 실제 항목명</b>(결론 방향 일치도/핵심 법리 일치도/세부 논증 일치도)으로 <code>[항목: X] [점수: Y%]</code> 태그를 출력하도록 지정. 항목명을 코드에 하드코딩하지 않고 정규식으로 파싱해 <code>match_items</code>(JSON)에 저장 — 방법론 문서가 버전업되어 항목 구성이 바뀌어도 코드 수정이 필요 없다.</p>
+    <div class="finding"><b>실제 문서로 파싱 로직 검증</b> — 주피터님이 실제 "일치도_평가_기준_v1.6.docx" 파일을 첨부해주셔서, mammoth.js가 그 표(항목/배점/설명 3열)를 어떻게 텍스트로 풀어내는지 직접 확인 후 파싱 정규식을 작성 — 추측이 아니라 실측 기반으로 구현.</div>
+    <h3>8-3. 사건명 자동 생성</h3>
+    <p>분석 프롬프트에 <code>【사건명】</code> 태그를 추가해 "건축인허가 처분 취소 청구"처럼 실제 법원 사건명 형태의 짧은 제목을 K-Law가 직접 생성하도록 함. 날짜는 이미 별도 칼럼에 있으므로 제목에는 절대 포함하지 않음. <b>이 필드 도입 이전에 생성된 레코드는 소급 적용되지 않아</b>, <code>case_type</code>+<code>case_summary</code> 기반 대체 제목으로 폴백.</p>
+  </div>
+
+  <div class="card" id="public-board">
+    <h2>9. 공개 게시판 신설 + 레거시 제거 <span class="badge badge-feat">FEATURE</span> <span class="badge badge-security">SECURITY</span></h2>
+    <div class="sub">klaw #40 · hondi board-detail</div>
+    <p><code>public-board.html</code> 신설 — <code>is_public=true</code>인 이력만 인증 없이 볼 수 있는 게시판. 작성자는 <code>이용자-xxxx</code> 형태로 익명화(guid 뒷자리 일부만 노출).</p>
+    <div class="finding"><b>옛 자동 게시 시스템이 여전히 살아있었음</b> — "기본 비공개, 선택적 공개"를 설계·구현하는 도중, 사실은 <code>_sendCaseToKlaw()</code>가 <b>모든 시뮬레이션 결과를 예외 없이</b> 옛 <code>klaw_cases</code> 컬렉션(공개 옵션 자체가 없는 시스템)에 계속 자동 게시하고 있었다는 것을 뒤늦게 발견. 새 <code>is_public</code> 플래그를 다 만들어놓고도 이 호출 하나를 제거하지 않으면 전체 기능이 무의미해지는 상황이었음 — 발견 즉시 자동 호출 제거, 판결문 카드의 게시판 링크도 새 <code>public-board.html</code>로 교체(옛 <code>board.html</code>은 이제 새 글이 안 쌓이는 페이지라 그대로 두면 사용자를 막다른 곳으로 보내는 셈이었음).</div>
+  </div>
+
+  <div class="card" id="display-polish">
+    <h2>10. 표시 다듬기 <span class="badge badge-style">STYLE</span></h2>
+    <div class="sub">klaw #41, #42</div>
+    <table>
+      <tr><th>항목</th><th>이전</th><th>이후</th></tr>
+      <tr><td>생성 시각</td><td>전체 로케일 문자열(폭 넓음)</td><td><code>2026.09.16.15:36</code> 압축 표기</td></tr>
+      <tr><td>제목</td><td>없거나 "(제목 없음)"만 표시</td><td>사건명 자동 생성 + 옛 레코드 대체 제목(날짜 미포함)</td></tr>
+      <tr><td>일치도 칼럼</td><td>"종합 일치도", 값에 "(복잡도 N/10 기준)" 포함</td><td>"일치도 예상"으로 개명, 순수 %만(옛 값도 화면에서 걸러냄)</td></tr>
+      <tr><td>항목별 평가</td><td>미평가 항목에 "미평가" 텍스트, 2줄로 줄바꿈</td><td>흐린 색상의 항목명만, <code>flex-wrap:nowrap</code>으로 한 줄 강제</td></tr>
+      <tr><td>공개 칼럼</td><td>다른 칼럼과 동일 폭</td><td>토글 크기에 맞춘 최소 폭</td></tr>
+    </table>
+  </div>
+
   <div class="card" id="findings">
-    <h2>6. 사고실험으로 발견한 문제들</h2>
+    <h2>11. 사고실험으로 발견한 문제들</h2>
     <div class="sub">코드를 실제로 추적하며 발견 → 즉시 수정한 항목들</div>
 
     <div class="finding"><b>구 SSO 죽은 코드</b> — <code>_onGopangAuth</code>/<code>currentUser</code>가 2026-07-23 제거된 인증 스크립트를 전제로 작성되어 있어, 이력 저장·조회·헤더 배지가 전부 "성공한 것처럼 보이지만 실제로는 항상 실패"하는 상태였다. 에러가 안 나서 오래 발견되지 않았을 가능성.</div>
@@ -167,10 +226,14 @@ th{background:var(--bg);font-weight:600;color:var(--txt2);white-space:nowrap}
     <div class="finding"><b>이력 전문 저장 시 4가지 허점</b> — ① 저장 상한(60,000자)이 최악의 경우(STEP 예산 총합 48,000토큰) 대비 부족 + 무음 절단 → 200,000자 상향 + 명시적 절단 표시. ② 상세 모달에 사건 맥락(종류/개요/주문/요약)이 안 보임 → 표시 추가. ③ 토큰 만료 시 재로그인 미지원 → <code>_klawCall</code>과 동일한 자동복구 적용. ④ <code>KAuth</code> 미정의 방어 누락 → 추가.</div>
 
     <div class="finding"><b>patch 배포 사고 2건</b> — (a) 색상 통일 patch가 그 사이 merge된 다른 patch와 컨텍스트가 어긋나 <code>git am</code>이 반복 실패(원인: CRLF 정규화 이전 상태 기준으로 만들어졌던 patch). (b) 보완 전 원본 patch(#34)가 먼저 merge되어, 4가지 허점 보완판을 현재 head 기준으로 다시 만들어 별도 PR(#35)로 반영.</div>
+
+    <div class="finding"><b>옛 klaw_cases 자동 게시 잔존</b> — "공개 옵션 도입"을 계획서에 적어놓고도 실제로는 <code>_sendCaseToKlaw()</code> 제거를 빠뜨려, 새 기능을 다 만든 뒤에도 모든 결과가 여전히 무조건 공개되고 있었다(9번 섹션 참조). 계획을 문서로 남겨도 실행을 별도로 검증해야 한다는 교훈.</div>
+
+    <div class="finding"><b>"배포했는데 안 바뀐다" — 브라우저/CDN 캐시</b> — my-history.html 개선 사항을 merge했는데도 화면이 그대로라는 문의. 저장소 코드는 실제로 갱신되어 있었고(raw 파일로 직접 대조), 원인은 GitHub Pages CDN 전파 지연 또는 브라우저 캐시였음 — 강력 새로고침(Ctrl+Shift+R)이나 시크릿 창으로 확인하는 절차를 안내.</div>
   </div>
 
   <div class="card" id="known-issues">
-    <h2>7. 알려진 제약 · 남은 과제</h2>
+    <h2>12. 알려진 제약 · 남은 과제</h2>
     <ul>
       <li><b>근본적 한계</b> — STEP별 maxTokens를 계속 올리는 건 "숫자 땜질"이라는 한계가 있다. 더 구조적인 해법은 (1) 이전 STEP 전체 출력을 그대로 이어붙이지 않고 요약해서 컨텍스트를 줄이거나, (2) <code>finish_reason:'length'</code> 발생 시 "이어서 계속 작성" 요청을 자동으로 보내 이어붙이는 방식일 것 — 둘 다 별도 설계가 필요한 큰 작업으로 남겨둠.</li>
       <li><b>K-Law 전용 발급 키 없을 시 공용 <code>DEEPSEEK_API_KEY</code>로 폴백</b>하는 공유 계정 구조상, 무료 경로 사용량이 늘면 하루 예산(1인 300원/계정 전체 30,000원) 소진이 더 빨라질 수 있다 — thinking 모드 토큰 상향과 트레이드오프 관계.</li>
