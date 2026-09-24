@@ -38,6 +38,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .chip-paper{background:var(--blue-bg);color:#1d4ed8}
 .chip-biz{background:var(--org-bg);color:#92400e}
 .chip-eval{background:var(--pur-bg);color:#6d28d9}
+.chip-report{background:#ecfeff;color:#0e7490}
+.chip-appendix{background:#fdf2f8;color:#be185d}
 .chip-archive{background:var(--gry-bg);color:var(--txt3)}
 .lib-meta{font-size:11px;color:var(--txt4);text-align:right}
 .lib-card h3{font-size:14.5px;line-height:1.45;color:var(--txt);margin-bottom:3px}
@@ -58,7 +60,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
     <p>K-Law의 방법론 원문, 연구 논문, 소개 자료를 한곳에 모았습니다. 필요한 문서를 골라 읽거나 내려받으세요.</p>
   </div>
   <div class="notice">본 자료들은 개발·필드 테스트 기간의 문서로, 성능 수치는 자체 평가이며 전면적으로 검증된 확정 통계가 아닙니다. 이전 버전 문서는 참고용이며, 현행 기준은 <b>현행 방법론</b> 분류를 확인하세요.</div>
-  <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button></div>
+  <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="report">실증 보고서</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="appendix">보고서 부록</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button></div>
   <div class="lib-grid" id="lib-grid">
     <article class="lib-card" data-cat="current">
       <div class="lib-top"><span class="lib-chip chip-current">현행 방법론</span><span class="lib-meta">마크다운 · 168 KB</span></div>
@@ -80,6 +82,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
       <div class="lib-sub">작성 2026.5.1 · 웹 보기 + Word</div>
       <p>K-Law 가상 판결문과 실제 판결문의 일치도를 항목별로 평가하는 기준입니다. 웹에서 바로 읽거나 Word 파일로 내려받을 수 있습니다.</p>
       <div class="lib-actions"><a class="btn btn-pri" href="library/methodology/concordance-evaluation-v1.6.html" target="_blank" rel="noopener">웹 보기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" target="_blank" rel="noopener">Word</a></div>
+    </article>
+    <article class="lib-card" data-cat="report">
+      <div class="lib-top"><span class="lib-chip chip-report">실증 보고서</span><span class="lib-meta">HTML 45 KB · Word 18 KB</span></div>
+      <h3>K-Law 방법론 실증 결과 보고서</h3>
+      <div class="lib-sub">v2.1 (결론부 통합 완성판) · 2026.5.19</div>
+      <p>대법원이 사법공보에 수록한 최신 판례 300건(2024~2025년 선고분)에서 K-Law의 판결 주문 일치도(73%, 실측)와 원심 일치도(45%)를 비교한 보고서입니다. 법학 교수·판사·검사·변호사를 독자로 하며, 수치마다 〔실측〕과 〔추정치〕를 구분해 표기했습니다. 동료 심사 준비 중인 내부 준비판입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/reports/klaw-verification-report-v2.1.html" target="_blank" rel="noopener">웹 문서</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/reports/klaw-verification-report-v2.1.docx" target="_blank" rel="noopener">Word</a><a class="btn" href="report.html" target="_blank" rel="noopener">사이트 보고서</a></div>
+    </article>
+    <article class="lib-card" data-cat="report">
+      <div class="lib-top"><span class="lib-chip chip-report">실증 보고서</span><span class="lib-meta">마크다운 · 53 KB</span></div>
+      <h3>K-Law 방법론 실증 결과 보고서 (갱신판)</h3>
+      <div class="lib-sub">v2.0 (Rev.3) · 학술 투고 준비판 · 2026.5.19</div>
+      <p>평가 코드와 사건요지 샘플 공개 안내, 사건 계층별 일치도 추정, 처리 비용 산출 근거 등을 담은 상세본입니다. 〔추정치〕와 〔출처·근거 요망〕 표시가 남아 있는 작업본이며, 최신 보고서는 v2.1입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/reports/klaw-verification-report-v2.0.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/reports/klaw-verification-report-v2.0.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="report">
+      <div class="lib-top"><span class="lib-chip chip-report">실증 보고서</span><span class="lib-meta">마크다운 · 19 KB</span></div>
+      <h3>제9장 결론 — 법조계 독자판</h3>
+      <div class="lib-sub">v1 · 2026.5</div>
+      <p>법학 교수와 법조계 종사자를 1차 독자로 쓴 결론부입니다. 300건 실측 결과(K-Law 73%, 원심 45%)를 출발점으로, 데이터가 완전해질 때 사법 불확실성이 소멸하는 시나리오를 다룹니다. 〔실측〕 표기가 없는 수치는 이론적 투영값입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/reports/klaw-conclusion-legal-readers-v1.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/reports/klaw-conclusion-legal-readers-v1.md" target="_blank" rel="noopener">원문</a></div>
     </article>
     <article class="lib-card" data-cat="paper">
       <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 87 KB</span></div>
@@ -122,6 +145,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
       <div class="lib-sub">v2.1 · 2026.3.22</div>
       <p>입법(해시체인·PBFT 합의)과 사법(K-Law)이 OpenHash 분산원장을 공유하며, 선례가 다시 입법으로 환류되는 거버넌스 구조를 설계한 논문입니다. 제도 설계 연구이며 특허출원이 진행 중인 기술을 포함합니다.</p>
       <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/06-legislative-judicial-circular-system-v2.1.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/06-legislative-judicial-circular-system-v2.1.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">PDF · 573 KB</span></div>
+      <h3>오픈해시 기반 예방적 사법 체계 구축에 관한 연구</h3>
+      <div class="lib-sub">PDF · 18쪽</div>
+      <p>오픈해시 기반 개인정보금고를 전제로, 사법 체계를 사후 분쟁 해결에서 사전 분쟁 예방 중심으로 바꾸는 방안을 제안한 연구입니다. 승소확률 예측과 AI 중재, 대법관 증원 구조, 글로벌 판례 비교를 통한 입법 환류를 다룹니다. 본문의 효과 수치는 논문의 모델과 가정에 따른 것이며 제3자 검증을 거치지 않았습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/papers/07-openhash-preventive-judicial-system.pdf" target="_blank" rel="noopener">PDF 보기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/07-openhash-preventive-judicial-system.pdf" target="_blank" rel="noopener">다운로드</a></div>
+    </article>
+    <article class="lib-card" data-cat="appendix">
+      <div class="lib-top"><span class="lib-chip chip-appendix">보고서 부록</span><span class="lib-meta">Word · 36 KB</span></div>
+      <h3>부록 2 — K-OpenLaw 초기 개념 연구</h3>
+      <div class="lib-sub">v3.5 · 2026.3.20</div>
+      <p>이종 LLM 기반 자율 분쟁 해결 시스템을 실제 민사소송 사례에 적용해 법리 분석 능력을 검증하고, OpenHash-고팡 생태계의 분쟁 예방 잠재력을 살펴본 초기 논문입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/appendix/appendix-2-k-openlaw-early-concept-v3.5.docx" target="_blank" rel="noopener">Word</a></div>
+    </article>
+    <article class="lib-card" data-cat="appendix">
+      <div class="lib-top"><span class="lib-chip chip-appendix">보고서 부록</span><span class="lib-meta">HTML · 72 KB</span></div>
+      <h3>부록 3 — 판결문 법철학적 통합 평가 방법론</h3>
+      <div class="lib-sub">v1.0 · 2026.3.24</div>
+      <p>1심과 2심을 개별 판결이 아니라 하나의 사법 작용의 연속으로 보고, 4대 법철학 원리에 따라 통합 평가하는 방법론입니다. 통합 등급(A~F)과 심급 작동 진단을 출력합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/appendix/appendix-3-jurisprudential-methodology-v1.0.html" target="_blank" rel="noopener">웹 문서</a></div>
     </article>
     <article class="lib-card" data-cat="biz">
       <div class="lib-top"><span class="lib-chip chip-biz">사업·소개</span><span class="lib-meta">마크다운 · 15 KB</span></div>
