@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일치도 평가 기준 v1.6 — K-Law 공식 평가 문서</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  :root {
+    --primary: #003087;
+    --primary-dark: #001f5b;
+    --primary-mid: #1a4fa0;
+    --accent: #c8102e;
+    --gold: #b8962e;
+    --green: #1a7a4a;
+    --bg: #f5f5f0;
+    --surface: #ffffff;
+    --border: #cdd0d6;
+    --text: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  /* 헤더 */
+  .gov-header {
+    background: var(--primary-dark);
+    border-bottom: 4px solid var(--gold);
+  }
+  .gov-header-top {
+    background: #000d2e;
+    padding: 6px 40px;
+    font-size: 12px;
+    color: #aab;
+    display: flex;
+    justify-content: space-between;
+  }
+  .gov-header-main {
+    padding: 20px 40px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .gov-emblem {
+    width: 56px; height: 56px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900;
+    color: var(--primary-dark);
+    font-family: 'Noto Serif KR', serif;
+    border: 2px solid #fff3;
+    flex-shrink: 0;
+  }
+  .gov-header-title h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; letter-spacing: 0.5px;
+  }
+  .gov-header-title .subtitle { font-size: 13px; color: #aac; margin-top: 4px; }
+  .doc-badge {
+    margin-left: auto;
+    background: var(--green);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .meta-bar {
+    background: var(--primary);
+    color: #cdd;
+    padding: 10px 40px;
+    font-size: 12.5px;
+    display: flex; gap: 30px; flex-wrap: wrap;
+  }
+  .meta-bar strong { color: #fff; }
+
+  /* 컨테이너 */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px; }
+
+  /* 개요 박스 */
+  .doc-overview {
+    background: linear-gradient(135deg, #e8edf7, #f0f3f9);
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .doc-overview h2 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px; color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  /* 버전 갱신 패널 */
+  .version-panel {
+    background: #fff;
+    border: 1px solid #e0e5ef;
+    border-radius: 8px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .version-panel-header {
+    background: var(--primary-mid);
+    color: #fff;
+    padding: 14px 20px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .version-badge {
+    background: var(--gold);
+    color: #111;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px; font-weight: 700;
+  }
+  .version-panel-body { padding: 18px 20px; }
+  .change-list { list-style: none; }
+  .change-list li {
+    padding: 7px 0;
+    border-bottom: 1px dashed #e5e8ef;
+    font-size: 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .change-list li:last-child { border-bottom: none; }
+  .change-list li::before {
+    content: "▸";
+    color: var(--primary);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* 섹션 헤더 */
+  .chapter-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 24px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px; font-weight: 700;
+    margin: 40px 0 20px;
+    border-radius: 4px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .chapter-num {
+    background: var(--gold);
+    color: #111;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--primary-mid);
+    margin: 28px 0 14px;
+    padding-left: 14px;
+    border-left: 4px solid var(--gold);
+  }
+
+  p { margin: 8px 0; }
+
+  /* 점수 카드 그리드 */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .score-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-top: 4px solid var(--primary);
+  }
+  .score-card.accent { border-top-color: var(--accent); }
+  .score-card.gold { border-top-color: var(--gold); }
+  .score-card .label {
+    font-size: 13px; color: #666;
+    font-family: 'Noto Serif KR', serif;
+    margin-bottom: 10px;
+  }
+  .score-card .pts {
+    font-size: 36px; font-weight: 900;
+    color: var(--primary); line-height: 1;
+  }
+  .score-card.accent .pts { color: var(--accent); }
+  .score-card.gold .pts { color: var(--gold); }
+  .score-card .pts-unit { font-size: 14px; font-weight: 400; color: #888; }
+  .score-card .desc { font-size: 12px; color: #777; margin-top: 8px; }
+
+  /* 표 */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 16px 0; font-size: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  th {
+    background: var(--primary);
+    color: #fff; font-weight: 600;
+    padding: 11px 14px; text-align: left;
+    border: 1px solid var(--primary-mid);
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px;
+  }
+  td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f6fb; }
+  tr:hover td { background: #e8edf7; }
+
+  /* 등급표 */
+  .grade-excellent { background: #e8f5e9 !important; }
+  .grade-good { background: #e3f2fd !important; }
+  .grade-partial { background: #fff9e6 !important; }
+  .grade-fail { background: #fff3e0 !important; }
+  .grade-zero { background: #fce4ec !important; }
+
+  /* 면책 박스 */
+  .exemption-box {
+    background: #fffde7;
+    border: 1px solid #f9d71c;
+    border-left: 5px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .exemption-box h4 {
+    color: #7a5c00;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 8px;
+    font-family: 'Noto Serif KR', serif;
+  }
+
+  /* 체크리스트 */
+  .checklist { list-style: none; }
+  .checklist li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    border-bottom: 1px dashed #e5e8ef;
+    font-size: 14px;
+  }
+  .checklist li::before {
+    content: "□";
+    position: absolute; left: 0;
+    color: var(--primary); font-size: 16px;
+  }
+  .checklist li .pts {
+    font-weight: 700; color: var(--green);
+    background: #e8f5e9; padding: 1px 6px;
+    border-radius: 3px; font-size: 13px;
+  }
+
+  /* 경고 박스 */
+  .warning-box {
+    background: #fff5f5;
+    border: 1px solid #ffcdd2;
+    border-left: 5px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+
+  /* 출력 형식 */
+  .output-format {
+    background: #0d1526;
+    color: #c8d8f0;
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-family: 'D2Coding', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 16px 0;
+    border-left: 4px solid var(--gold);
+    overflow-x: auto;
+  }
+
+  /* 버전 이력 */
+  .history-table th { background: #1a3060; }
+
+  /* 주석 */
+  .footnote {
+    font-size: 12.5px; color: #666;
+    background: #f8f8f5;
+    border: 1px solid #e8e8e0;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-style: italic;
+  }
+
+  hr { border: none; border-top: 2px solid var(--border); margin: 32px 0; }
+
+  /* 푸터 */
+  .gov-footer {
+    background: var(--primary-dark);
+    color: #667;
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    border-top: 4px solid var(--gold);
+    margin-top: 60px;
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 20px; }
+    .score-grid { grid-template-columns: 1fr; }
+    .gov-header-main { padding: 14px 20px; flex-wrap: wrap; }
+    .meta-bar { padding: 8px 20px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div style="margin:0;padding:12px 18px;background:#fff3cd;border-bottom:3px solid #b45309;color:#1f1300;font:600 14px/1.6 -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;position:relative;z-index:99999"><b>면책 문구</b> — 이 문서에 수록된 모든 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 또한 일부는 초안 상태입니다. 따라서 이 문서의 어떠한 내용도 어떠한 용도로도 인용하거나 이용해서는 안 됩니다.</div>
+
+<header class="gov-header">
+  <div class="gov-header-top">
+    <span>K-Law 연구 프레임워크 — 평가 기준 문서</span>
+    <span>작성일: 2026. 5. 1. &nbsp;|&nbsp; 기반: K-Law v13.2</span>
+  </div>
+  <div class="gov-header-main">
+    <div class="gov-emblem">評</div>
+    <div class="gov-header-title">
+      <h1>일치도 평가 기준</h1>
+      <div class="subtitle">K-Law 가상 판결문 ↔ 실제 판결문 일치도 체계적 평가 기준</div>
+    </div>
+    <div class="doc-badge">v1.6</div>
+  </div>
+</header>
+
+<div class="meta-bar">
+  <span>📅 <strong>작성일:</strong> 2026. 5. 1.</span>
+  <span>🔖 <strong>이전 버전:</strong> v1.5 (2026. 4. 27.)</span>
+  <span>⚙️ <strong>기반 방법론:</strong> K-Law v13.2</span>
+  <span>📋 <strong>분류:</strong> 평가 기준 문서</span>
+</div>
+
+<div class="container">
+
+  <!-- 문서 개요 -->
+  <div class="doc-overview">
+    <h2>📌 문서 개요</h2>
+    <p>본 기준은 <strong>K-Law 방법론</strong>에 의해 생성된 가상 판결문과 실제 상위 법원(대법원 등)의 판결문 간 일치도를 체계적으로 평가하기 위해 설계되었습니다. 평가 결과는 K-Law 방법론의 품질 측정 및 갱신 필요성 판단에 사용됩니다.</p>
+    <p style="margin-top:10px"><strong>적용 대상:</strong> K-Law 가상 판결문과 대응하는 실제 판결문(또는 판례 요약문) 쌍</p>
+    <p><strong>적용 방법론:</strong> K-Law v13.2 이상 (이전 버전 v12.x 이하에서 생성된 판결문은 해당 버전 기준으로 평가)</p>
+  </div>
+
+  <!-- 버전 갱신 -->
+  <div class="version-panel">
+    <div class="version-panel-header">
+      <span>주요 갱신 사항</span>
+      <span class="version-badge">v1.5 → v1.6</span>
+    </div>
+    <div class="version-panel-body">
+      <ul class="change-list">
+        <li>공리 번호 오류 수정: 공리 11 → 공리 G, 공리 19 → 공리 J</li>
+        <li>절차 참조 수정: 절차 B-7 → STEP B-7 / 구조 이해도 STEP C-7 → C-α</li>
+        <li>용어 통일: [잠정 결론] → [조건부 결론] (공리 G 용어 정합)</li>
+        <li>판단 유보 면책 조건 정밀화: 공리 G 결정 회피 방지 장치 연동</li>
+        <li>세부 논증 평가: A-0-S 의미 해석 완료 여부 반영 기준 추가</li>
+        <li>다층 검증 모듈 평가 반영: B-5-A/B/C 결과 연동 기준 신설</li>
+        <li>확신도 가산 연동: B-5-C (3) +1점 트리거와 평가 가산 연계</li>
+        <li>강제규칙 범위 갱신: 1~13 → 1~16</li>
+        <li>기반 방법론 갱신: K-Law v9.2 → v13.2</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 제1장 -->
+  <div class="chapter-header"><div class="chapter-num">1</div>제1장 &nbsp;목적 및 적용 범위</div>
+  <p>본 기준은 K-Law 방법론에 의해 생성된 가상 판결문과 실제 상위 법원(대법원 등)의 판결문 간 일치도를 체계적으로 평가하기 위해 설계되었다. 평가 결과는 K-Law 방법론의 품질 측정 및 갱신 필요성 판단에 사용된다.</p>
+
+  <!-- 제2장 -->
+  <div class="chapter-header"><div class="chapter-num">2</div>제2장 &nbsp;평가 항목 및 배점 (10점 만점)</div>
+
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="label">결론 방향 일치도</div>
+      <div class="pts">4<span class="pts-unit">점</span></div>
+      <div class="desc">최종 주문(인용·기각·각하·파기·환송 등)의 방향 일치</div>
+    </div>
+    <div class="score-card accent">
+      <div class="label">핵심 법리 일치도</div>
+      <div class="pts">3<span class="pts-unit">점</span></div>
+      <div class="desc">핵심 쟁점에 대한 법리 적용 및 해석의 일치</div>
+    </div>
+    <div class="score-card gold">
+      <div class="label">세부 논증 일치도</div>
+      <div class="pts">3<span class="pts-unit">점</span></div>
+      <div class="desc">구체적 사실 평가, 논증 구조, 보조 법리, A-0-S 의미 해석 등의 일치</div>
+    </div>
+  </div>
+
+  <div class="footnote">※ 세부 논증 일치도(3점)는 v1.6부터 A-0-S 의미 해석 완료 여부를 평가 항목에 포함한다.</div>
+
+  <div class="section-title">2.1 세부 논증 일치도 세부 기준 (v1.6 강화)</div>
+  <p>세부 논증 3점은 다음 3개 하위 항목으로 구성된다.</p>
+  <table>
+    <thead>
+      <tr><th>하위 항목</th><th>배점</th><th>평가 기준</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>사실 평가·논증 구조</strong></td>
+        <td style="text-align:center; font-weight:700; color:#003087">1.5점</td>
+        <td>구체적 사실 인정, 인과관계 분석, 논증 흐름의 일치</td>
+      </tr>
+      <tr>
+        <td><strong>보조 법리·판례 적용</strong></td>
+        <td style="text-align:center; font-weight:700; color:#003087">1.0점</td>
+        <td>주요 쟁점 외 보조 법리, 입증책임 분배의 일치</td>
+      </tr>
+      <tr>
+        <td><strong>A-0-S 의미 해석 정합성</strong></td>
+        <td style="text-align:center; font-weight:700; color:#b8962e">0.5점</td>
+        <td>v13.2 STEP A-0-S의 핵심 단어·문구 의미 해석이 실제 판결의 법령 해석과 일치하는지 여부</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="footnote">※ A-0-S 의미 해석 정합성(0.5점)은 가상 판결문에 A-0-S 출력이 존재하는 경우에만 평가한다. A-0-S 출력이 누락된 경우는 강제규칙 10 위반으로 별도 기록하고, 이 항목은 N/A 처리한다.</div>
+
+  <div class="section-title">2.2 등급 구분</div>
+  <table>
+    <thead>
+      <tr><th>등급</th><th>점수 범위</th><th>설명</th></tr>
+    </thead>
+    <tbody>
+      <tr class="grade-excellent"><td><strong>완전 일치</strong></td><td>9.0 ~ 10.0</td><td>법리·결론·논증 모두 실질적으로 일치</td></tr>
+      <tr class="grade-good"><td><strong>대체로 일치</strong></td><td>7.0 ~ 8.9</td><td>핵심 방향 및 주요 법리 일치, 세부 차이 존재</td></tr>
+      <tr class="grade-partial"><td><strong>부분 일치</strong></td><td>5.0 ~ 6.9</td><td>일부 쟁점에서만 일치</td></tr>
+      <tr class="grade-fail"><td><strong>불일치</strong></td><td>3.0 ~ 4.9</td><td>결론 방향은 일치하나 법리 상당 부분 불일치</td></tr>
+      <tr class="grade-zero"><td><strong>완전 불일치</strong></td><td>0.0 ~ 2.9</td><td>결론·법리 모두 실질적으로 불일치</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">2.3 다층 검증 모듈(B-5-A/B/C) 평가 반영 기준 (v1.6 신설)</div>
+  <p>v13.2 STEP B-5-A(역방향 판결 초안), B-5-B(국제 비교 법원칙 검증), B-5-C(통합 비교 분석)의 결과는 다음과 같이 평가에 반영한다.</p>
+  <table>
+    <thead>
+      <tr><th>상황</th><th>평가 반영</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>B-5-A/B 발동 조건 미해당 → [미해당] 1줄 출력</td>
+        <td>정상 평가. 감점 없음.</td>
+      </tr>
+      <tr>
+        <td>B-5-A/B 발동 조건 해당 → 출력 누락</td>
+        <td>강제규칙 15 또는 16 위반. 세부 논증 <strong>-0.5점</strong>.</td>
+      </tr>
+      <tr>
+        <td>B-5-C (1): 역방향+국제 법원칙 모두 K-Law와 상이 → 최종 결론 미수정</td>
+        <td>결론 방향 점수에서 추가 <strong>-0.5점</strong> 고려 (평가자 재량).</td>
+      </tr>
+      <tr>
+        <td>B-5-C (3): 모두 동일 → +1점 가산 트리거 발동</td>
+        <td>세부 논증 <strong>+0.5점</strong> 가산 가능 (10점 초과 불가).</td>
+      </tr>
+      <tr>
+        <td>B-5-B 국제 법원칙 참조 시 판례 번호 인용</td>
+        <td>공리 J 허위 판례 차단 위반. 핵심 법리 <strong>-0.5점</strong>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="footnote">※ B-5-C (3) +0.5점 가산은 v1.6에서 최초 도입된 유일한 세부 논증 가산 트리거이다.</div>
+
+  <!-- 제3장 -->
+  <div class="chapter-header"><div class="chapter-num">3</div>제3장 &nbsp;정보 부족 처리 및 면책 조항</div>
+
+  <div class="section-title">3.1 판단 유보 면책 (v1.6 정밀화)</div>
+  <p>K-Law 가상 판결문이 다음 조건 중 하나에 해당하여 특정 쟁점에 대해 확정적 결론을 내리지 않은 경우, 평가 시 해당 쟁점에 대한 감점을 적용하지 않는다. 단, K-Law가 면책 조건을 충족했음을 명시적으로 기록하여야 한다.</p>
+
+  <div class="exemption-box">
+    <h4>(1) 판단 유보 면책</h4>
+    <p>공리 G 분기표에 따라 사실 확신도 &lt; 4 또는 법리 확신도 &lt; 4인 경우, STEP B-7에서 [판단 유보: 필요 정보 목록]을 출력하고 명확한 필요 정보를 제시한 경우.</p>
+    <p style="margin-top:8px; font-size:13px; color:#666">※ v1.5의 "공리 11 및 절차 B-7" 참조를 "공리 G(정보 불확실성과 확신도) 및 STEP B-7"로 수정. <em>[v1.6 수정]</em></p>
+    <ul style="margin:8px 0 0 20px; font-size:14px">
+      <li>해당 쟁점에 대한 결론 방향 및 세부 논증 평가 항목은 면책하여 점수에 반영하지 않음.</li>
+      <li>나머지 쟁점은 정상 평가.</li>
+    </ul>
+  </div>
+
+  <div class="exemption-box">
+    <h4>(2) 조건부 결론 면책 (v1.6: 용어 수정)</h4>
+    <p>공리 G 분기표에 따라 사실 확신도 4~6인 경우, STEP B-7에서 [조건부 결론]을 출력한 경우.</p>
+    <p style="margin-top:6px; font-size:13px; color:#666">※ v1.5의 "[잠정 결론]" 용어를 v13.2 공리 G 용어인 "[조건부 결론]"으로 통일.</p>
+    <ul style="margin:8px 0 0 20px; font-size:14px">
+      <li>결론 방향 점수(4점)는 면책하고, 조건부 결론의 법리와 논증만 평가(최대 3점).</li>
+    </ul>
+  </div>
+
+  <div class="exemption-box">
+    <h4>(3) 결정 회피 방지 장치와의 관계 <span style="background:#1a7a4a; color:#fff; font-size:11px; padding:2px 6px; border-radius:3px; font-weight:700">v1.6 신설</span></h4>
+    <p>v13.2 공리 G의 "결정 회피 방지 장치"에 따라 다음 4가지 정보가 모두 제공된 경우에는 판단 유보 면책이 적용되지 않는다.</p>
+    <ul style="margin:10px 0 0 20px; font-size:14px">
+      <li>(a) 청구 취지 및 청구 원인</li>
+      <li>(b) 당사자 특정 정보</li>
+      <li>(c) 사건 발생 일시 및 경위</li>
+      <li>(d) 원심의 판단 요지</li>
+    </ul>
+    <div class="warning-box" style="margin-top:12px">
+      ⚠️ 4대 정보가 모두 제공되었음에도 K-Law가 판단을 유보한 경우, 이는 강제규칙 3 위반이므로 면책하지 않고 정상 감점한다.
+    </div>
+  </div>
+
+  <div class="exemption-box">
+    <h4>(4) 완전한 정보 부족으로 전체 평가 불가</h4>
+    <p>사건 요약 자체가 핵심 사실(청구 취지, 당사자, 발생 일시 등)을 전혀 제공하지 않아 K-Law가 어떠한 결론도 내릴 수 없는 경우, 평가자는 "평가 불가"로 표시하고 점수를 부여하지 않는다. 이 경우 방법론 갱신 통계에서 제외한다.</p>
+  </div>
+
+  <div class="section-title">3.2 판례 미인용 면책 (v1.5 유지)</div>
+  <p>K-Law 가상 판결문이 실제 판례를 전혀 인용하지 않았더라도 감점 없음. 단, 다음 조건을 만족하여야 한다.</p>
+  <table>
+    <thead><tr><th>조건</th><th>기준</th></tr></thead>
+    <tbody>
+      <tr><td><strong>허위 판례 생성 금지</strong></td><td>존재하지 않는 판례번호를 임의로 생성하는 행위는 감점 대상</td></tr>
+      <tr><td><strong>판례 부재 시 표준 문구 의무</strong></td><td>공리 J 준수 시 면책: "※ 직접 적용 가능한 판례 없음" 문구 출력 시 면책</td></tr>
+      <tr><td><strong>판례 인용의 정확성 평가</strong></td><td>판례를 인용한 경우에만 정확성(판례 번호, 법리 일치 여부)을 평가한다</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">3.3 정보 부족 가산점 체크리스트 (v1.5 유지)</div>
+  <p>정보 부족으로 평가가 어려운 경우 아래 체크리스트에 따라 최대 <strong>+1.5점</strong> 가산. (단, 이 가산점은 면책 조건과 별도로 적용된다.)</p>
+  <ul class="checklist">
+    <li>① 미포착 쟁점이 결론 방향에 직접 영향을 미쳤는가? → 영향 시 가산 불가</li>
+    <li>② K-Law가 정보 부족을 인지하고 추가 정보 요청하였는가? <span class="pts">+0.5점</span></li>
+    <li>③ 제공된 사실관계에 해당 정보가 애초에 없었는가? <span class="pts">+0.5점</span></li>
+    <li>④ 정보 부족의 정도가 중대한 수준인가? (예: 원심·대법원 판결문 미제공) <span class="pts">+1.0점</span></li>
+    <li>⑤ 미포착 쟁점이 구조적 부재에 기인하는가? (예: 판결문 자체 미제공) <span class="pts">+0.5점</span></li>
+  </ul>
+  <div class="footnote">※ 가산 적용 시 최종 점수 = (결론+법리+논증) + 가산점, 단 10점 초과 불가.</div>
+
+  <!-- 제4장 -->
+  <div class="chapter-header"><div class="chapter-num">4</div>제4장 &nbsp;1심·2심 결론 유추 및 평가 (강제 규칙)</div>
+  <p>실제 심급별 판결문이 제공되지 않은 경우라도, 대법원 판결문만으로 원심 결론을 반드시 유추하여 평가한다.</p>
+  <table>
+    <thead><tr><th>대법원 결과</th><th>원심 결론 유추</th></tr></thead>
+    <tbody>
+      <tr><td>상고인용 + 원심 파기환송</td><td>원심 결론 = 대법원 결론의 <strong>정반대 방향</strong></td></tr>
+      <tr><td>상고기각 (원심 확정)</td><td>원심 결론 = 대법원 결론 <strong>(동일)</strong></td></tr>
+      <tr><td>상고 각하</td><td>원심 결론 평가 불가 <strong>(N/A)</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="warning-box">⚠️ 유추가 불가능한 경우는 없다. 최소한 결론 방향(4점 또는 0점)은 항상 부여한다.</div>
+  <div class="footnote">※ 단, 사실 데이터 부족 면책 조항(제3장 3.1)에 따라 K-Law가 원심 정보 부족으로 판단 유보한 경우, 해당 심급 평가도 면책된다.</div>
+
+  <!-- 제5장 -->
+  <div class="chapter-header"><div class="chapter-num">5</div>제5장 &nbsp;평가 출력 형식 (v1.6 개정)</div>
+  <p>평가자는 아래 형식을 반드시 따라야 한다. 모든 점수는 숫자 또는 "N/A", 면책 사항은 "[면책]" 표시.</p>
+
+  <div class="output-format">▶ 필수 출력 형식<br><br>
+다툼의 요지       : (2~3문장)<br>
+K-Law 가상 판결 vs 대법원<br>
+  결론 방향        : [0-4]점 또는 [면책] / 4점<br>
+  핵심 법리        : [0-3]점 / 3점<br>
+  세부 논증        : [0-3]점 / 3점 (A-0-S 정합성 포함)<br>
+  A-0-S 의미 해석  : [0-0.5]점 또는 N/A (세부 논증 내 포함)<br>
+  종합 점수        : [0-10]점 또는 [면책] / 10점 (등급: ...)<br>
+  면책 사유        : 예: 사실 확신도 4 미만으로 판단 유보 / 판례 미인용 / 4대 정보 미제공<br>
+  B-5-A/B/C 결과  : 발동: [해당/미해당] → 감점/가산: [±X점 / 없음]<br>
+1심(유추/추정) vs 대법원 : 동일 형식. 정보 부족 시 N/A.<br>
+2심(유추/추정) vs 대법원 : 동일 형식.<br>
+종합 비교         : K-Law vs 대법원: X.X점 / 1심: X.X점 / 2심: X.X점<br>
+                    더 일치: [K-Law / 1심 / 2심 / 면책]<br>
+정보 부족 가산점  : 적용 여부: [예/아니오] / 체크리스트 ①②③④⑤ / 가산점: +?점 / 최종: X.X점<br>
+구조 이해도       : C-α 항목 (1)~(10) 완료율 [N/10] / 세부 논증 가감: ±?점 (재량)<br>
+방법론 갱신 필요성: 종합 점수 &lt; 7 시 필수 / 갱신 트리거 / 미흡 지점 / 개선 제안<br>
+강제규칙 준수 현황: 강제규칙 1~16 중 위반 여부: [없음 / 위반 규칙 번호 명시]</div>
+
+  <div class="footnote">※ v1.6 수정: 구조 이해도 기준이 "STEP C-7"에서 "C-α (1)~(10) 항목 완료율"로 변경되었다.</div>
+  <div class="footnote">※ v1.6 신설: B-5-A/B/C 결과 반영 항목 및 강제규칙 1~16 준수 현황 항목이 추가되었다.</div>
+
+  <!-- 제6장 -->
+  <div class="chapter-header"><div class="chapter-num">6</div>제6장 &nbsp;특별 규정</div>
+
+  <div class="section-title">6.1 면책과 가산점의 관계</div>
+  <p>면책은 감점을 방지하는 <strong>소극적 보호</strong>이며, 가산점은 평가자가 정보 부족을 고려해 점수를 높이는 <strong>적극적 조치</strong>이다. 둘은 함께 사용할 수 있다.</p>
+
+  <div class="section-title">6.2 판례 미인용 완전 면책</div>
+  <p>v1.5부터 판례 미인용 자체는 어떤 경우에도 감점되지 않는다. 그러나 평가 보고서에는 "판례 인용 여부"를 별도로 기록할 수 있다.</p>
+
+  <div class="section-title">6.3 일치도 저하 통계</div>
+  <p>면책 처리된 사건은 방법론 갱신 트리거(일치도 평균 7점 미만 등) 계산에서 제외한다. 별도로 "면책 사건 수"와 "정상 평가 사건 수"를 분리 기록한다.</p>
+
+  <div class="section-title">6.4 결정 회피 방지 장치 위반 처리 <span style="background:#1a7a4a; color:#fff; font-size:11px; padding:2px 6px; border-radius:3px; font-weight:700">v1.6 신설</span></div>
+  <p>4대 정보(청구 취지, 당사자, 발생 일시, 원심 판단 요지)가 모두 제공되었음에도 K-Law가 판단을 유보한 경우, 이는 강제규칙 3 위반 및 공리 G 결정 회피 방지 장치 위반으로 처리한다.</p>
+  <ul style="margin:10px 0 0 20px; font-size:14px">
+    <li>결론 방향 점수: 면책 불가. 정상 채점.</li>
+    <li>방법론 갱신 보고서: 해당 사건을 "결정 회피 위반" 항목으로 별도 기록.</li>
+    <li>공리 O 트리거 (p) 발동 여부 검토.</li>
+  </ul>
+
+  <div class="section-title">6.5 다층 검증 모듈 미발동 처리 <span style="background:#1a7a4a; color:#fff; font-size:11px; padding:2px 6px; border-radius:3px; font-weight:700">v1.6 신설</span></div>
+  <p>B-5-A/B/C 발동 조건에 해당함에도 출력이 누락된 경우:</p>
+  <ul style="margin:10px 0 0 20px; font-size:14px">
+    <li>강제규칙 15 또는 16 위반으로 기록.</li>
+    <li>세부 논증에서 -0.5점 반영.</li>
+    <li>방법론 갱신 보고서에 누락 건수 기록 (공리 O 트리거 (x)(y) 발동 기준).</li>
+  </ul>
+
+  <!-- 제7장 -->
+  <div class="chapter-header"><div class="chapter-num">7</div>제7장 &nbsp;버전 이력</div>
+  <table class="history-table">
+    <thead><tr><th>버전</th><th>날짜</th><th>주요 변경 사항</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>v1.6</strong></td>
+        <td>2026. 5. 1.</td>
+        <td>기반 방법론 K-Law v13.2 반영. 공리 번호 오류 수정. 절차 참조 수정. 용어 통일([잠정 결론]→[조건부 결론]). 결정 회피 방지 장치 면책 제한 신설. A-0-S 의미 해석 정합성 0.5점 반영. 다층 검증 모듈 평가 반영 기준 신설. B-5-C (3) +0.5점 가산 도입. 강제규칙 1~16 준수 현황 출력 항목 신설.</td>
+      </tr>
+      <tr>
+        <td>v1.5</td>
+        <td>2026. 4. 27.</td>
+        <td>사실 데이터 부족 판단 불가(유보) 시 면책 조항 신설, 판례 미인용 전면 면책, 출력 형식에 면책 표시 추가</td>
+      </tr>
+      <tr>
+        <td>v1.4</td>
+        <td>2026. 4. 26.</td>
+        <td>정보 부족 가산점 체크리스트, 1심·2심 유추 강제, 판례 인용 의무화</td>
+      </tr>
+      <tr>
+        <td>v1.3</td>
+        <td>2026. 4. 25.</td>
+        <td>확신도 이원화 반영, 종합 점수 산출식 수정</td>
+      </tr>
+      <tr>
+        <td>v1.0</td>
+        <td>2026. 4. 20.</td>
+        <td>최초 제정</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:24px; font-size:13.5px; color:#555; text-align:center; font-style:italic">
+    이 기준은 K-Law 방법론 v13.2 이상과 함께 사용되며, 평가의 공정성과 일관성을 보장한다.
+  </p>
+
+</div>
+
+<footer class="gov-footer">
+  <p>일치도 평가 기준 v1.6 &nbsp;|&nbsp; 기반 방법론: K-Law v13.2 &nbsp;|&nbsp; 작성일: 2026. 5. 1.</p>
+  <p style="margin-top:6px; font-size:11px;">본 문서는 연구 목적으로 작성되었으며 실제 법적 효력이 없습니다.</p>
+</footer>
+
+</body>
+</html>
