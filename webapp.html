@@ -863,7 +863,13 @@ const KLAW_FEE_SCHEDULE_CLIENT_DISPLAY = [
   { max: 3_000_000_000, tier: '10억~30억원',    fee: 70_000 },
   { max: Infinity,      tier: '30억원 초과',    fee: 100_000 },
 ];
+// 2026-09-25 — 서버(worker.js)는 2026-12-31까지 K-Law 사건단위 정액과금을 중단하고 토큰 종량제(flash 10배·pro 5배)로만
+// 청구한다(KLAW_BETA_USAGE_BILLING_UNTIL). 그 기간에 위 정액 추정치를 보여주면 실제 청구와 어긋나므로 종량제 안내로 대체한다.
+// 아래 시각은 worker.js의 KLAW_BETA_USAGE_BILLING_UNTIL과 동기화 유지할 것(종료 후에는 정액 안내가 자동 복원된다).
+const KLAW_BETA_USAGE_BILLING_UNTIL_CLIENT = '2026-12-31T23:59:59+09:00';
+function _klawBetaUsageBillingActive() { return Date.now() <= new Date(KLAW_BETA_USAGE_BILLING_UNTIL_CLIENT).getTime(); }
 function _klawEstimateFeeLabel() {
+  if (_klawBetaUsageBillingActive()) return '';
   const amt = Number(conversationState.caseState?.claimAmount) || 0;
   const bucket = KLAW_FEE_SCHEDULE_CLIENT_DISPLAY.find(b => amt <= b.max);
   if (!bucket) return '';
@@ -876,7 +882,7 @@ function _showGenerationConfirm() {
   const btnId = 'klaw-confirm-btn-' + Date.now();
   appendBubble('ai',
     `사건 파악에 필요한 정보가 모인 것 같습니다. 이 내용으로 가상 판결문을 생성할까요?<br>` +
-    (feeLabel ? `예상 요금: <b>${feeLabel}</b><br>` : '') +
+    (feeLabel ? `예상 요금: <b>${feeLabel}</b><br>` : (_klawBetaUsageBillingActive() ? `베타 기간(2026-12-31까지)에는 정액이 아니라 사용한 만큼 종량제로 청구됩니다.<br>` : '')) +
     `더 말씀하실 내용이 있다면 버튼을 누르지 말고 그대로 이어서 입력해 주세요.<br><br>` +
     `<button id="${btnId}" onclick="confirmGeneration()" style="margin-top:4px;padding:8px 14px;border:none;border-radius:8px;background:#0057A8;color:#fff;font-weight:600;cursor:pointer">` +
     `✅ 네, 이 내용으로 생성해 주세요</button>`
