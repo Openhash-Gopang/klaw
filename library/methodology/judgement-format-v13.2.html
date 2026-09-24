@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가상판결 출력형식 v13.2 — K-Law 공식 서식</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  :root {
+    --primary: #003087;
+    --primary-dark: #001f5b;
+    --primary-mid: #1a4fa0;
+    --accent: #c8102e;
+    --gold: #b8962e;
+    --teal: #005f73;
+    --bg: #f5f5f0;
+    --border: #cdd0d6;
+    --text: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  /* 헤더 */
+  .gov-header {
+    background: var(--primary-dark);
+    border-bottom: 4px solid var(--gold);
+  }
+  .gov-header-top {
+    background: #000d2e;
+    padding: 6px 40px;
+    font-size: 12px;
+    color: #aab;
+    display: flex;
+    justify-content: space-between;
+  }
+  .gov-header-main {
+    padding: 20px 40px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .gov-emblem {
+    width: 56px; height: 56px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900;
+    color: var(--primary-dark);
+    font-family: 'Noto Serif KR', serif;
+    border: 2px solid #fff3;
+    flex-shrink: 0;
+  }
+  .gov-header-title h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; letter-spacing: 0.5px;
+  }
+  .gov-header-title .subtitle { font-size: 13px; color: #aac; margin-top: 4px; }
+  .doc-badge {
+    margin-left: auto;
+    background: var(--teal);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .meta-bar {
+    background: var(--primary);
+    color: #cdd;
+    padding: 10px 40px;
+    font-size: 12.5px;
+    display: flex; gap: 30px; flex-wrap: wrap;
+  }
+  .meta-bar strong { color: #fff; }
+
+  /* 컨테이너 + 2단 레이아웃 */
+  .page-layout {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 사이드 진행 표시 */
+  .step-nav {
+    width: 200px;
+    flex-shrink: 0;
+    background: var(--primary-dark);
+    padding: 28px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .step-nav::-webkit-scrollbar { width: 3px; }
+  .step-nav::-webkit-scrollbar-thumb { background: #334; }
+  .step-nav-title {
+    font-size: 11px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid #2a3560;
+    margin-bottom: 10px;
+    font-family: 'Noto Serif KR', serif;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    padding: 9px 16px;
+    border-bottom: 1px solid #1c2545;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .step-item:hover { background: var(--primary-mid); }
+  .step-badge {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+  .step-0 .step-badge { background: #334477; color: #aac; }
+  .step-a .step-badge { background: #1a4fa0; color: #fff; }
+  .step-b .step-badge { background: #7a1a2a; color: #fff; }
+  .step-c .step-badge { background: var(--teal); color: #fff; }
+  .step-item span { font-size: 12px; color: #aabbd4; line-height: 1.3; }
+  .step-item:hover span { color: #fff; }
+
+  /* 본문 */
+  .main-content { flex: 1; padding: 36px 44px; overflow-x: hidden; }
+
+  /* 서식 소개 */
+  .format-intro {
+    background: linear-gradient(135deg, #e8edf7, #f0f3f9);
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    padding: 22px 26px;
+    margin-bottom: 36px;
+  }
+  .format-intro h2 { font-family: 'Noto Serif KR', serif; font-size: 15px; color: var(--primary); margin-bottom: 10px; }
+  .format-intro p { font-size: 14px; }
+
+  /* 경고 노트 */
+  .notice-box {
+    background: #fffde7;
+    border: 1px solid #f0d040;
+    border-left: 5px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+
+  /* STEP 블록 */
+  .step-block {
+    margin-bottom: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+
+  .step-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .step-header-0 { background: linear-gradient(90deg, #1c2a4a, #2a3d6a); }
+  .step-header-a { background: linear-gradient(90deg, #0d2a66, #1a3f8f); }
+  .step-header-b { background: linear-gradient(90deg, #5a0f1e, #8a1a2e); }
+  .step-header-c { background: linear-gradient(90deg, #003344, #005566); }
+
+  .step-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900;
+    color: #111;
+    flex-shrink: 0;
+  }
+  .step-icon-0 { background: #7788aa; color: #fff; }
+  .step-icon-a { background: var(--gold); }
+  .step-icon-b { background: var(--accent); color: #fff; }
+  .step-icon-c { background: #1ab; color: #fff; }
+
+  .step-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px; font-weight: 700;
+    color: #fff;
+  }
+  .step-subtitle { font-size: 12px; color: #aac; margin-top: 3px; }
+
+  .step-body { background: #fff; padding: 24px; }
+
+  /* 서식 항목 */
+  .format-item {
+    margin-bottom: 22px;
+    border: 1px solid #e0e5ef;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .format-item-header {
+    background: #f0f3fa;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #e0e5ef;
+  }
+  .field-tag {
+    font-family: 'D2Coding', monospace;
+    background: var(--primary);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px; font-weight: 700;
+  }
+  .field-tag.required { background: var(--accent); }
+  .field-tag.optional { background: #888; }
+  .field-tag.complete { background: var(--teal); }
+  .field-desc { font-size: 13px; color: #555; }
+  .format-item-body { padding: 14px 16px; font-size: 14px; }
+
+  /* 코드 블록 */
+  .code-block {
+    background: #0d1526;
+    color: #c8d8f0;
+    border-radius: 6px;
+    padding: 18px 22px;
+    font-family: 'D2Coding', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 12px 0;
+    border-left: 4px solid var(--gold);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code-block .tag { color: #ffd700; font-weight: 700; }
+  .code-block .comment { color: #6a8a9a; font-style: italic; }
+  .code-block .value { color: #98d8aa; }
+
+  /* 완료 태그 */
+  .complete-tag {
+    display: inline-block;
+    background: #1a5a2a;
+    color: #5fcc7f;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: 'D2Coding', monospace;
+    font-size: 12.5px; font-weight: 700;
+    border: 1px solid #2a7a3a;
+    margin-top: 12px;
+  }
+
+  /* 조건부 섹션 */
+  .conditional-box {
+    background: #f9f9f6;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .conditional-badge {
+    display: inline-block;
+    background: #888;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  /* 서브섹션 */
+  .subsection {
+    background: #f7f9fc;
+    border: 1px solid #e3e8f0;
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 14px 0;
+  }
+  .subsection-title {
+    font-weight: 700; font-size: 14px;
+    color: var(--primary-mid);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e3e8f0;
+    font-family: 'Noto Serif KR', serif;
+  }
+
+  /* 확신도 박스 */
+  .confidence-display {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .conf-item {
+    text-align: center;
+    background: #0d1526;
+    border-radius: 6px;
+    padding: 14px 8px;
+    border-top: 3px solid var(--gold);
+  }
+  .conf-label { font-size: 11px; color: #7a9; margin-bottom: 6px; }
+  .conf-value { font-size: 22px; font-weight: 900; color: var(--gold); }
+  .conf-unit { font-size: 12px; color: #668; }
+
+  /* 자기 검증 */
+  .verification-list { list-style: none; }
+  .verification-list li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    border-bottom: 1px dashed #e0e5ef;
+    font-size: 14px;
+  }
+  .verification-list li::before {
+    content: "□";
+    position: absolute; left: 0;
+    color: var(--teal); font-size: 16px;
+  }
+
+  /* 버전 이력 */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th { background: var(--primary); color: #fff; padding: 10px 14px; text-align: left; border: 1px solid var(--primary-mid); font-family: 'Noto Serif KR', serif; font-size: 13px; }
+  td { padding: 9px 14px; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f6fb; }
+
+  /* C-α 완결 게이트웨이 */
+  .gateway-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .gateway-item {
+    background: #f4f6fb;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .gateway-num {
+    background: var(--teal);
+    color: #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* 판결 요약 */
+  .summary-box {
+    background: linear-gradient(135deg, #001f5b, #0d3080);
+    color: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 30px;
+    border: 2px solid var(--gold);
+  }
+  .summary-box h3 {
+    font-family: 'Noto Serif KR', serif;
+    color: var(--gold);
+    font-size: 15px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* 푸터 */
+  .gov-footer {
+    background: var(--primary-dark);
+    color: #667;
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    border-top: 4px solid var(--gold);
+    margin-top: 60px;
+  }
+
+  @media (max-width: 900px) {
+    .step-nav { display: none; }
+    .main-content { padding: 20px; }
+    .gov-header-main { padding: 14px 20px; flex-wrap: wrap; }
+    .confidence-display { grid-template-columns: 1fr 1fr; }
+    .gateway-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="gov-header">
+  <div class="gov-header-top">
+    <span>K-Law 연구 프레임워크 — 판결 출력 서식 문서</span>
+    <span>강제 이행 형식 &nbsp;|&nbsp; K-Law v13.2 기반</span>
+  </div>
+  <div class="gov-header-main">
+    <div class="gov-emblem">式</div>
+    <div class="gov-header-title">
+      <h1>가상판결 출력형식</h1>
+      <div class="subtitle">K-Law 판결 방법론 v13.2의 강제 이행 서식 — 누락 시 강제규칙 위반</div>
+    </div>
+    <div class="doc-badge">v13.2</div>
+  </div>
+</header>
+
+<div class="meta-bar">
+  <span>📋 <strong>성격:</strong> 강제 이행 형식</span>
+  <span>⚙️ <strong>기반:</strong> K-Law 판결 방법론 v13.2</span>
+  <span>🔗 <strong>연동:</strong> 강제규칙 1~16, 완료 태그 전체</span>
+  <span>⚠️ <strong>선택적 항목:</strong> [조건부] 표시 — 미해당 시 미해당 선언 1줄 대체</span>
+</div>
+
+<div class="page-layout">
+  <!-- 사이드 STEP 네비게이션 -->
+  <aside class="step-nav">
+    <div class="step-nav-title">판결 절차</div>
+
+    <a class="step-item step-0" href="#step0">
+      <div class="step-badge" style="background:#334477;color:#aac">0</div>
+      <span>STEP 0<br>초기 분석</span>
+    </a>
+    <a class="step-item step-a" href="#stepA0"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-0</div><span>판례 법리 군</span></a>
+    <a class="step-item step-a" href="#stepA0S"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-0-S</div><span>의미 해석</span></a>
+    <a class="step-item step-a" href="#stepA1"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-1</div><span>역방향 추론</span></a>
+    <a class="step-item step-a" href="#stepA2"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-2</div><span>법률관계 확정</span></a>
+    <a class="step-item step-a" href="#stepA3"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-3</div><span>인과 분해</span></a>
+    <a class="step-item step-a" href="#stepA4"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-4</div><span>명제 정교화</span></a>
+    <a class="step-item step-a" href="#stepA5"><div class="step-badge" style="background:#1a4fa0;color:#fff">A-5</div><span>충돌 지점</span></a>
+    <a class="step-item step-b" href="#stepB1"><div class="step-badge" style="background:#7a1a2a;color:#fff">B-1</div><span>법률관계 최종</span></a>
+    <a class="step-item step-b" href="#stepB4"><div class="step-badge" style="background:#7a1a2a;color:#fff">B-4</div><span>해석 우선순위</span></a>
+    <a class="step-item step-b" href="#stepB5"><div class="step-badge" style="background:#7a1a2a;color:#fff">B-5</div><span>다층 검증</span></a>
+    <a class="step-item step-b" href="#stepB7"><div class="step-badge" style="background:#7a1a2a;color:#fff">B-7</div><span>최종 판결문</span></a>
+    <a class="step-item step-c" href="#stepC"><div class="step-badge" style="background:#005f73;color:#fff">C</div><span>검증 및 완결</span></a>
+    <a class="step-item step-c" href="#confidence"><div class="step-badge" style="background:#005f73;color:#fff">확신</div><span>확신도·평가</span></a>
+    <a class="step-item step-c" href="#verify"><div class="step-badge" style="background:#005f73;color:#fff">검증</div><span>자기 검증</span></a>
+  </aside>
+
+  <main class="main-content">
+
+    <div class="format-intro">
+      <h2>📌 서식 안내</h2>
+      <p>이 서식은 K-Law 판결 방법론 v13.2의 <strong>강제 이행 형식</strong>이다. 각 항목은 대응하는 강제규칙·완료 태그와 연동되어 있으며, 누락 시 해당 강제규칙 위반으로 감점 또는 무효 처리된다.</p>
+    </div>
+
+    <div class="notice-box">
+      ⚠️ <strong>선택적 항목([조건부])</strong>은 발동 조건 미해당 시 미해당 선언 1줄로 대체한다.
+    </div>
+
+    <!-- ── STEP 0 ── -->
+    <div id="step0" class="step-block">
+      <div class="step-header step-header-0">
+        <div class="step-icon step-icon-0">0</div>
+        <div>
+          <div class="step-title">STEP 0 — 초기 분석 및 명제 추출</div>
+          <div class="step-subtitle">응답 헤더 출력 · 직관 · 격리 · 명제 목록</div>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <div class="format-item">
+          <div class="format-item-header">
+            <span class="field-tag required">[응답 헤더]</span>
+            <span class="field-desc">강제규칙 1. 미출력 시 응답 불완전.</span>
+          </div>
+          <div class="format-item-body">
+            <div class="code-block"><span class="tag">[K-Law v13.2 적용 | 사건번호: XXXX | 심급: X심]</span></div>
+          </div>
+        </div>
+
+        <div class="format-item">
+          <div class="format-item-header">
+            <span class="field-tag">[0-α 직관]</span>
+            <span class="field-desc">초기 직관적 방향 판단</span>
+          </div>
+          <div class="format-item-body">
+            <p>[원고 유리 / 피고 유리 / 불명확]</p>
+            <ul style="margin:8px 0 0 20px; font-size:14px">
+              <li>근거 ① 입증책임 관점: [요약]</li>
+              <li>근거 ② 신뢰 보호 관점: [요약]</li>
+              <li>근거 ③ 결과 수긍 관점: [요약]</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="format-item">
+          <div class="format-item-header">
+            <span class="field-tag">[0-β 격리]</span>
+            <span class="field-desc">강제규칙 7. 2안 이상 시 독립적 재판단 선언 필수.</span>
+          </div>
+          <div class="format-item-body">
+            <p>[해당 없음 / 이전 결론 방향: (원고 유리·피고 유리·불명확) → 부록 A [A-9] 출력]</p>
+          </div>
+        </div>
+
+        <div class="format-item">
+          <div class="format-item-header">
+            <span class="field-tag">[명제]</span>
+            <span class="field-desc">부록 A [A-1] 서식 별첨</span>
+          </div>
+          <div class="format-item-body">
+            <p>총 [N]쌍</p>
+            <ul style="margin:8px 0 0 20px; font-size:14px">
+              <li>제1층위(소송 요건): [개수]개</li>
+              <li>제2층위(법적 성격): [개수]개</li>
+              <li>제3층위(본안): [개수]개</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="complete-tag">[STEP-0-COMPLETE | 명제 N쌍 | 0-α: X유리 | 0-β: 해당/없음]</div>
+      </div>
+    </div>
+
+    <!-- ── STEP A ── -->
+    <div id="stepA0" class="step-block">
+      <div class="step-header step-header-a">
+        <div class="step-icon step-icon-a">A</div>
+        <div>
+          <div class="step-title">STEP A — 법률관계 확정</div>
+          <div class="step-subtitle">판례 수집 · 의미 해석 · 역방향 추론 · 인과 분해 · 명제 정교화</div>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <div id="stepA0" class="subsection">
+          <div class="subsection-title">A-0 판례 법리 군 (강제규칙 12)</div>
+          <p>수집 [N]건. 전원합의체 검색: [완료/해당 없음].<br>
+          하위 판단 요소: [총 N개 추출]. 변경 법리: [있음(구 법리 인용 금지 선언) / 없음].</p>
+          <div class="notice-box" style="margin-top:10px">⚠️ 강제규칙 12: 3개 미만 추출 시 -2점</div>
+          <div class="complete-tag">[STEP-A-0-COMPLETE | 판례 N건 | 하위 판단 요소 N개]</div>
+        </div>
+
+        <div id="stepA0S" class="subsection">
+          <div class="subsection-title">A-0-S 의미 해석 → 부록 A [A-2] (강제규칙 10)</div>
+          <p>핵심 단어·문구 [N개] 해석 완료. 판례 인용: [있음 / 없음(※ 직접 적용 가능한 판례 없음)].<br>
+          특별법 감지: [특별법 존재([법률명]) / 부존재 / 검토 불필요].<br>
+          형식-실질 표지 구별: [형식적 / 실체적 / 혼합적] 표지 (판단 근거: [요약]).</p>
+          <div class="complete-tag">[STEP-A-0-S-COMPLETE | 해석 N개 | 판례 인용 유/무 | 특별법: 존재/부존재]</div>
+        </div>
+
+        <div id="stepA1" class="subsection">
+          <div class="subsection-title">A-1 역방향 추론 — 공리 B (STEP A-1 단일 출처)</div>
+          <div class="format-item" style="margin:10px 0">
+            <div class="format-item-header"><span class="field-tag">피고 최강 논거</span><span class="field-desc">300자 이상, 법원칙 1건 이상</span></div>
+            <div class="format-item-body">
+              <p>[논거 본문]</p>
+              <p style="margin-top:6px">대법원 반대 판례: [판례번호] → 차별점: [요약] / 배척 사유: [요약]</p>
+              <p>반대 논거: ①[내용] ②[내용] ③[내용]</p>
+              <p>입증책임: [원고/피고] 부담 (근거: [요약])</p>
+            </div>
+          </div>
+          <div class="format-item" style="margin:10px 0">
+            <div class="format-item-header"><span class="field-tag">원고 대응 논거</span><span class="field-desc">동등 분량</span></div>
+            <div class="format-item-body"><p>[논거 본문]</p></div>
+          </div>
+          <div class="complete-tag">[STEP-A-1-COMPLETE | 피고 최강: (1문장 요약)]</div>
+        </div>
+
+        <div id="stepA2" class="subsection">
+          <div class="subsection-title">A-2 법률관계 확정 → 게이트웨이: 부록 A [A-5] (강제규칙 2)</div>
+          <p><strong>[A-2-0 특별법 감지]:</strong> [특별법 존재([법률명] 제[N]조) / 부존재] → 강제규칙 14 [A-4] [조건부]</p>
+          <p><strong>[A-2-1 법령 시제]:</strong> 적용 법령 [법률명] ([시행일] 기준). 개정 연혁: [확인 완료 / 경과 규정 없음].</p>
+          <p><strong>[A-2-2 복잡도]:</strong> [N/10] (법리중복 [N] / 판례일관 [N] / 사실다층 [N] / 가치충돌 [N])</p>
+          <p><strong>[A-2-3 공격·방어 목록화]:</strong> 원고 [N]개 / 피고 [N]개.</p>
+          <div class="complete-tag">[STEP-A-2-COMPLETE | 게이트웨이 통과 | 특별법: 존재/부존재]</div>
+        </div>
+
+        <div id="stepA3" class="subsection">
+          <div class="subsection-title">A-3 인과 분해 — 공리 E (6층위 전부 분해)</div>
+          <ul style="list-style:none; font-size:14px">
+            <li style="padding:6px 0; border-bottom:1px dashed #e0e5ef">① 채권·채무 발생 원인: [요약]</li>
+            <li style="padding:6px 0; border-bottom:1px dashed #e0e5ef">② 이익 귀속 관계: [요약]</li>
+            <li style="padding:6px 0; border-bottom:1px dashed #e0e5ef">③ 제3자 역할: [요약]</li>
+            <li style="padding:6px 0; border-bottom:1px dashed #e0e5ef">④ 사후 행태·시간적 흐름: [요약]</li>
+            <li style="padding:6px 0; border-bottom:1px dashed #e0e5ef">⑤ 의무의 근원법령 검토: [요약] (공리 C §3)</li>
+            <li style="padding:6px 0">⑥ 행정처분 연계성 분석: [해당 없음 / 전제-후속 관계: (요약)] (공리 C §4, 공리 E ⑥)</li>
+          </ul>
+          <div class="complete-tag">[STEP-A-3-COMPLETE | 분해 층위 6개]</div>
+        </div>
+
+        <div id="stepA4" class="subsection">
+          <div class="subsection-title">A-4 명제 정교화</div>
+          <p>숨은 명제: [N개 추가].</p>
+          <p>[S1]: [내용] → 탐지 근거: [부록 B 체크리스트 / 예외 법리 트리거 / 법령 조문 / 판례 법리]</p>
+          <p>최종 명제: [총 N개].</p>
+          <div class="complete-tag">[STEP-A-4-COMPLETE | 최종 명제 N개(숨은 명제 N개 포함)]</div>
+        </div>
+
+        <div id="stepA5" class="subsection">
+          <div class="subsection-title">A-5 충돌 지점</div>
+          <p>[N]개 식별.</p>
+          <p>[충돌 1]: [법리 해석 차이 / 사실 인정 차이 / 입증책임 차이] — [요약]</p>
+          <p>상식(0-α: [X유리]) ↔ 법리 예상([Y유리]): [일치 / 불일치]</p>
+          <div class="conditional-box">
+            <span class="conditional-badge">조건부</span>
+            <p>→ 불일치 시 강제규칙 3-1 발동: [발동 / 해당 없음]</p>
+          </div>
+          <div class="complete-tag">[STEP-A-5-COMPLETE | 충돌 지점 N개]</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP B ── -->
+    <div id="stepB1" class="step-block">
+      <div class="step-header step-header-b">
+        <div class="step-icon step-icon-b">B</div>
+        <div>
+          <div class="step-title">STEP B — 가치 형량 및 판결문 생성</div>
+          <div class="step-subtitle">법률관계 최종 확정 · 쟁점 처리 · 해석 · 손해액 · 다층 검증 · 판결문</div>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <div class="subsection">
+          <div class="subsection-title">B-1 법률관계 최종 확정</div>
+          <p>강행규정 확인: [해당 없음 / 강행규정 [조문], 요건 [충족/미충족]].</p>
+          <p><strong>[B-1-1 특별법 우선 적용 최종 확인]:</strong> [일반법 [법률명] 적용 / 특별법 [법률명] 우선 적용, 일반법 보충 범위: (요약)]</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">B-2 쟁점 계층적 처리</div>
+          <p>귀속 주체: [확인 완료].</p>
+          <p><strong>[B-2-1 행정처분 연계성]:</strong> [해당 없음 / 전제 처분([처분명]) 취소 시 후속 처분([처분명]) 효력 상실 → 판단: (요약)]</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">B-3 법률행위 해석 (공리 I)</div>
+          <p>[해당 없음 / 계약 해석 5대 요소 적용: (요약)]</p>
+        </div>
+
+        <div id="stepB4" class="subsection">
+          <div class="subsection-title">B-4 해석 우선순위 (공리 H · 강제규칙 4)</div>
+          <p>적용 우선순위: [제1.5우선(문언 명확성 게이트) / 제1.6우선(특별법 감지 게이트) / 제1우선(제재규범 엄격해석) / 제2우선(실질 우선) / ...]</p>
+          <p>근거: <em>"공리 H [해당 우선순위]에 따라 [조문]은 [해석 내용]."</em></p>
+          <div class="conditional-box">
+            <span class="conditional-badge">조건부 — B-4-α</span>
+            <p>제재규범 이중 해석: [해당 없음 / 엄격해석 결과: (요약) vs 확장해석 결과: (요약)] → 강제규칙 11</p>
+          </div>
+
+          <div class="subsection-title" style="margin-top:16px">형식-실질 비교 분석 → 부록 A [A-3] (강제규칙 13)</div>
+          <div class="code-block">적용 규정: [법률명] 제[ ]조 [ ]항
+[문언 명확성 게이트]: 명확 / 불명확
+(명확 시) 문언 해석 결과: [요약] → 실질 해석 발동 불가.
+(불명확 시)
+  형식적 해석: [요약] → 결론: [요약]
+  실질적 해석: [요약] → 결론: [요약]
+  최종 선택: [형식적/실질적] 채택. 근거: 공리 C 선행 확인 순서 [N]항.</div>
+
+          <div class="conditional-box" style="margin-top:12px">
+            <span class="conditional-badge">조건부 — 특별법-일반법 관계 분석 → 부록 A [A-4] (강제규칙 14)</span>
+            <div class="code-block" style="margin-top:8px">해당 영역: [행정 / 조세 / ...]
+일반법: [법률명] 제[ ]조 / 특별법: [법률명] 제[ ]조
+특별법 우선 적용 여부: 예 / 아니오
+근거: [법문 명시적 배제 / 입법 취지 / 규율 대상 특수성]
+배제 범위: [구체적으로]</div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">B-5 손해액 산정 (공리 E·D)</div>
+          <p>[해당 없음 / 손해액: [금액], 책임 제한: [비율·근거]]</p>
+        </div>
+
+        <div id="stepB5" class="subsection">
+          <div class="subsection-title">B-5-A 역방향 판결 초안 → 부록 A [A-10] (강제규칙 15) [조건부]</div>
+          <p>발동 조건 점검: A-5 충돌 지점 [N]개 / 강제규칙 3-1 경고 [발생/없음] / 복잡도 [N/10]</p>
+          <div class="code-block">[역방향 판결 초안 – Counterfactual Judgment]
+주문: [정반대 결론]
+핵심 법리: [반대 결론 지지 법리]
+사실관계 해석: [반대 결론 지지 사실관계 해석]
+인용 판례: [판례번호 또는 "공리 J 허위 판례 차단 — 적합 판례 없음"]
+
+[비교 분석]
+  법리 해석 차이: [요약]
+  사실 인정 차이: [요약]
+  입증책임 분배 차이: [요약]
+역방향 판결이 더 설득력 있는 지점: [있음(요약) / 없음]
+최종 결론 유지 근거: [공리 B 반전 논거 배척 논리]</div>
+
+          <div class="subsection-title" style="margin-top:14px">B-5-B 국제 비교 법원칙 검증 → 부록 A [A-11] (강제규칙 16) [조건부]</div>
+          <div class="code-block">[국제 비교 법원칙 검증]
+해당 영역: [공법 / 행정법 / ...]
+참조 법체계: [대륙법계 공통 / ECHR / 보통법계 공통]
+수렴 확인: [복수 법체계 수렴 / 단일 법체계 원칙(참고만, 결론 반영 불가)]
+핵심 원칙: [비례성 / 실질 우선 / 효과적 권리 구제 / 법적 명확성 / ...]
+주문: [국제 비교 법원칙 적용 결론]
+
+K-Law 판결과 비교:
+  일치 여부: [일치 / 불일치]
+  불일치 원인:
+    □ 한국 법제의 합리적 특수성 → K-Law 판결 유지
+    □ K-Law 추론의 체계 내재적 맹점 → B-5-C 수정 검토
+    □ 국제 법원칙의 확장 적용 한계 → 참고에 그침</div>
+
+          <div class="subsection-title" style="margin-top:14px">B-5-C 통합 비교 분석 → 부록 A [A-12] [조건부]</div>
+          <div class="code-block">[통합 비교 분석]
+              K-Law 판결    역방향 판결    국제 법원칙 판결
+주문:         ( )          ( )           ( / 미발동)
+핵심 근거:    ( )          ( )           ( / 미발동)
+
+의사결정 규칙 판정:
+  □ (1) 역방향 AND 국제 법원칙 모두 K-Law와 상이 → -2점(법리) + STEP A 재실행 권고
+  □ (2) 둘 중 하나만 K-Law와 상이 → -1점(법리) + 차이 지점 판결문 명시
+  □ (3) 모두 K-Law와 동일 → +1점(법리) 가산
+
+최종 결론: [K-Law 판결 유지 / 수정 → 수정 방향: (요약)]
+확신도 조정: 법리 [X/10] → [Y/10]</div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">B-6 상식 필터·반전 논거 (공리 D·B·K)</div>
+          <p>반전 논거: <em>"[결론을 뒤집을 수 있는 가장 강력한 단일 법리적 논거]"</em></p>
+          <p>배척 이유: [배척 논리] → 강제규칙 4·공리 B 5항.</p>
+        </div>
+
+        <div id="stepB7" class="subsection">
+          <div class="subsection-title">B-7 최종 판결문 → 부록 A [A-6] (강제규칙 5)</div>
+          <p><strong>[B-7-0 공격·방어 방법 누락 검증]:</strong> 원고 [N]개 전부 판단 완료 / 피고 [N]개 전부 판단 완료. (공리 M)</p>
+        </div>
+
+        <div class="complete-tag">[STEP-B-COMPLETE | 판결문 완료 | 확신도 포함]</div>
+      </div>
+    </div>
+
+    <!-- ── STEP C ── -->
+    <div id="stepC" class="step-block">
+      <div class="step-header step-header-c">
+        <div class="step-icon step-icon-c">C</div>
+        <div>
+          <div class="step-title">STEP C — 검증 및 최종 출력</div>
+          <div class="step-subtitle">인권 항목 · 판례 검증 · 출력 형식 · C-α 완결 게이트웨이</div>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <div class="subsection">
+          <div class="subsection-title">C-1 · C-2 · C-3 · C-4</div>
+          <ul style="list-style:none; font-size:14px">
+            <li style="padding:7px 0; border-bottom:1px dashed #e0e5ef"><strong>[C-1]</strong> 인권 보호 항목: [해당 없음 / 위법수집증거: (판단) / 자백 임의성: (판단) / 절차적 약자 조치: (판단)] (공리 F)</li>
+            <li style="padding:7px 0; border-bottom:1px dashed #e0e5ef"><strong>[C-2]</strong> 판례 인용 5단계 검증: [완료]. 하위 판단 요소 완전성: [충족 / 보완 N개].</li>
+            <li style="padding:7px 0; border-bottom:1px dashed #e0e5ef"><strong>[C-3]</strong> 출력 형식: [인용 / 기각 / 각하 / 절차적 환송(파기환송)]. '승/패' 표현: [미사용 확인].</li>
+            <li style="padding:7px 0"><strong>[C-4]</strong> 자기 갱신 트리거: [해당 없음 / 트리거 ([기호]) 발동 → 수정 대상: (요약)].</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">C-α 완결 게이트웨이</div>
+          <div class="gateway-grid">
+            <div class="gateway-item"><div class="gateway-num">1</div><span>명제-판단 일치 완전성: 완료</span></div>
+            <div class="gateway-item"><div class="gateway-num">2</div><span>확신도 출력: 완료 [A-6]</span></div>
+            <div class="gateway-item"><div class="gateway-num">3</div><span>자기 평가 출력: 완료 [A-7]</span></div>
+            <div class="gateway-item"><div class="gateway-num">4</div><span>판례 인용 검증: 완료</span></div>
+            <div class="gateway-item"><div class="gateway-num">5</div><span>강제규칙 1~16 준수: 완료</span></div>
+            <div class="gateway-item"><div class="gateway-num">6</div><span>반대 의견 생성 및 배척: 완료</span></div>
+            <div class="gateway-item"><div class="gateway-num">7</div><span>특별법 감지 비교 분석: 완료 [A-4] / 해당 없음</span></div>
+            <div class="gateway-item"><div class="gateway-num">8</div><span>행정처분 연계성 분석: 완료 / 해당 없음</span></div>
+            <div class="gateway-item"><div class="gateway-num">9</div><span>역방향 판결 초안 [A-10]: 완료 / 해당 없음 [v13.1]</span></div>
+            <div class="gateway-item"><div class="gateway-num">10</div><span>국제 비교 법원칙 검증 [A-11]: 완료 / 해당 없음 [v13.2]</span></div>
+          </div>
+          <div class="complete-tag">[STEP-C-α-COMPLETE | 전 항목 완료]</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 확신도 ── -->
+    <div id="confidence" class="step-block">
+      <div class="step-header step-header-c">
+        <div class="step-icon step-icon-c">확</div>
+        <div>
+          <div class="step-title">확신도 및 자기 평가</div>
+          <div class="step-subtitle">부록 A [A-6][A-7] · 강제규칙 5·6</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="confidence-display">
+          <div class="conf-item">
+            <div class="conf-label">법리 확신도</div>
+            <div class="conf-value">X</div>
+            <div class="conf-unit">/ 10</div>
+          </div>
+          <div class="conf-item">
+            <div class="conf-label">사실 확신도</div>
+            <div class="conf-value">Y</div>
+            <div class="conf-unit">/ 10</div>
+          </div>
+          <div class="conf-item" style="border-top-color:#c8102e">
+            <div class="conf-label">종합 확신도 (min)</div>
+            <div class="conf-value" style="color:#c8102e">Z</div>
+            <div class="conf-unit">/ 10</div>
+          </div>
+        </div>
+        <div class="code-block">[결론 유형: 판단유보 / 조건부 / 확정적 / 절차적 환송]
+(절차적 환송 시) 환송 취지: 추가 심리 필요 / 법리 재검토 / 사실관계 재확인
+
+[AI 예측 일치도: XX%]
+[사건 복잡도: X/10]</div>
+      </div>
+    </div>
+
+    <!-- ── 자기 검증 ── -->
+    <div id="verify" class="step-block">
+      <div class="step-header step-header-c">
+        <div class="step-icon step-icon-c">검</div>
+        <div>
+          <div class="step-title">자기 검증</div>
+          <div class="step-subtitle">부록 A [A-8] · 강제규칙 9</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="code-block">==============================
+[자기 검증]
+□ 강제규칙 1~7 및 10~16 모두 준수: 예 / 아니오
+□ 준수하지 않은 규칙: 없음 / (번호 및 사유 명시)
+□ 독립적 재판단 선언 출력 여부 (2안 이상 시): 출력 / 해당 없음
+□ 재생성 필요 여부: 불필요 / 필요
+==============================</div>
+        <div class="complete-tag">[STEP-C-COMPLETE | C-α 완료 후 최종 출력]</div>
+      </div>
+    </div>
+
+    <!-- 판결 요약 -->
+    <div class="summary-box">
+      <h3>📋 판결 요약</h3>
+      <p style="font-size:14px; color:#dde; line-height:1.8">
+        [판결의 핵심 내용 2~3문장. 주문·핵심 법리·확신도 포함.]
+      </p>
+    </div>
+
+    <!-- 버전 이력 -->
+    <div style="margin-top:40px">
+      <h2 style="font-family:'Noto Serif KR',serif; color:var(--primary); font-size:18px; padding-bottom:8px; border-bottom:2px solid var(--border); margin-bottom:16px">변경 이력</h2>
+      <table>
+        <thead><tr><th>버전</th><th>기준 방법론</th><th>주요 변경</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>v13.2</strong></td>
+            <td>K-Law v13.2</td>
+            <td>전면 재편. 공리 T → 공리 C 수정. 완료 태그 표준화. B-5-A/B/C 다층 검증 모듈 신설. 강제규칙 1~16 연동. 부록 A 서식 참조 체계 통일. C-α (9)(10)항 추가.</td>
+          </tr>
+          <tr>
+            <td>v12.0</td>
+            <td>K-Law v12.0</td>
+            <td>형식-실질 비교 분석, A-0-S+, A-2+ 신설</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<footer class="gov-footer">
+  <p>가상판결 출력형식 v13.2 &nbsp;|&nbsp; K-Law 판결 방법론 v13.2 기반 &nbsp;|&nbsp; 강제 이행 서식</p>
+  <p style="margin-top:6px; font-size:11px;">본 문서는 연구 목적으로 작성되었으며 실제 법적 효력이 없습니다.</p>
+</footer>
+
+</body>
+</html>

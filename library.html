@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law 자료실</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --blue-bg:#eff6ff; --org-bg:#fffbeb; --pur-bg:#f5f3ff; --gry-bg:#f3f4f6;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif; --r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 100px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:20px}
+.back-link:hover{color:var(--txt)}
+.hero h1{font-size:22px;color:var(--txt);margin-bottom:6px}
+.hero p{font-size:13.5px;color:var(--txt3);margin-bottom:18px}
+.notice{background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#78350f;margin-bottom:18px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:4px;margin-bottom:20px}
+.tab-btn{padding:8px 14px;border:none;background:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer}
+.tab-btn.active{background:var(--pri-bg);color:var(--pri-dk)}
+.tab-btn:not(.active):hover{background:var(--bg);color:var(--txt)}
+.lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:980px){.lib-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.lib-grid{grid-template-columns:1fr}}
+.lib-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 18px 16px;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s}
+.lib-card:hover{border-color:var(--bdr2);box-shadow:0 4px 14px rgba(17,24,39,.06)}
+.lib-card[hidden]{display:none}
+.lib-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.lib-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.chip-current{background:var(--pri-bg);color:var(--pri-dk)}
+.chip-paper{background:var(--blue-bg);color:#1d4ed8}
+.chip-biz{background:var(--org-bg);color:#92400e}
+.chip-eval{background:var(--pur-bg);color:#6d28d9}
+.chip-archive{background:var(--gry-bg);color:var(--txt3)}
+.lib-meta{font-size:11px;color:var(--txt4);text-align:right}
+.lib-card h3{font-size:14.5px;line-height:1.45;color:var(--txt);margin-bottom:3px}
+.lib-sub{font-size:12px;color:var(--pri-dk);font-weight:600;margin-bottom:8px}
+.lib-card p{font-size:12.8px;color:var(--txt3);line-height:1.65;margin-bottom:14px;flex:1}
+.lib-actions{display:flex;flex-wrap:wrap;gap:6px;padding-top:12px;border-top:1px solid var(--bdr)}
+.btn{display:inline-flex;align-items:center;font-family:var(--font);font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid var(--bdr2);color:var(--txt2);background:var(--sur);text-decoration:none}
+.btn:hover{background:var(--bg);color:var(--txt)}
+.btn-pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn-pri:hover{background:var(--pri-dk);border-color:var(--pri-dk);color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="desktop.html">← 판결 시뮬레이터로 돌아가기</a>
+  <div class="hero">
+    <h1>K-Law 자료실</h1>
+    <p>K-Law의 방법론 원문, 연구 논문, 소개 자료를 한곳에 모았습니다. 필요한 문서를 골라 읽거나 내려받으세요.</p>
+  </div>
+  <div class="notice">본 자료들은 개발·필드 테스트 기간의 문서로, 성능 수치는 자체 평가이며 전면적으로 검증된 확정 통계가 아닙니다. 이전 버전 문서는 참고용이며, 현행 기준은 <b>현행 방법론</b> 분류를 확인하세요.</div>
+  <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button></div>
+  <div class="lib-grid" id="lib-grid">
+    <article class="lib-card" data-cat="current">
+      <div class="lib-top"><span class="lib-chip chip-current">현행 방법론</span><span class="lib-meta">마크다운 · 168 KB</span></div>
+      <h3>K-Law 판결 방법론 v15.1</h3>
+      <div class="lib-sub">klaw_v15_1.md · 마크다운</div>
+      <p>가상 판결을 만드는 K-Law 방법론의 원문(공리 A~O, STEP 0~C)입니다. 판결 시뮬레이터가 매 단계에서 사용하는 현행 기준 문서입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/klaw_v15_1.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v15_1.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="current">
+      <div class="lib-top"><span class="lib-chip chip-current">현행 방법론</span><span class="lib-meta">텍스트 · 13 KB</span></div>
+      <h3>가상판결 출력형식 v13.3</h3>
+      <div class="lib-sub">가상판결_출력형식_v13_3.txt · 텍스트</div>
+      <p>가상 판결문의 단계별 서식과 완료 태그를 규정한 출력 형식 문서입니다. 시뮬레이터가 판결문을 작성할 때 따르는 서식입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="current">
+      <div class="lib-top"><span class="lib-chip chip-current">현행 방법론</span><span class="lib-meta">HTML 28 KB · Word 16 KB</span></div>
+      <h3>일치도 평가 기준 v1.6</h3>
+      <div class="lib-sub">작성 2026.5.1 · 웹 보기 + Word</div>
+      <p>K-Law 가상 판결문과 실제 판결문의 일치도를 항목별로 평가하는 기준입니다. 웹에서 바로 읽거나 Word 파일로 내려받을 수 있습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/methodology/concordance-evaluation-v1.6.html" target="_blank" rel="noopener">웹 보기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" target="_blank" rel="noopener">Word</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 87 KB</span></div>
+      <h3>K-Law 논문 — 이종 LLM 기반 분쟁 해결 시스템의 실증 연구</h3>
+      <div class="lib-sub">v1.2 · 2026.3.23</div>
+      <p>판결문 법리 오류 자동 식별 방법론 v7.1로 실제 판결을 평가한 기초 연구입니다. 임대차보증금 반환 사건(1심·항소심 원고 패소)에 방법론과 K-Law를 함께 적용한 단일 사례(N=1) 탐색 연구입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/01-klaw-empirical-study-v1.2.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/01-klaw-empirical-study-v1.2.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 101 KB</span></div>
+      <h3>판결문 법리 오류 자동 식별 및 법리 완전성 평가 방법론</h3>
+      <div class="lib-sub">v7.1 · 2026.3.22</div>
+      <p>Phase 0~8 파이프라인, 5대 영역 평가, 공통 감산 규정, 민사·형사·가사·행정·노동·특허·헌법 분야별 필수 모듈로 구성된 평가 방법론 원문입니다. 평가자 재량을 최소화하도록 설계되었습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/02-legal-reasoning-error-methodology-v7.1.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/02-legal-reasoning-error-methodology-v7.1.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 66 KB</span></div>
+      <h3>고팡(Gopang) — 실시간 예방 법학 시스템의 설계·구현·정량 검증</h3>
+      <div class="lib-sub">v2.1 · 2026.3.22</div>
+      <p>AI 비서, 개인 데이터 볼트(PDV), OpenHash 분산원장을 결합해 예방 법학을 개인 소통 수준에서 구현하는 논문입니다. 소통 매개 범죄·분쟁의 약 99% 예방 가능성은 문헌 통계에 기반한 정량 추정치입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/03-gopang-preventive-law-system-v2.1.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/03-gopang-preventive-law-system-v2.1.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 29 KB</span></div>
+      <h3>고팡 소통 위법성 자동 감지 및 예방 방법론</h3>
+      <div class="lib-sub">v1.0 · 2026.3.22</div>
+      <p>고팡이 대화·문서의 위법 가능성을 평가하는 Phase 0~6 절차입니다. 위험 점수, 위험 등급(S0~S3), 차단 여부, 근거 조항을 출력하며, 법원의 판단이 아닌 분석 도구로서 최종 결정권은 사용자에게 있습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/04-gopang-illegality-detection-methodology-v1.0.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/04-gopang-illegality-detection-methodology-v1.0.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 82 KB</span></div>
+      <h3>통합심(K-Law)과 법원 판결의 법리적 완결성 비교 연구</h3>
+      <div class="lib-sub">v2.0 · 2026.3.22</div>
+      <p>1심·2심·3심 판결문 각 100건에 방법론 v7.1을 적용해 오류 유형과 법리 완결성을 비교했습니다. 논문은 K-Law 82.4점 대 법원 판결 66.5점(t=9.70)을 보고합니다. 대법원 판결 일치도 테스트와는 별개의 측정입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/05-klaw-court-comparison-300-cases-v2.0.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/05-klaw-court-comparison-300-cases-v2.0.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="paper">
+      <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 58 KB</span></div>
+      <h3>입법·사법·입법 순환 통합 시스템</h3>
+      <div class="lib-sub">v2.1 · 2026.3.22</div>
+      <p>입법(해시체인·PBFT 합의)과 사법(K-Law)이 OpenHash 분산원장을 공유하며, 선례가 다시 입법으로 환류되는 거버넌스 구조를 설계한 논문입니다. 제도 설계 연구이며 특허출원이 진행 중인 기술을 포함합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/06-legislative-judicial-circular-system-v2.1.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/06-legislative-judicial-circular-system-v2.1.txt" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="biz">
+      <div class="lib-top"><span class="lib-chip chip-biz">사업·소개</span><span class="lib-meta">마크다운 · 15 KB</span></div>
+      <h3>K-Law 사업화 계획서</h3>
+      <div class="lib-sub">2026년 기준</div>
+      <p>시장 환경, 비즈니스 모델, 규제 리스크와 대응, 5개년 추정 재무제표, 자금 조달 방안, 실행 로드맵을 담은 사업화 계획서 원문입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/business/klaw-business-plan.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/business/klaw-business-plan.md" target="_blank" rel="noopener">원문</a><a class="btn" href="business.html" target="_blank" rel="noopener">웹 페이지</a></div>
+    </article>
+    <article class="lib-card" data-cat="biz">
+      <div class="lib-top"><span class="lib-chip chip-biz">사업·소개</span><span class="lib-meta">마크다운 · 58 KB</span></div>
+      <h3>K-Law Gopang 융합 소책자</h3>
+      <div class="lib-sub">v4.2 · 2026.5.18</div>
+      <p>AI 판결 시뮬레이션에서 사법 중재 생태계 구축으로 — 절대적 공정성과 예방법학을 소개하는 소책자 최종 보완본입니다. 2025 사법연감(2024년 실측)을 기준으로 작성되었습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/business/klaw-gopang-booklet-v4.2.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/business/klaw-gopang-booklet-v4.2.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="biz">
+      <div class="lib-top"><span class="lib-chip chip-biz">사업·소개</span><span class="lib-meta">마크다운 · 28 KB</span></div>
+      <h3>고팡 네트워크 법률 인프라 소개서</h3>
+      <div class="lib-sub">v1.3 · 2026.5</div>
+      <p>법무법인·기업 법무팀·법학 연구기관을 위한 소개서입니다. PDV·OpenHash 증거 구조, 영지식 증명, 타임스탬프 신뢰성, K-Law AI의 위치와 한계를 기술 설명과 법률가용 해설 두 층으로 풀어냅니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/business/gopang-law-firm-intro-v1.3.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/business/gopang-law-firm-intro-v1.3.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="biz">
+      <div class="lib-top"><span class="lib-chip chip-biz">사업·소개</span><span class="lib-meta">마크다운 · 50 KB</span></div>
+      <h3>고팡 글로벌 디지털 통화(GDC) 공개 백서</h3>
+      <div class="lib-sub">v1.5 · 2026.5</div>
+      <p>DAWN: Democracy is All We Need. 정보 제공 목적의 초안이며 증권 청약 권유가 아닙니다. 구매 전 해당 국가의 법률 전문가와 상담하십시오.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/business/gdc-whitepaper-v1.5.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/business/gdc-whitepaper-v1.5.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="eval">
+      <div class="lib-top"><span class="lib-chip chip-eval">평가 결과</span><span class="lib-meta">마크다운 · 3.9 KB</span></div>
+      <h3>K-Law v15.0 평가 결과 요약서</h3>
+      <div class="lib-sub">2026.5.18 · 표본 20건</div>
+      <p>1회차 8건, 2회차 12건, 총 20건을 평가한 결과입니다(평균 7.30/10, 합격 13건). 약점 패턴과 v15.1 갱신 우선순위를 담고 있습니다. 표본 20건의 내부 평가이며 300건 일치도 테스트와는 별개입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/evaluation/klaw-v15.0-evaluation-summary.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/evaluation/klaw-v15.0-evaluation-summary.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="archive">
+      <div class="lib-top"><span class="lib-chip chip-archive">이전 버전</span><span class="lib-meta">마크다운 145 KB · HTML 180 KB</span></div>
+      <h3>K-Law 판결 방법론 v14.7</h3>
+      <div class="lib-sub">문서 표제 v14.7 · 2026.5.15 패치노트 포함</div>
+      <p>v15.1 이전 방법론 원문입니다. 판단 대상 동일성 확인, 준거 틀 선행 확정 등 v14.7 패치 노트를 포함합니다. 마크다운본과 웹 문서본을 함께 제공합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/methodology/klaw-methodology-v14.7.html" target="_blank" rel="noopener">웹 문서</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/methodology/klaw-methodology-v14.7.md" target="_blank" rel="noopener">마크다운</a></div>
+    </article>
+    <article class="lib-card" data-cat="archive">
+      <div class="lib-top"><span class="lib-chip chip-archive">이전 버전</span><span class="lib-meta">텍스트 12 KB · HTML 36 KB</span></div>
+      <h3>가상판결 출력형식 v13.2</h3>
+      <div class="lib-sub">K-Law 방법론 v13.2 기준</div>
+      <p>v13.3 이전의 출력 형식입니다. STEP 0~C의 서식과 완료 태그, 강제규칙 연동 항목을 담고 있습니다. 텍스트본과 웹 문서본을 함께 제공합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="library/methodology/judgement-format-v13.2.html" target="_blank" rel="noopener">웹 문서</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/methodology/judgement-format-v13.2.txt" target="_blank" rel="noopener">텍스트</a></div>
+    </article>
+  </div>
+</div>
+<script>
+(function () {
+  var tabs = document.querySelectorAll('#lib-tabs .tab-btn');
+  var cards = document.querySelectorAll('#lib-grid .lib-card');
+  tabs.forEach(function (b) {
+    b.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      var f = b.getAttribute('data-filter');
+      cards.forEach(function (c) { c.hidden = !(f === 'all' || c.getAttribute('data-cat') === f); });
+    });
+  });
+})();
+</script>
+</body>
+</html>
