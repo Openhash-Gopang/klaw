@@ -1893,14 +1893,20 @@ ${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준�
 // 실제 출력(법리 분석 소항목들, 특히 B의 "최종 판결문")도 C(확신도 숫자
 // 몇 개 + 짧은 요약)보다 훨씬 길다 — thinking 모드 추론 토큰까지 겹쳐
 // A/B가 가장 먼저, 가장 심하게 예산을 소진한다. STEP별로 다르게 준다.
+// 2026-09-25 재상향(K-Law 벤치마크 시험 실측) — DeepSeek V4.1 Flash thinking 모드로 정상 사건 1건을 STEP 0~C까지 돌린 시험에서
+// STEP A가 운영 예산 14000토큰에서 절단(finish_reason=length)됐고, 1.6배(22400)에서도 다시 절단됐다. 추론 토큰이 사건·시도마다
+// 4천~1만 개로 크게 변동해 본문 예산이 그만큼 줄어든다. 그런데 응답이 완전히 비지 않은 이상 아래 재시도가 작동하지 않아,
+// 절단된 STEP A(A-1~A-5 누락)를 이어받아 STEP B가 진행될 수 있다. max_tokens는 상한일 뿐 실제 생성분만 과금되고
+// (worker.js /klaw/relay는 max_tokens를 그대로 전달하며, 사전 잔액 점검은 정액 구간 기준이라 max_tokens와 무관),
+// 그래서 모든 예산을 3배로 올린다: STEP 0/C=27000, A=42000, B=48000.
 const STEP_DEFS = [
-  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정', maxTokens: 9000,
+  { id:'step0', tag:'STEP 0', title:'STEP 0 — 사건 기본 분석 · 명제 설정', maxTokens: 27000,
     prompt: ctx => `${ctx}\n\nK-Law 판결 방법론의 STEP 0만 작성하세요.\n[0-α 직관] [0-β 격리] [명제] [STEP-0-COMPLETE] 포함.` },
-  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석', maxTokens: 14000,
+  { id:'stepA', tag:'STEP A', title:'STEP A — 판례 법리·법률관계 분석', maxTokens: 42000,
     prompt: ctx => `${ctx}\n\nSTEP 0이 완료되었습니다. STEP A만 작성하세요.\nA-0~A-5 소항목과 각 완료 태그 포함. 허위 판례 번호 인용 금지.` },
-  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문', maxTokens: 16000,
+  { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문', maxTokens: 48000,
     prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
-  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증', maxTokens: 9000,
+  { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증', maxTokens: 27000,
     prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
 ];
 
@@ -1959,18 +1965,19 @@ async function runSimulation() {
       return { result: r, caseData: parseAnalysis(r) };
     };
 
-    let { result, caseData } = await runAnalysisAttempt(isComplex ? 10000 : 2400, isComplex);
+    // 2026-09-25 — 위 STEP 예산과 같은 근거로 3배 상향(2400→7200, 10000→30000, 재시도 14000→42000). 상한일 뿐 실사용분만 과금된다.
+    let { result, caseData } = await runAnalysisAttempt(isComplex ? 30000 : 7200, isComplex);
 
     // 2026-09-18 신설(주피터 지시 — "누락이 없도록 안전 장치") — 사건의
     // 개요/원고 주장/피고 주장이 전부 비어 있으면(= thinking 모드가
     // 예산을 추론에 다 써서 실제 답변을 한 글자도 못 쓴 경우), 조용히
-    // 빈 표를 보여주는 대신 pro tier·훨씬 큰 예산(14000)으로 한 번
+    // 빈 표를 보여주는 대신 pro tier·훨씬 큰 예산(2026-09-25부터 42000)으로 한 번
     // 자동 재시도한다. 그래도 비어 있으면 명확한 오류+재시도 버튼을
     // 보여준다 — "성공한 것처럼 보이는 빈 결과"를 조용히 넘기지 않는다.
     if (_klawAnalysisIsEmpty(caseData)) {
-      console.warn('[K-Law] 분석 결과 비어있음 — pro tier·큰 예산(14000)으로 자동 재시도');
+      console.warn('[K-Law] 분석 결과 비어있음 — pro tier·큰 예산(42000)으로 자동 재시도');
       if (liveTextEl) liveTextEl.textContent = '⚠ 응답이 비어 있어 더 큰 예산으로 재시도합니다…';
-      ({ result, caseData } = await runAnalysisAttempt(14000, true));
+      ({ result, caseData } = await runAnalysisAttempt(42000, true));
     }
 
     _stopAnalyzeProgress(!_klawAnalysisIsEmpty(caseData));
@@ -2286,7 +2293,7 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
     // 전체를 컨텍스트로 이어받아 갈수록 입력이 커지고, A/B가 요구하는
     // 실제 출력 분량도 C보다 훨씬 길어 thinking 추론+출력 합산 예산을
     // 가장 먼저 소진한다 — 이제 STEP_DEFS에 정의된 STEP별 예산을 쓴다.
-    const result = await callLLMStream(msgs, stepDef.maxTokens || 9000, (delta, fullSoFar) => {
+    const result = await callLLMStream(msgs, stepDef.maxTokens || 27000, (delta, fullSoFar) => {
       if (!streamStarted) {
         streamStarted = true;
         bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
@@ -2297,11 +2304,11 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
 
     // 2026-09-18 신설(주피터 지시 — "누락이 없도록 안전 장치") — thinking
     // 모드가 예산을 추론에 다 써서 STEP 본문이 한 글자도 안 나온 경우,
-    // 조용히 빈 STEP으로 넘어가지 않고 이 STEP의 기본 예산보다 6000
+    // 조용히 빈 STEP으로 넘어가지 않고 이 STEP의 기본 예산보다 6000(2026-09-25부터 1.5배)
     // 더 큰 예산으로 한 번 자동 재시도한다.
     let finalResult = result;
     if (!finalResult.trim()) {
-      const retryTokens = (stepDef.maxTokens || 9000) + 6000;
+      const retryTokens = Math.round((stepDef.maxTokens || 27000) * 1.5);   // 2026-09-25: 기존 '+6000'은 3배 상향한 예산에서는 의미가 작아 1.5배로 변경
       console.warn(`[K-Law] ${stepDef.tag} 결과 비어있음 — 예산 ${retryTokens}로 자동 재시도`);
       streamStarted = false;
       finalResult = await callLLMStream(msgs, retryTokens, (delta, fullSoFar) => {
