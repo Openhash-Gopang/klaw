@@ -1,6 +1,6 @@
 {
   "method_version": "v15.1 (기준선)",
-  "status": "8/10 건 게재 (2건 결측 — 아래 결정 문서 참고)",
+  "status": "8/10 건 게재 (2건은 Anthropic 콘솔 크레딧 소진으로 개요 생성 불가 — 아래 결정 문서 참고)",
   "candidate": {
     "label": "v15_2",
     "tag": "r01g",
