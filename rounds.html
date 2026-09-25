@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Law 라운드별 시험 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --org-bg:#fffbeb; --red:#dc2626; --red-bg:#fef2f2;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif; --r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 100px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:20px}
+.back-link:hover{color:var(--txt)}
+.hero h1{font-size:22px;color:var(--txt);margin-bottom:6px}
+.hero p{font-size:13.5px;color:var(--txt3);margin-bottom:18px;max-width:680px}
+.notice{background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#78350f;margin-bottom:20px}
+.rtabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:4px;margin-bottom:20px}
+.rtab-btn{padding:8px 14px;border:none;background:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer;position:relative}
+.rtab-btn.active{background:var(--pri-bg);color:var(--pri-dk)}
+.rtab-btn:not(.active):hover{background:var(--bg);color:var(--txt)}
+.rtab-btn .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:5px;vertical-align:middle}
+.dot-done{background:var(--pri)} .dot-pending{background:var(--bdr2)}
+.rpanel{display:none} .rpanel.active{display:block}
+.rhead{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+.rhead h2{font-size:16px;color:var(--txt);margin-bottom:4px}
+.rhead .ver{font-size:12.5px;color:var(--pri-dk);font-weight:600;margin-bottom:10px}
+.rstats{display:flex;flex-wrap:wrap;gap:20px;margin:12px 0}
+.rstat b{display:block;font-size:17px;color:var(--txt)} .rstat span{font-size:11px;color:var(--txt4)}
+.rlinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.rlinks a.btn,.rlinks span.btn-disabled{display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid var(--bdr2);color:var(--txt2);background:var(--sur);text-decoration:none}
+.rlinks a.btn:hover{background:var(--bg);color:var(--txt)}
+.rlinks a.btn-pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.rlinks a.btn-pri:hover{background:var(--pri-dk);border-color:var(--pri-dk)}
+span.btn-disabled{color:var(--txt4);cursor:default}
+.cand{background:#eef2ff;border:1px solid #c7d2fe;border-radius:var(--r);padding:14px 16px;margin-bottom:16px;font-size:12.8px;color:#3730a3}
+.cand b{color:#312e81}
+.ctable{width:100%;border-collapse:collapse;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;font-size:12.5px}
+.ctable th{background:var(--bg);color:var(--txt3);font-weight:600;text-align:left;padding:9px 10px;border-bottom:1px solid var(--bdr)}
+.ctable td{padding:9px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.ctable tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.badge-ok{background:var(--pri-bg);color:var(--pri-dk)} .badge-ng{background:var(--red-bg);color:var(--red)}
+.doclinks{display:flex;flex-wrap:wrap;gap:5px}
+.doclinks a{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bdr2);color:var(--txt2);text-decoration:none;white-space:nowrap}
+.doclinks a:hover{background:var(--bg)}
+.doclinks .na{font-size:11px;padding:3px 8px;color:var(--txt4)}
+.empty{color:var(--txt4);font-size:13px;padding:30px 10px;text-align:center;background:var(--sur);border:1px dashed var(--bdr2);border-radius:var(--r)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
+  <div class="hero">
+    <h1>K-Law 라운드별 시험 기록</h1>
+    <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·일치 여부, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
+  </div>
+  <div class="notice"><b>면책 문구</b> — 이 기록에 수록된 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 아직 진행되지 않은 라운드는 표시만 있고 내용이 없습니다.</div>
+  <div class="rtabs" id="rtabs"></div>
+  <div id="rpanels"></div>
+</div>
+<script>
+const LABEL_OF = { keep: '유지', reverse: '파기' };
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function docLink(label, href) { return href ? `<a href="${esc(href)}" target="_blank" rel="noopener">${label}</a>` : `<span class="na">${label} 없음</span>`; }
+
+function renderRound(r) {
+  const done = r.status && r.status !== '예정';
+  if (!done) return `<div class="empty">${r.round}라운드는 아직 진행되지 않았습니다.</div>`;
+  const s = r.summary;
+  let html = `<div class="rhead">
+    <h2>라운드 ${r.round}${r.method_version ? ' — ' + esc(r.method_version) : ''}</h2>
+    <div class="ver">${esc(r.status)}</div>`;
+  if (s) {
+    html += `<div class="rstats">
+      <div class="rstat"><b>${s.correct}/${s.n}</b><span>전체 결론 일치</span></div>
+      <div class="rstat"><b>${s.keep.correct}/${s.keep.n}</b><span>실제 유지 적중</span></div>
+      <div class="rstat"><b>${s.reverse.correct}/${s.reverse.n}</b><span>실제 파기 적중</span></div>
+    </div>`;
+  }
+  html += `<div class="rlinks">
+    ${r.results_csv ? `<a class="btn btn-pri" href="${esc(r.results_csv)}" target="_blank" rel="noopener">일치도 성적표(csv)</a>` : ''}
+    ${r.decision_doc ? `<a class="btn" href="${esc(r.decision_doc)}" target="_blank" rel="noopener">방법론 갱신 결정·보류 사항</a>` : '<span class="btn-disabled">결정 문서 작성 중</span>'}
+  </div></div>`;
+  if (r.candidate) {
+    const c = r.candidate; const cs = c.summary;
+    html += `<div class="cand"><b>검증용 후보 방법론(${esc(c.label)}, 실행 태그 ${esc(c.tag)})</b> — 같은 라운드 사건에 후보 방법론을 시험 적용한 기록입니다. 채택 여부는 위 결정 문서를 보세요.
+      ${cs ? ` 결과: ${cs.correct}/${cs.n} 일치.` : ''} ${c.note ? esc(c.note) : ''}
+      ${c.results_csv ? ` <a href="${esc(c.results_csv)}" target="_blank" rel="noopener">성적표</a>` : ''}
+    </div>`;
+  }
+  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>문서</th></tr></thead><tbody>`;
+  for (const c of r.cases) {
+    const d = c.docs;
+    html += `<tr>
+      <td>${esc(c.id)}</td>
+      <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
+      <td>${esc(c.pred_label)} (${esc(c.pred_binary)})</td>
+      <td><span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span></td>
+      <td><div class="doclinks">
+        ${docLink('대법원', d.supreme)}${docLink('2심', d.second)}${docLink('1심', d.first)}
+        ${docLink('개요(검토)', d.overview_review)}${docLink('개요(독립)', d.overview_independent)}
+        ${docLink('K-Law 판결', d.verdict)}
+      </div></td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  return html;
+}
+
+fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data) => {
+  const tabs = document.getElementById('rtabs'); const panels = document.getElementById('rpanels');
+  data.rounds.forEach((r, i) => {
+    const done = r.status && r.status !== '예정';
+    const btn = document.createElement('button');
+    btn.className = 'rtab-btn' + (i === 0 ? ' active' : '');
+    btn.innerHTML = `라운드 ${r.round}<span class="dot ${done ? 'dot-done' : 'dot-pending'}"></span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.rtab-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.rpanel').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active'); document.getElementById('rpanel-' + r.round).classList.add('active');
+    };
+    tabs.appendChild(btn);
+    const panel = document.createElement('div');
+    panel.className = 'rpanel' + (i === 0 ? ' active' : ''); panel.id = 'rpanel-' + r.round;
+    panel.innerHTML = renderRound(r);
+    panels.appendChild(panel);
+  });
+}).catch((e) => {
+  document.getElementById('rpanels').innerHTML = '<div class="empty">라운드 기록을 불러오지 못했습니다. rounds-manifest.json이 이 페이지와 같은 경로에 있는지 확인하세요.</div>';
+  console.error(e);
+});
+</script>
+</body>
+</html>
