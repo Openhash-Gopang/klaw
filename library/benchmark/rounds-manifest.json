@@ -1,9 +1,9 @@
 {
-  "generated": "2026-09-25T01:46:30.862Z",
+  "generated": "2026-09-25T23:59:08.435Z",
   "rounds": [
     {
       "round": 1,
-      "status": "8/10 건 게재 (2건 결측 — 아래 결정 문서 참고)",
+      "status": "8/10 건 게재 (2건은 Anthropic 콘솔 크레딧 소진으로 개요 생성 불가 — 아래 결정 문서 참고)",
       "method_version": "v15.1 (기준선)",
       "decision_doc": "rounds/r01/decision.md",
       "results_csv": "rounds/r01/results.csv",
@@ -212,7 +212,195 @@
     },
     {
       "round": 2,
-      "status": "예정"
+      "status": "10건 게재",
+      "method_version": null,
+      "decision_doc": null,
+      "results_csv": "rounds/r02/results.csv",
+      "summary": {
+        "n": 10,
+        "correct": 6,
+        "keep": {
+          "n": 4,
+          "correct": 2
+        },
+        "reverse": {
+          "n": 6,
+          "correct": 4
+        }
+      },
+      "candidate": null,
+      "cases": [
+        {
+          "id": "616517",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": false,
+          "conclusion_type": "절차적 환송 (부분 파기환송)",
+          "docs": {
+            "supreme": "rounds/r02/616517/actual_supreme.txt",
+            "second": "rounds/r02/616517/actual_second.txt",
+            "first": "rounds/r02/616517/actual_first.txt",
+            "overview_review": "rounds/r02/616517/overview_review.txt",
+            "overview_independent": "rounds/r02/616517/overview_independent.txt",
+            "verdict": "rounds/r02/616517/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "617163",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": true,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "rounds/r02/617163/actual_supreme.txt",
+            "second": "rounds/r02/617163/actual_second.txt",
+            "first": null,
+            "overview_review": "rounds/r02/617163/overview_review.txt",
+            "overview_independent": "rounds/r02/617163/overview_independent.txt",
+            "verdict": "rounds/r02/617163/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "618185",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": true,
+          "conclusion_type": "확정적 결론",
+          "docs": {
+            "supreme": "rounds/r02/618185/actual_supreme.txt",
+            "second": "rounds/r02/618185/actual_second.txt",
+            "first": "rounds/r02/618185/actual_first.txt",
+            "overview_review": "rounds/r02/618185/overview_review.txt",
+            "overview_independent": "rounds/r02/618185/overview_independent.txt",
+            "verdict": "rounds/r02/618185/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "613169",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "전부파기환송",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "절차적 환송 (파기환송)",
+          "docs": {
+            "supreme": "rounds/r02/613169/actual_supreme.txt",
+            "second": "rounds/r02/613169/actual_second.txt",
+            "first": null,
+            "overview_review": "rounds/r02/613169/overview_review.txt",
+            "overview_independent": "rounds/r02/613169/overview_independent.txt",
+            "verdict": "rounds/r02/613169/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "622961",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": false,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "rounds/r02/622961/actual_supreme.txt",
+            "second": "rounds/r02/622961/actual_second.txt",
+            "first": "rounds/r02/622961/actual_first.txt",
+            "overview_review": "rounds/r02/622961/overview_review.txt",
+            "overview_independent": "rounds/r02/622961/overview_independent.txt",
+            "verdict": "rounds/r02/622961/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "618533",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "rounds/r02/618533/actual_supreme.txt",
+            "second": "rounds/r02/618533/actual_second.txt",
+            "first": "rounds/r02/618533/actual_first.txt",
+            "overview_review": "rounds/r02/618533/overview_review.txt",
+            "overview_independent": "rounds/r02/618533/overview_independent.txt",
+            "verdict": "rounds/r02/618533/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "618155",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "절차적 환송",
+          "docs": {
+            "supreme": "rounds/r02/618155/actual_supreme.txt",
+            "second": "rounds/r02/618155/actual_second.txt",
+            "first": "rounds/r02/618155/actual_first.txt",
+            "overview_review": "rounds/r02/618155/overview_review.txt",
+            "overview_independent": "rounds/r02/618155/overview_independent.txt",
+            "verdict": "rounds/r02/618155/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "614333",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "확인필요",
+          "pred_binary": "확인필요",
+          "correct": false,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "rounds/r02/614333/actual_supreme.txt",
+            "second": "rounds/r02/614333/actual_second.txt",
+            "first": "rounds/r02/614333/actual_first.txt",
+            "overview_review": "rounds/r02/614333/overview_review.txt",
+            "overview_independent": "rounds/r02/614333/overview_independent.txt",
+            "verdict": "rounds/r02/614333/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "617157",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "파기자판",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "rounds/r02/617157/actual_supreme.txt",
+            "second": "rounds/r02/617157/actual_second.txt",
+            "first": null,
+            "overview_review": "rounds/r02/617157/overview_review.txt",
+            "overview_independent": "rounds/r02/617157/overview_independent.txt",
+            "verdict": "rounds/r02/617157/klaw_verdict.txt"
+          }
+        },
+        {
+          "id": "616029",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": false,
+          "conclusion_type": "확정적 결론 (상고기각)",
+          "docs": {
+            "supreme": "rounds/r02/616029/actual_supreme.txt",
+            "second": "rounds/r02/616029/actual_second.txt",
+            "first": "rounds/r02/616029/actual_first.txt",
+            "overview_review": "rounds/r02/616029/overview_review.txt",
+            "overview_independent": "rounds/r02/616029/overview_independent.txt",
+            "verdict": "rounds/r02/616029/klaw_verdict.txt"
+          }
+        }
+      ]
     },
     {
       "round": 3,
