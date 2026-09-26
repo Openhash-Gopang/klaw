@@ -69,7 +69,8 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 <script>
 const LABEL_OF = { keep: '유지', reverse: '파기' };
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function docLink(label, href) { return href ? `<a href="${esc(href)}" target="_blank" rel="noopener">${label}</a>` : `<span class="na">${label} 없음</span>`; }
+function viewerUrl(href, label) { return 'doc.html?src=' + encodeURIComponent(href) + '&title=' + encodeURIComponent(label); }
+function docLink(label, href) { return href ? `<a href="${esc(viewerUrl(href, label))}" target="_blank" rel="noopener">${label}</a>` : `<span class="na">${label} 없음</span>`; }
 
 function renderRound(r) {
   const done = r.status && r.status !== '예정';
@@ -87,7 +88,7 @@ function renderRound(r) {
   }
   html += `<div class="rlinks">
     ${r.results_csv ? `<a class="btn btn-pri" href="${esc(r.results_csv)}" target="_blank" rel="noopener">일치도 성적표(csv)</a>` : ''}
-    ${r.decision_doc ? `<a class="btn" href="${esc(r.decision_doc)}" target="_blank" rel="noopener">방법론 갱신 결정·보류 사항</a>` : '<span class="btn-disabled">결정 문서 작성 중</span>'}
+    ${r.decision_doc ? `<a class="btn" href="${esc(viewerUrl(r.decision_doc, `라운드 ${r.round} 결정 문서`))}" target="_blank" rel="noopener">방법론 갱신 결정·보류 사항</a>` : '<span class="btn-disabled">결정 문서 작성 중</span>'}
   </div></div>`;
   if (r.candidate) {
     const c = r.candidate; const cs = c.summary;
