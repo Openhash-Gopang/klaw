@@ -75,6 +75,7 @@ for (let r = 1; r <= 10; r++) {
         supreme: docOrNull('actual_supreme.txt'), second: docOrNull('actual_second.txt'), first: docOrNull('actual_first.txt'),
         overview_review: docOrNull('overview_review.txt'), overview_independent: docOrNull('overview_independent.txt'),
         verdict: docOrNull('klaw_verdict.txt'), easy_explain: docOrNull('easy_explain.md'),
+        plaintiff_theory: docOrNull('plaintiff_theory.md'), defendant_theory: docOrNull('defendant_theory.md'), judgment_logic: docOrNull('judgment_logic.md'),
       },
     };
   });

@@ -49,6 +49,14 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .easy-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#fff;background:#f59e0b;border:none;border-radius:8px;padding:8px 14px;text-decoration:none;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .easy-btn:hover{background:#d97706}
 .easy-btn-na{display:inline-flex;align-items:center;font-size:12px;color:var(--txt4)}
+.analysis-row{display:flex;flex-wrap:wrap;gap:6px}
+.analysis-btn{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;border-radius:7px;padding:6px 10px;text-decoration:none;white-space:nowrap}
+.analysis-btn-plaintiff{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.analysis-btn-plaintiff:hover{background:#dbeafe}
+.analysis-btn-defendant{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.analysis-btn-defendant:hover{background:#fee2e2}
+.analysis-btn-judgment{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.analysis-btn-judgment:hover{background:#dcfce7}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
 .badge-ok{background:var(--pri-bg);color:var(--pri-dk)} .badge-ng{background:var(--red-bg);color:var(--red)}
 .doclinks{display:flex;flex-wrap:wrap;gap:5px}
@@ -100,7 +108,7 @@ function renderRound(r) {
       ${c.results_csv ? ` <a href="${esc(c.results_csv)}" target="_blank" rel="noopener">성적표</a>` : ''}
     </div>`;
   }
-  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>쉬운 설명</th><th>문서</th></tr></thead><tbody>`;
+  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>분석 자료</th><th>문서</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>
@@ -108,7 +116,13 @@ function renderRound(r) {
       <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
       <td>${esc(c.pred_label)} (${esc(c.pred_binary)})</td>
       <td><span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span></td>
-      <td>${d.easy_explain ? `<a class="easy-btn" href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">🦉 쉬운 설명</a>` : '<span class="easy-btn-na">준비 중</span>'}</td>
+      <td><div class="analysis-row">
+        ${d.easy_explain ? `<a class="easy-btn" href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">🦉 쉬운 설명</a>` : ''}
+        ${d.plaintiff_theory ? `<a class="analysis-btn analysis-btn-plaintiff" href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">⚖️ 원고 논거</a>` : ''}
+        ${d.defendant_theory ? `<a class="analysis-btn analysis-btn-defendant" href="${esc(viewerUrl(d.defendant_theory, '피고의 법리 - ' + c.id))}" target="_blank" rel="noopener">🛡️ 피고 논거</a>` : ''}
+        ${d.judgment_logic ? `<a class="analysis-btn analysis-btn-judgment" href="${esc(viewerUrl(d.judgment_logic, '판결의 논리 - ' + c.id))}" target="_blank" rel="noopener">📜 판결 논리</a>` : ''}
+        ${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic) ? '<span class="easy-btn-na">준비 중</span>' : ''}
+      </div></td>
       <td><div class="doclinks">
         ${docLink('대법원', d.supreme)}${docLink('2심', d.second)}${docLink('1심', d.first)}
         ${docLink('개요(검토)', d.overview_review)}${docLink('개요(독립)', d.overview_independent)}
