@@ -50,6 +50,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .btn:hover{background:var(--bg);color:var(--txt)}
 .btn-pri{background:var(--pri);border-color:var(--pri);color:#fff}
 .btn-pri:hover{background:var(--pri-dk);border-color:var(--pri-dk);color:#fff}
+
+.repro-hero{margin:22px 0 26px;padding:24px 26px;border-radius:14px;background:linear-gradient(135deg,#f0fdf9 0%,#eff6ff 100%);border:1px solid var(--pri-bd)}
+.repro-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--pri-dk);background:#fff;border:1px solid var(--pri-bd);border-radius:99px;padding:4px 12px;margin-bottom:14px}
+.repro-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pri)}
+.repro-hero h2{font-size:19px;color:var(--txt);margin-bottom:6px;line-height:1.4}
+.repro-hero p{font-size:13px;color:var(--txt3);margin-bottom:16px;max-width:680px}
+.repro-pills{display:flex;flex-wrap:wrap;gap:8px}
+.repro-pill{font-size:12px;font-weight:600;color:var(--txt2);background:#fff;border:1px solid var(--bdr2);border-radius:9px;padding:8px 12px}
+.repro-stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid var(--pri-bd)}
+.repro-stat b{display:block;font-size:18px;color:var(--pri-dk);line-height:1.3}
+.repro-stat span{font-size:11.5px;color:var(--txt4)}
+.chip-repro{background:#eef2ff;color:#4338ca}
 </style>
 </head>
 <body>
@@ -60,7 +72,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
     <p>K-Law의 방법론 원문, 연구 논문, 소개 자료를 한곳에 모았습니다. 필요한 문서를 골라 읽거나 내려받으세요.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 이 자료실 문서에 수록된 모든 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 또한 일부는 초안 상태입니다. 따라서 이 자료실 문서의 어떠한 내용도 어떠한 용도로도 인용하거나 이용해서는 안 됩니다.</div>
-  <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="report">실증 보고서</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="appendix">보고서 부록</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button></div>
+  <div class="repro-hero">
+    <span class="repro-badge">재현성 실험 진행 중</span>
+    <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
+    <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
+    <div class="repro-pills">
+      <span class="repro-pill">📥 판례 수집(Open API)</span>
+      <span class="repro-pill">🏷️ 300건 분류·태깅</span>
+      <span class="repro-pill">🎯 개발 세트 100건 선정</span>
+      <a class="repro-pill" style="text-decoration:none" href="rounds.html">🔁 10라운드 × 10건 시험(라운드별 기록 보기)</a>
+      <span class="repro-pill">🛠️ 라운드별 방법론 갱신</span>
+      <span class="repro-pill">📄 논문 얼개·초안</span>
+    </div>
+    <div class="repro-stats">
+      <div class="repro-stat"><b>300건</b><span>수집 판례(민사 다, 2025.6~2026.7)</span></div>
+      <div class="repro-stat"><b>100건</b><span>개발 세트(10라운드 × 10건)</span></div>
+      <div class="repro-stat"><b>v15.1 → v15.2</b><span>1차 방법론 갱신(검증 진행 중)</span></div>
+      <div class="repro-stat"><b>200건</b><span>최종 표본 밖 시험 풀</span></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="report">실증 보고서</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="appendix">보고서 부록</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button><button class="tab-btn" data-filter="repro">재현성 자료</button></div>
   <div class="lib-grid" id="lib-grid">
     <article class="lib-card" data-cat="current">
       <div class="lib-top"><span class="lib-chip chip-current">현행 방법론</span><span class="lib-meta">마크다운 · 168 KB</span></div>
@@ -215,6 +247,70 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
       <div class="lib-sub">K-Law 방법론 v13.2 기준</div>
       <p>v13.3 이전의 출력 형식입니다. STEP 0~C의 서식과 완료 태그, 강제규칙 연동 항목을 담고 있습니다. 텍스트본과 웹 문서본을 함께 제공합니다.</p>
       <div class="lib-actions"><a class="btn btn-pri" href="library/methodology/judgement-format-v13.2.html" target="_blank" rel="noopener">웹 문서</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/methodology/judgement-format-v13.2.txt" target="_blank" rel="noopener">텍스트</a></div>
+    </article>
+
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">마크다운 · README</span></div>
+      <h3>재현 가이드 총론</h3>
+      <div class="lib-sub">전체 절차 · 2026.9</div>
+      <p>수집·분류·분할·라운드 갱신 전 과정과 정확한 재현 명령, 파일별 해시를 담은 총괄 문서입니다. 재현을 시작하려면 이 문서부터 읽으세요.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/README.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/benchmark/README.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">API 연동</span></div>
+      <h3>대법원 판례 수집 방법</h3>
+      <div class="lib-sub">법제처 Open API · §1</div>
+      <p>법제처 국가법령정보센터 Open API로 대법원 민사 다 판결 300건(2025.6~2026.7 선고)과 2·1심 판결문을 연결 수집한 방법입니다. 요청 형식(OC·target·curt·prncYd)과 발급 절차를 그대로 공개합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/README.md#1-%ED%8C%90%EB%A1%80-%EC%88%98%EC%A7%91-%EB%B0%A9%EB%B2%95" target="_blank" rel="noopener">수집 방법</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">CSV · 해시 포함</span></div>
+      <h3>수집된 판례 다운로드</h3>
+      <div class="lib-sub">메타데이터 · §2</div>
+      <p>300건의 사건ID·주문 라벨·심급 연결 정보와 개발/시험 분할 CSV입니다. 판결문 원문은 저작권 표시 관행상 재게시하지 않고, 같은 ID로 각자 재수집하도록 안내합니다. dev.csv는 SHA-256 해시로 표본 동일성을 검증할 수 있습니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/tree/main/library/benchmark/data" target="_blank" rel="noopener">데이터 폴더</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/README.md#2-%EC%88%98%EC%A7%91%EB%90%9C-%ED%8C%90%EB%A1%80-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C" target="_blank" rel="noopener">해시·목록</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">PowerShell 스크립트</span></div>
+      <h3>판례 분류(태깅) 방법</h3>
+      <div class="lib-sub">catalog_cases.ps1 · §3</div>
+      <p>선고 결과·심급 확보 여부·선고 시기 등 12종 태그를 300건에 기계적으로 붙이는 스크립트와 태그 사전입니다. 원본을 건드리지 않고 복사만 하므로 여러 번 실행해도 안전합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/catalog_cases.ps1" target="_blank" rel="noopener">스크립트</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/README.md#3-%ED%8C%90%EB%A1%80-%EB%B6%84%EB%A5%98%ED%83%9C%EA%B9%85-%EB%B0%A9%EB%B2%95" target="_blank" rel="noopener">태그 사전</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">층화 표집</span></div>
+      <h3>방법론 갱신용 100건 선정 과정</h3>
+      <div class="lib-sub">시드 20260924 · §4</div>
+      <p>유지 40 · 파기 60으로 층화해 10라운드 × 10건으로 나눈 선정 절차입니다. 균형 표본을 쓴 이유와 모집단 비율(유지 28% · 파기 72%)과의 차이, 기준선 계산 방식을 설명합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/README.md#4-%EB%B0%A9%EB%B2%95%EB%A1%A0-%EA%B0%B1%EC%8B%A0%EC%9A%A9-%EA%B0%9C%EB%B0%9C-%EC%84%B8%ED%8A%B8-100%EA%B1%B4-%EC%84%A0%EC%A0%95" target="_blank" rel="noopener">선정 절차</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/tree/main/library/benchmark/data/split" target="_blank" rel="noopener">분할 파일</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">Node.js 스크립트</span></div>
+      <h3>라운드 시험 절차 (10건씩)</h3>
+      <div class="lib-sub">overview_writer.mjs · klaw_runner.mjs · §5</div>
+      <p>사건 개요 생성(식별정보 제거·이중 모드)과 가상 판결 생성·채점 스크립트입니다. system 프롬프트 캐싱, 토큰 예산 상향, STEP별 완료 태그 검사 방식을 그대로 공개합니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/overview_writer.mjs" target="_blank" rel="noopener">개요 작성기</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/klaw_runner.mjs" target="_blank" rel="noopener">실행·채점기</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/pack_round.ps1" target="_blank" rel="noopener">불일치 묶음</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">패치 스크립트 · 로그</span></div>
+      <h3>방법론 갱신 절차와 버전 이력 (v15.1 → v15.2)</h3>
+      <div class="lib-sub">1차 갱신 · 검증 진행 중 · §5.3~5.5</div>
+      <p>같은 오류가 반복되거나 원리 수준으로 일반화될 때만 갱신한다는 규칙, 문자열 1회 매칭으로 안전장치를 건 패치 스크립트, 자기 검증(STEP V) 실험이 실패해 폐기된 경위까지 사건ID·조문 근거와 함께 기록했습니다. v15.2는 표본 밖 재검증 전 초안입니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/patch_method_r01.mjs" target="_blank" rel="noopener">v15.2 패치</a><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/patch_log.md" target="_blank" rel="noopener">패치 기록</a><a class="btn" href="rounds.html">라운드별 상세 기록</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">마크다운 · 얼개</span></div>
+      <h3>논문 얼개</h3>
+      <div class="lib-sub">초안 · §0~부록</div>
+      <p>서론부터 결론·부록까지 장 구성과 각 장에서 보고할 내용을 정리한 논문 얼개입니다. 결과 장은 10라운드 시험이 끝난 뒤 채웁니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/paper-outline.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/benchmark/paper-outline.md" target="_blank" rel="noopener">원문</a></div>
+    </article>
+    <article class="lib-card" data-cat="repro">
+      <div class="lib-top"><span class="lib-chip chip-repro">재현성 자료</span><span class="lib-meta">마크다운 · v0.1</span></div>
+      <h3>논문 초안</h3>
+      <div class="lib-sub">서론~방법 완성 · 결과 진행 중</div>
+      <p>서론·관련 연구·데이터·방법·실패한 개입(STEP V) 보고까지 작성한 초안입니다. 결과·논의·결론 장은 라운드 시험이 끝난 뒤 채우며, 그 전까지는 절차 설명이지 확정된 실증 결과가 아닙니다.</p>
+      <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/paper-draft-v0.1.md" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/benchmark/paper-draft-v0.1.md" target="_blank" rel="noopener">원문</a></div>
     </article>
   </div>
 </div>
