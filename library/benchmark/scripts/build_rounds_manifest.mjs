@@ -29,7 +29,7 @@ function readCsv(p) {
 }
 function readJson(p, dflt) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return dflt; } }
 function exists(p) { return fs.existsSync(p); }
-function rel(p) { return path.relative(BM, p).split(path.sep).join('/'); }
+function rel(p) { return path.relative(ROOT, p).split(path.sep).join('/'); }
 
 // expected round size, from the published dev-set split (data/split/dev.csv), if available
 const devCsv = readCsv(path.join(BM, 'data', 'split', 'dev.csv'));
