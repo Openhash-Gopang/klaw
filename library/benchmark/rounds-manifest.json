@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-26T02:41:48.901Z",
+  "generated": "2026-09-26T02:59:08.766Z",
   "rounds": [
     {
       "round": 1,
@@ -86,7 +86,8 @@
             "first": "library/benchmark/rounds/r01/621985/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/621985/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/621985/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/621985/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/621985/klaw_verdict.txt",
+            "easy_explain": "library/benchmark/rounds/r01/621985/easy_explain.md"
           }
         },
         {
@@ -103,7 +104,8 @@
             "first": "library/benchmark/rounds/r01/620463/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/620463/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/620463/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/620463/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/620463/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -120,7 +122,8 @@
             "first": "library/benchmark/rounds/r01/622945/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/622945/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/622945/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/622945/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/622945/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -137,7 +140,8 @@
             "first": "library/benchmark/rounds/r01/622917/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/622917/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/622917/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/622917/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/622917/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -154,7 +158,8 @@
             "first": "library/benchmark/rounds/r01/618667/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/618667/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/618667/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/618667/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/618667/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -171,7 +176,8 @@
             "first": "library/benchmark/rounds/r01/616497/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/616497/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/616497/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/616497/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/616497/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -188,7 +194,8 @@
             "first": "library/benchmark/rounds/r01/618695/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r01/618695/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/618695/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/618695/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/618695/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -205,7 +212,8 @@
             "first": null,
             "overview_review": "library/benchmark/rounds/r01/617151/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r01/617151/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r01/617151/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r01/617151/klaw_verdict.txt",
+            "easy_explain": null
           }
         }
       ]
@@ -244,7 +252,8 @@
             "first": "library/benchmark/rounds/r02/616517/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/616517/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/616517/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/616517/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/616517/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -261,7 +270,8 @@
             "first": null,
             "overview_review": "library/benchmark/rounds/r02/617163/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/617163/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/617163/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/617163/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -278,7 +288,8 @@
             "first": "library/benchmark/rounds/r02/618185/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/618185/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618185/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/618185/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/618185/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -295,7 +306,8 @@
             "first": null,
             "overview_review": "library/benchmark/rounds/r02/613169/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/613169/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/613169/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/613169/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -312,7 +324,8 @@
             "first": "library/benchmark/rounds/r02/622961/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/622961/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/622961/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/622961/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/622961/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -329,7 +342,8 @@
             "first": "library/benchmark/rounds/r02/618533/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/618533/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618533/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/618533/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/618533/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -346,7 +360,8 @@
             "first": "library/benchmark/rounds/r02/618155/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/618155/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618155/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/618155/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/618155/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -363,7 +378,8 @@
             "first": "library/benchmark/rounds/r02/614333/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/614333/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/614333/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/614333/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/614333/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -380,7 +396,8 @@
             "first": null,
             "overview_review": "library/benchmark/rounds/r02/617157/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/617157/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/617157/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/617157/klaw_verdict.txt",
+            "easy_explain": null
           }
         },
         {
@@ -397,7 +414,8 @@
             "first": "library/benchmark/rounds/r02/616029/actual_first.txt",
             "overview_review": "library/benchmark/rounds/r02/616029/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/616029/overview_independent.txt",
-            "verdict": "library/benchmark/rounds/r02/616029/klaw_verdict.txt"
+            "verdict": "library/benchmark/rounds/r02/616029/klaw_verdict.txt",
+            "easy_explain": null
           }
         }
       ]

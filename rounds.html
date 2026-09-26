@@ -46,6 +46,9 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .ctable th{background:var(--bg);color:var(--txt3);font-weight:600;text-align:left;padding:9px 10px;border-bottom:1px solid var(--bdr)}
 .ctable td{padding:9px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
 .ctable tr:last-child td{border-bottom:none}
+.easy-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#fff;background:#f59e0b;border:none;border-radius:8px;padding:8px 14px;text-decoration:none;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.easy-btn:hover{background:#d97706}
+.easy-btn-na{display:inline-flex;align-items:center;font-size:12px;color:var(--txt4)}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
 .badge-ok{background:var(--pri-bg);color:var(--pri-dk)} .badge-ng{background:var(--red-bg);color:var(--red)}
 .doclinks{display:flex;flex-wrap:wrap;gap:5px}
@@ -97,7 +100,7 @@ function renderRound(r) {
       ${c.results_csv ? ` <a href="${esc(c.results_csv)}" target="_blank" rel="noopener">성적표</a>` : ''}
     </div>`;
   }
-  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>문서</th></tr></thead><tbody>`;
+  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>쉬운 설명</th><th>문서</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>
@@ -105,6 +108,7 @@ function renderRound(r) {
       <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
       <td>${esc(c.pred_label)} (${esc(c.pred_binary)})</td>
       <td><span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span></td>
+      <td>${d.easy_explain ? `<a class="easy-btn" href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">🦉 쉬운 설명</a>` : '<span class="easy-btn-na">준비 중</span>'}</td>
       <td><div class="doclinks">
         ${docLink('대법원', d.supreme)}${docLink('2심', d.second)}${docLink('1심', d.first)}
         ${docLink('개요(검토)', d.overview_review)}${docLink('개요(독립)', d.overview_independent)}
