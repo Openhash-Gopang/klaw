@@ -51,16 +51,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .btn-pri{background:var(--pri);border-color:var(--pri);color:#fff}
 .btn-pri:hover{background:var(--pri-dk);border-color:var(--pri-dk);color:#fff}
 
-.repro-hero{margin:22px 0 26px;padding:24px 26px;border-radius:14px;background:linear-gradient(135deg,#10241c 0%,#0d1830 100%);border:1px solid #1f4a38}
-.repro-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#4ade80;background:#141a2e;border:1px solid #1f4a38;border-radius:99px;padding:4px 12px;margin-bottom:14px}
-.repro-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#3ecf8e}
-.repro-hero h2{font-size:19px;color:#f1f5f9;margin-bottom:6px;line-height:1.4}
-.repro-hero p{font-size:13px;color:#cbd5e1;margin-bottom:16px;max-width:680px}
-.repro-pills{display:flex;flex-wrap:wrap;gap:8px}
-.repro-pill{font-size:12px;font-weight:600;color:#e2e8f0;background:#141a2e;border:1px solid #374357;border-radius:9px;padding:8px 12px}
-.repro-stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid #1f4a38}
-.repro-stat b{display:block;font-size:18px;color:#4ade80;line-height:1.3}
-.repro-stat span{font-size:11.5px;color:#94a3b8}
+.hero-dark{background:#0b0f19;padding:28px 24px 32px}
+.hero-dark-inner{max-width:1080px;margin:0 auto}
+.hero-dark-inner .repro-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#4ade80;background:#141a2e;border:1px solid #1f4a38;border-radius:99px;padding:4px 12px;margin-bottom:14px}
+.hero-dark-inner .repro-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#3ecf8e}
+.hero-dark-inner h2{font-size:19px;color:#f1f5f9;margin-bottom:6px;line-height:1.4}
+.hero-dark-inner p{font-size:13px;color:#cbd5e1;margin-bottom:16px;max-width:680px}
+.hero-dark-inner .repro-pills{display:flex;flex-wrap:wrap;gap:8px}
+.hero-dark-inner .repro-pill{font-size:12px;font-weight:600;color:#e2e8f0;background:#141a2e;border:1px solid #374357;border-radius:9px;padding:8px 12px}
+.hero-dark-inner .repro-stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid #1f4a38}
+.hero-dark-inner .repro-stat b{display:block;font-size:18px;color:#4ade80;line-height:1.3}
+.hero-dark-inner .repro-stat span{font-size:11.5px;color:#94a3b8}
 .chip-repro{background:#eef2ff;color:#4338ca}
 
 .topbar{display:flex;align-items:center;gap:14px;background:#0b0f19;padding:12px 24px;flex-wrap:wrap;row-gap:6px}
@@ -81,26 +82,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
   <a class="topbar-brand" href="https://hondi.net"><span class="topbar-logo">H</span> 혼디</a>
   <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="report">실증 보고서</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="appendix">보고서 부록</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button><button class="tab-btn" data-filter="repro">재현성 자료</button></div>
 </header>
-<div class="wrap">
-  <div class="repro-hero">
-    <span class="repro-badge">재현성 실험 진행 중</span>
-    <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
-    <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
-    <div class="repro-pills">
-      <span class="repro-pill">📥 판례 수집(Open API)</span>
-      <span class="repro-pill">🏷️ 300건 분류·태깅</span>
-      <span class="repro-pill">🎯 개발 세트 100건 선정</span>
-      <a class="repro-pill" style="text-decoration:none" href="rounds.html">🔁 10라운드 × 10건 시험(라운드별 기록 보기)</a>
-      <span class="repro-pill">🛠️ 라운드별 방법론 갱신</span>
-      <span class="repro-pill">📄 논문 얼개·초안</span>
-    </div>
-    <div class="repro-stats">
-      <div class="repro-stat"><b>300건</b><span>수집 판례(민사 다, 2025.6~2026.7)</span></div>
-      <div class="repro-stat"><b>100건</b><span>개발 세트(10라운드 × 10건)</span></div>
-      <div class="repro-stat"><b>v15.1 → v15.2</b><span>1차 방법론 갱신(검증 진행 중)</span></div>
-      <div class="repro-stat"><b>200건</b><span>최종 표본 밖 시험 풀</span></div>
-    </div>
+<section class="hero-dark"><div class="hero-dark-inner">
+  <span class="repro-badge">재현성 실험 진행 중</span>
+  <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
+  <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
+  <div class="repro-pills">
+    <span class="repro-pill">📥 판례 수집(Open API)</span>
+    <span class="repro-pill">🏷️ 300건 분류·태깅</span>
+    <span class="repro-pill">🎯 개발 세트 100건 선정</span>
+    <a class="repro-pill" style="text-decoration:none" href="rounds.html">🔁 10라운드 × 10건 시험(라운드별 기록 보기)</a>
+    <span class="repro-pill">🛠️ 라운드별 방법론 갱신</span>
+    <span class="repro-pill">📄 논문 얼개·초안</span>
   </div>
+  <div class="repro-stats">
+    <div class="repro-stat"><b>300건</b><span>수집 판례(민사 다, 2025.6~2026.7)</span></div>
+    <div class="repro-stat"><b>100건</b><span>개발 세트(10라운드 × 10건)</span></div>
+    <div class="repro-stat"><b>v15.1 → v15.2</b><span>1차 방법론 갱신(검증 진행 중)</span></div>
+    <div class="repro-stat"><b>200건</b><span>최종 표본 밖 시험 풀</span></div>
+  </div>
+</div></section>
+<div class="wrap">
   <div class="hero">
     <h1>K-Law 자료실</h1>
     <p>K-Law의 방법론 원문, 연구 논문, 소개 자료를 한곳에 모았습니다. 필요한 문서를 골라 읽거나 내려받으세요.</p>
