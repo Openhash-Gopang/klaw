@@ -8,10 +8,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
-  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
-  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
-  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
-  --blue-bg:#eff6ff; --org-bg:#fffbeb; --pur-bg:#f5f3ff; --gry-bg:#f3f4f6;
+  /* 2026-09-26 — hondi.net 전역 다크 테마에 맞춰 전체 팔레트를 다크로 전환 */
+  --bg:#0b0f19; --sur:#141a2e; --bdr:#262c42; --bdr2:#374357;
+  --txt:#f1f5f9; --txt2:#cbd5e1; --txt3:#94a3b8; --txt4:#64748b;
+  --pri:#3ecf8e; --pri-dk:#4ade80; --pri-bg:#0f2e22; --pri-bd:#1f4a38;
+  --blue-bg:#12213f; --org-bg:#3a2a0a; --pur-bg:#241a3d; --gry-bg:#1c2338;
   --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif; --r:10px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -21,7 +22,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .back-link:hover{color:var(--txt)}
 .hero h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 .hero p{font-size:13.5px;color:var(--txt3);margin-bottom:18px}
-.notice{background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#78350f;margin-bottom:18px}
+.notice{background:var(--org-bg);border:1px solid #7c5a12;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#fcd34d;margin-bottom:18px}
 .tabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:4px;margin-bottom:20px}
 .tab-btn{padding:8px 14px;border:none;background:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer}
 .tab-btn.active{background:var(--pri-bg);color:var(--pri-dk)}
@@ -30,16 +31,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 @media (max-width:980px){.lib-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.lib-grid{grid-template-columns:1fr}}
 .lib-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 18px 16px;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s}
-.lib-card:hover{border-color:var(--bdr2);box-shadow:0 4px 14px rgba(17,24,39,.06)}
+.lib-card:hover{border-color:var(--bdr2);box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .lib-card[hidden]{display:none}
 .lib-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .lib-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
 .chip-current{background:var(--pri-bg);color:var(--pri-dk)}
-.chip-paper{background:var(--blue-bg);color:#1d4ed8}
-.chip-biz{background:var(--org-bg);color:#92400e}
-.chip-eval{background:var(--pur-bg);color:#6d28d9}
-.chip-report{background:#ecfeff;color:#0e7490}
-.chip-appendix{background:#fdf2f8;color:#be185d}
+.chip-paper{background:var(--blue-bg);color:#93c5fd}
+.chip-biz{background:var(--org-bg);color:#fbbf24}
+.chip-eval{background:var(--pur-bg);color:#c4b5fd}
+.chip-report{background:#0e2a30;color:#67e8f9}
+.chip-appendix{background:#3a1626;color:#f9a8d4}
 .chip-archive{background:var(--gry-bg);color:var(--txt3)}
 .lib-meta{font-size:11px;color:var(--txt4);text-align:right}
 .lib-card h3{font-size:14.5px;line-height:1.45;color:var(--txt);margin-bottom:3px}
@@ -51,25 +52,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .btn-pri{background:var(--pri);border-color:var(--pri);color:#fff}
 .btn-pri:hover{background:var(--pri-dk);border-color:var(--pri-dk);color:#fff}
 
-.repro-hero{margin:22px 0 26px;padding:24px 26px;border-radius:14px;background:linear-gradient(135deg,#f0fdf9 0%,#eff6ff 100%);border:1px solid var(--pri-bd)}
-.repro-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--pri-dk);background:#fff;border:1px solid var(--pri-bd);border-radius:99px;padding:4px 12px;margin-bottom:14px}
+.repro-hero{margin:22px 0 26px;padding:24px 26px;border-radius:14px;background:linear-gradient(135deg,var(--pri-bg) 0%,var(--blue-bg) 100%);border:1px solid var(--pri-bd)}
+.repro-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--pri-dk);background:var(--sur);border:1px solid var(--pri-bd);border-radius:99px;padding:4px 12px;margin-bottom:14px}
 .repro-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pri)}
 .repro-hero h2{font-size:19px;color:var(--txt);margin-bottom:6px;line-height:1.4}
 .repro-hero p{font-size:13px;color:var(--txt3);margin-bottom:16px;max-width:680px}
 .repro-pills{display:flex;flex-wrap:wrap;gap:8px}
-.repro-pill{font-size:12px;font-weight:600;color:var(--txt2);background:#fff;border:1px solid var(--bdr2);border-radius:9px;padding:8px 12px}
+.repro-pill{font-size:12px;font-weight:600;color:var(--txt2);background:var(--sur);border:1px solid var(--bdr2);border-radius:9px;padding:8px 12px}
 .repro-stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid var(--pri-bd)}
 .repro-stat b{display:block;font-size:18px;color:var(--pri-dk);line-height:1.3}
 .repro-stat span{font-size:11.5px;color:var(--txt4)}
-.chip-repro{background:#eef2ff;color:#4338ca}
+.chip-repro{background:#221c4a;color:#a5b4fc}
 
-.topbar{display:flex;align-items:center;gap:14px;background:#0b0f19;padding:14px 24px}
-.topbar-back{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#fff;color:#0b0f19;font-size:16px;text-decoration:none;flex:none}
+.topbar{display:flex;align-items:center;gap:14px;background:var(--bg);padding:14px 24px}
+.topbar-back{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#fff;color:var(--bg);font-size:16px;text-decoration:none;flex:none}
 .topbar-back:hover{background:#e5e7eb}
 .topbar-brand{display:inline-flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:15px;text-decoration:none}
 .topbar-brand:hover{opacity:.85}
 .topbar-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#4f46e5;color:#fff;font-weight:800;font-size:13px;flex:none}
-.topbar-page{color:#9ca3af;font-size:13px;font-weight:600;padding-left:10px;border-left:1px solid #374151}
+.topbar-page{color:var(--txt3);font-size:13px;font-weight:600;padding-left:10px;border-left:1px solid var(--bdr)}
 </style>
 </head>
 <body>
