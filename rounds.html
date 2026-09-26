@@ -43,7 +43,8 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .cand{background:#eef2ff;border:1px solid #c7d2fe;border-radius:var(--r);padding:14px 16px;margin-bottom:16px;font-size:12.8px;color:#3730a3}
 .cand b{color:#312e81}
 .ctable{width:100%;border-collapse:collapse;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;font-size:12.5px}
-.ctable th{background:var(--bg);color:var(--txt3);font-weight:600;text-align:left;padding:9px 10px;border-bottom:1px solid var(--bdr)}
+.ctable th{background:var(--bg);color:var(--txt3);font-weight:600;text-align:left;padding:9px 10px;border-bottom:1px solid var(--bdr);line-height:1.3}
+.ctable th br{content:"";display:block}
 .ctable td{padding:9px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
 .ctable tr:last-child td{border-bottom:none}
 /* 혼디 페이지 디자인 원칙 v1.0(원자로 제어 패널 스타일) 적용:
@@ -110,7 +111,7 @@ function renderRound(r) {
       ${c.results_csv ? ` <a href="${esc(c.results_csv)}" target="_blank" rel="noopener">성적표</a>` : ''}
     </div>`;
   }
-  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요(검토)</th><th>개요(독립)</th><th>K-Law 판결</th></tr></thead><tbody>`;
+  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>

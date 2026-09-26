@@ -31,6 +31,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2)}
 .doc strong{color:var(--txt);font-weight:700}
 .doc hr{border:none;border-top:1px solid var(--bdr);margin:22px 0}
 .doc code{background:#f1f5f9;padding:1px 6px;border-radius:5px;font-size:13px;color:#0e7490}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}
+.doc th,.doc td{border:1px solid var(--bdr2);padding:8px 12px;text-align:left;vertical-align:top}
+.doc th{background:#f1f5f9;color:var(--txt);font-weight:700}
 .state{color:var(--txt4);font-size:14px;padding:60px 0;text-align:center}
 </style>
 </head>
@@ -60,17 +63,39 @@ function inlineFormat(s) {
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   return s;
 }
+function splitRow(line) {
+  var t = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return t.split('|').map(function (c) { return c.trim(); });
+}
+function isTableRow(line) { return /^\s*\|.*\|\s*$/.test(line); }
+function isSeparatorRow(line) { return /^\s*\|[\s:|-]+\|\s*$/.test(line) && /-/.test(line); }
 function renderDoc(text) {
   var lines = text.replace(/\r\n/g, '\n').split('\n');
   var html = '';
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
     if (/^\s*$/.test(line)) continue;
+    // markdown table: header row + separator row (|---|---|) + 0+ body rows
+    if (isTableRow(line) && lines[i + 1] && isSeparatorRow(lines[i + 1])) {
+      var header = splitRow(line);
+      var j = i + 2;
+      var bodyRows = [];
+      while (j < lines.length && isTableRow(lines[j])) { bodyRows.push(splitRow(lines[j])); j++; }
+      html += '<table><thead><tr>' + header.map(function (c) { return '<th>' + inlineFormat(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+      bodyRows.forEach(function (row) {
+        html += '<tr>' + row.map(function (c) { return '<td>' + inlineFormat(c) + '</td>'; }).join('') + '</tr>';
+      });
+      html += '</tbody></table>\n';
+      i = j - 1;
+      continue;
+    }
     var bracketOnly = line.match(/^【([^】]+)】\s*$/);
     if (bracketOnly) { html += '<h3>【' + escapeHtml(bracketOnly[1]) + '】</h3>\n'; continue; }
     var mdHeader = line.match(/^(#{1,4})\s+(.*)$/);
     if (mdHeader) { var lvl = mdHeader[1].length + 1; html += '<h' + lvl + '>' + inlineFormat(mdHeader[2]) + '</h' + lvl + '>\n'; continue; }
     if (/^[-─━]{3,}\s*$/.test(line.trim())) { html += '<hr>\n'; continue; }
+    var blockquote = line.match(/^>\s?(.*)$/);
+    if (blockquote) { html += '<p style="padding-left:14px;border-left:3px solid var(--bdr2);color:var(--txt)">' + inlineFormat(blockquote[1]) + '</p>\n'; continue; }
     html += '<p>' + inlineFormat(line) + '</p>\n';
   }
   return html || '<div class="state">내용이 비어 있습니다.</div>';
