@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-27T00:25:42.049Z",
+  "generated": "2026-09-27T00:56:20.011Z",
   "rounds": [
     {
       "round": 1,
@@ -246,7 +246,7 @@
       "round": 2,
       "status": "10건 게재",
       "method_version": null,
-      "decision_doc": null,
+      "decision_doc": "library/benchmark/rounds/r02/decision.md",
       "results_csv": "library/benchmark/rounds/r02/results.csv",
       "summary": {
         "n": 10,
@@ -277,10 +277,10 @@
             "overview_review": "library/benchmark/rounds/r02/616517/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/616517/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/616517/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/616517/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/616517/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/616517/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/616517/judgment_logic.md"
           }
         },
         {
@@ -298,10 +298,10 @@
             "overview_review": "library/benchmark/rounds/r02/617163/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/617163/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/617163/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/617163/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/617163/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/617163/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/617163/judgment_logic.md"
           }
         },
         {
@@ -319,10 +319,10 @@
             "overview_review": "library/benchmark/rounds/r02/618185/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618185/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/618185/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/618185/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/618185/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/618185/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/618185/judgment_logic.md"
           }
         },
         {
@@ -340,10 +340,10 @@
             "overview_review": "library/benchmark/rounds/r02/613169/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/613169/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/613169/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/613169/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/613169/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/613169/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/613169/judgment_logic.md"
           }
         },
         {
@@ -361,10 +361,10 @@
             "overview_review": "library/benchmark/rounds/r02/622961/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/622961/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/622961/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/622961/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/622961/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/622961/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/622961/judgment_logic.md"
           }
         },
         {
@@ -382,10 +382,10 @@
             "overview_review": "library/benchmark/rounds/r02/618533/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618533/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/618533/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/618533/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/618533/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/618533/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/618533/judgment_logic.md"
           }
         },
         {
@@ -403,10 +403,10 @@
             "overview_review": "library/benchmark/rounds/r02/618155/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/618155/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/618155/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/618155/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/618155/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/618155/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/618155/judgment_logic.md"
           }
         },
         {
@@ -424,10 +424,10 @@
             "overview_review": "library/benchmark/rounds/r02/614333/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/614333/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/614333/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/614333/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/614333/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/614333/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/614333/judgment_logic.md"
           }
         },
         {
@@ -445,10 +445,10 @@
             "overview_review": "library/benchmark/rounds/r02/617157/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/617157/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/617157/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/617157/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/617157/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/617157/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/617157/judgment_logic.md"
           }
         },
         {
@@ -466,10 +466,10 @@
             "overview_review": "library/benchmark/rounds/r02/616029/overview_review.txt",
             "overview_independent": "library/benchmark/rounds/r02/616029/overview_independent.txt",
             "verdict": "library/benchmark/rounds/r02/616029/klaw_verdict.txt",
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r02/616029/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r02/616029/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r02/616029/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r02/616029/judgment_logic.md"
           }
         }
       ]
