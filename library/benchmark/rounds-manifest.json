@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-27T00:56:20.011Z",
+  "generated": "2026-09-27T01:00:42.199Z",
   "rounds": [
     {
       "round": 1,
@@ -245,7 +245,7 @@
     {
       "round": 2,
       "status": "10건 게재",
-      "method_version": null,
+      "method_version": "v15.2 초안(표본 밖 검증 라운드)",
       "decision_doc": "library/benchmark/rounds/r02/decision.md",
       "results_csv": "library/benchmark/rounds/r02/results.csv",
       "summary": {

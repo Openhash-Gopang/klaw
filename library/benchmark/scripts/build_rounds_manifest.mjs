@@ -27,7 +27,7 @@ function readCsv(p) {
   const header = parseLine(lines[0]);
   return lines.slice(1).map((l) => Object.fromEntries(parseLine(l).map((v, i) => [header[i], v])));
 }
-function readJson(p, dflt) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return dflt; } }
+function readJson(p, dflt) { try { return JSON.parse(fs.readFileSync(p, 'utf8').replace(/^﻿/, '')); } catch { return dflt; } }
 function exists(p) { return fs.existsSync(p); }
 function rel(p) { return path.relative(ROOT, p).split(path.sep).join('/'); }
 
