@@ -52,6 +52,9 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
 .case-box p{font-size:12.8px;color:var(--txt2)}
 .case-src{font-size:11.5px;color:var(--txt4);margin-top:10px}
 .case-src a{color:var(--pri-dk);text-decoration:none;font-weight:600}
+.case-analogy{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-top:12px}
+.case-analogy h4{font-size:12px;color:#92400e;margin-bottom:6px;font-weight:700;display:flex;align-items:center;gap:5px}
+.case-analogy p{font-size:12.8px;color:#78350f}
 .subtype-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
 .subtype-table th,.subtype-table td{border:1px solid var(--bdr);padding:8px 10px;text-align:left}
 .subtype-table th{background:var(--bg);color:var(--txt3);font-weight:700}
@@ -87,6 +90,7 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
       <div class="case-box"><h4>오판의 핵심</h4><p>법리 자체(해지권은 연체 시 발생하고 이후 변제로 소멸하지 않는다)는 정확히 알고 있었지만, 입력된 원심 판단 요지에 언급이 없는 쟁점("공유자 단독 해지권한")을 "원심이 판단하지 않았다"로 해석해 스스로 상고이유를 만들어 파기환송을 정당화했다.</p></div>
       <div class="case-box"><h4>조치의 핵심</h4><p>0-1-π(요지 미언급≠미판단, 재구성한 [추론] 항목은 파기 근거로 인용 불가), A-2-2-κ(사실오인형·혼합형 기본값을 원심 판단 존중으로), B-4-β(판단누락 인정에 명시적 진술 요구), 강제규칙 19(사실심 전권사항 기본값 전환) — 4곳을 v15.2 초안으로 수정. 같은 8건 재검증(r01g)에서 이 사건은 유지로 정정됨을 확인.</p></div>
     </div>
+    <div class="case-analogy"><h4>💡 쉬운 비유로 보면</h4><p>선생님이 시험 답안지를 채점하면서, 학생이 쓰지도 않은 문제("이 답도 같이 써야 하는데?")를 스스로 만들어 답안지에 덧붙인 다음, "이 문제에 답이 없으니 감점"이라고 한 것과 같습니다. 학생은 애초에 그 문제를 받은 적이 없는데 말이죠. K-Law는 원심 요지에 없던 쟁점을 스스로 지어내 "원심이 이걸 안 다뤘다"고 판단하고, 그걸 근거로 파기를 정당화했습니다.</p></div>
     <div class="case-src">근거: <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r01/decision.md" target="_blank" rel="noopener">1라운드 결정문 §2~3</a></div>
   </div>
 
@@ -97,6 +101,7 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
       <div class="case-box"><h4>오판의 핵심</h4><p>622917을 고치려고 넣은 B-4-β/강제규칙19의 "판단누락 인정에 명시적 진술 요구" 가드레일이, 판단누락 쟁점이 아닌 다른 쟁점(양적 판단 등)에도 전이되어 실제 파기 사건을 유지로 오판했다. 617151(1라운드 표본 내 재검증)에서 처음 관측된 회귀가 표본 밖에서도 재현됨.</p></div>
       <div class="case-box"><h4>조치의 핵심</h4><p>v16.1 패치: B-4-β·강제규칙19의 적용범위를 "파기사유가 심리미진·판단누락 그 자체일 때"로 한정하는 문구를 추가해, 법리오해·양적 판단의 현저한 부당성을 사유로 한 파기까지 막지 않도록 좁힌다. 성공 기준(파기 적중률 100% 회복, 같은 오판 패턴 재발 0건)을 3라운드에서 표본 밖 검증한다.</p></div>
     </div>
+    <div class="case-analogy"><h4>💡 쉬운 비유로 보면</h4><p>화재경보기가 요리 연기에도 자꾸 울려서 민감도를 낮췄더니, 이번엔 진짜 불이 나도 경보가 안 울리게 된 것과 같습니다. 622917 사건의 "허위 판단누락"을 막으려고 넣은 안전장치(B-4-β)가 너무 세게 걸려서, 이번엔 진짜 파기해야 할 사건("양적 판단"이 잘못된 사건)까지 "판단누락 아니니 그냥 둬라"며 걸러버렸습니다.</p></div>
     <div class="case-src">근거: <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r02/decision.md" target="_blank" rel="noopener">2라운드 결정문 §2~3</a> · <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/b4beta_v16_1_patch_design.md" target="_blank" rel="noopener">v16.1 패치 설계(사전등록)</a></div>
   </div>
 
@@ -107,6 +112,7 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
       <div class="case-box"><h4>오판의 핵심</h4><p>622961과 동일한 패턴 — B-4-β/강제규칙19 가드레일의 과잉 일반화로 실제 파기 사건을 유지로 오판. 표본이 바뀔 때마다(v15.1→r01g→2라운드) 파기 적중률이 100%→75%→66.7%로 일관되게 떨어져, 우연이 아니라 실제 편향으로 판정한 근거 중 하나.</p></div>
       <div class="case-box"><h4>조치의 핵심</h4><p>622961과 같은 v16.1 재수정안(적용범위 한정)으로 처리. 재수정 후에도 적중률이 회복되지 않으면 B-4-β가 아니라 A-2-2-κ(사실오인형·혼합형 기본값 전환)를 의심 대상으로 좁히기로 사전에 정해 두었다.</p></div>
     </div>
+    <div class="case-analogy"><h4>💡 쉬운 비유로 보면</h4><p>622961과 같은 화재경보기 비유입니다. 우연히 한 번이 아니라 표본이 바뀔 때마다(v15.1→r01g→2라운드) 계속 같은 자리에서 경보가 안 울려서, 이번엔 "민감도를 낮춘 게 문제였다"고 확신할 수 있게 된 사건입니다.</p></div>
     <div class="case-src">근거: <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r02/decision.md" target="_blank" rel="noopener">2라운드 결정문 §2~3</a> · <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/b4beta_v16_1_patch_design.md" target="_blank" rel="noopener">v16.1 패치 설계(사전등록)</a></div>
   </div>
 
@@ -117,6 +123,7 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
       <div class="case-box"><h4>오판의 핵심</h4><p>K-Law 판결문(klaw_verdict.txt) 자체의 법리적 오류는 아직 확인되지 않았다. 채점 스크립트의 최종 주문 추출 단계가 실패했을 가능성이 높은, 방법론이 아닌 채점 파이프라인 문제로 잠정 분류.</p></div>
       <div class="case-box"><h4>조치의 핵심</h4><p>방법론 갱신 대상으로 다루지 않고, klaw_verdict.txt 원문을 직접 열어 결론이 정상 출력됐는지 확인하는 진단을 별도로 진행하기로 함(주문 추출 정규식 점검 포함). 아직 미착수.</p></div>
     </div>
+    <div class="case-analogy"><h4>💡 쉬운 비유로 보면</h4><p>학생은 답을 정확히 썼는데, OMR 카드에 마킹이 한 칸씩 밀려서 채점기가 "빈칸"으로 읽어버린 것과 같습니다. 판결문(klaw_verdict.txt) 자체는 법리적으로 틀렸다는 증거가 없고, 채점 스크립트가 최종 결론을 뽑아내는 단계에서 놓쳤을 가능성이 큽니다 — 그래서 방법론이 아니라 채점기부터 열어봐야 합니다.</p></div>
     <div class="case-src">근거: <a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r02/decision.md" target="_blank" rel="noopener">2라운드 결정문 §5</a></div>
   </div>
 
@@ -131,6 +138,7 @@ p.sec-desc{font-size:12.8px;color:var(--txt3);margin-bottom:16px}
     <tr><td>617157</td><td>일부파기환송</td><td>파기자판</td><td>2</td></tr>
   </table>
   <p style="font-size:12.8px;color:var(--txt3);margin-top:10px">조치의 핵심: STEP B에 "파기 범위·귀속 판단" 세부 체크리스트(전부/일부 파기의 구분 기준, 파기환송·파기자판의 선택 기준을 원심 절차 단계별로 명시)를 신설하는 안을 설계했습니다. B-4-β 재수정과 동시에 반영하지 않고 다음 갱신으로 순서를 분리한 이유는, 두 수정을 같이 넣으면 3라운드에서 어느 쪽이 효과를 냈는지 구분할 수 없기 때문입니다(순차 적용 원칙).</p>
+  <div class="case-analogy" style="margin-top:14px"><h4>💡 쉬운 비유로 보면</h4><p>택배를 "반품해야 한다"는 판단은 정확히 맞혔는데, "전체를 반품"해야 할 물건을 "일부만 반품"으로 처리하거나, "판매자가 새로 검수해서 다시 보내야 할 것"을 "택배기사가 그 자리에서 바로 교환해 버린" 것과 같습니다. 반품 여부(방향)는 맞았지만, 범위와 처리 방식(세부유형)을 헷갈린 것입니다.</p></div>
 
   <a class="back-bottom" href="methodology-history.html">← 방법론 갱신 과정 요약으로</a>
 </div>
