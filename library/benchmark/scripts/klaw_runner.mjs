@@ -1,4 +1,4 @@
-// klaw_runner.mjs — K-Law 운영 파이프라인(desktop.html 커밋 2742848의 프롬프트·STEP 구조)을 그대로 재현해
+﻿// klaw_runner.mjs — K-Law 운영 파이프라인(desktop.html 커밋 2742848의 프롬프트·STEP 구조)을 그대로 재현해
 // 사건 개요 → 가상 판결(분석 → STEP 0 → A → B → C)을 만들고, 주문을 규칙으로 채점한다. (DeepSeek API, Node 18+)
 // 사용:
 //   node klaw_runner.mjs --round=1 [--method=klaw_v15_1.md] [--format=가상판결_출력형식_v13_3.txt] [--version=v15.1]
@@ -248,7 +248,7 @@ async function runCase(row) {
   const full = Object.values(parts).join('\n\n');
 
   // 3) 결론 추출·채점
-  const declined = /【판단\s*불가\s*선언】/.test(full);
+  const declined = /【판단\s*불가\s*선언】(?!\s*미발동)/.test(full);
   let orderText = extractOrder(parts.stepB || full);
   if (sc.order_after) orderText = sc.order_after;
   const [predLabel, predBinary] = declined ? ['판단불가', '유보'] : classify(orderText);
