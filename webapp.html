@@ -395,9 +395,9 @@ async function loadKlawVersion() {
     const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
     function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
     vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
-    const latestFile = vFiles[0] || 'klaw_v16_1.md';
+    const latestFile = vFiles[0] || 'klaw_v16_2.md';
     const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
-    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v16.1';
+    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v16.2';
     const ac2 = new AbortController();
     const timer2 = setTimeout(() => ac2.abort(), 8000);
     const [rawMethod, rawFormat] = await Promise.all([

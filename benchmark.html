@@ -872,7 +872,7 @@ async function loadKlawVersion() {
     const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
     function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
     vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
-    const latestFile = vFiles[0] || 'klaw_v16_1.md';
+    const latestFile = vFiles[0] || 'klaw_v16_2.md';
     const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
     klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v15.1';
     // ── 방법론 전문 + 출력형식 전문 병렬 로드 (슬라이스 없음) ──
@@ -892,7 +892,7 @@ async function loadKlawVersion() {
     console.log('[K-Law Bench] 로드 완료:', klawVersion, '전체', klawMethodText.length, 'chars');
   } catch(e) {
     console.warn('[K-Law Bench] GitHub 로드 실패:', e.message);
-    klawVersion = 'v16.1'; klawMethodText = ''; klawFormatText = '';
+    klawVersion = 'v16.2'; klawMethodText = ''; klawFormatText = '';
   }
   const badge = document.getElementById('klaw-ver-badge');
   if (badge) badge.textContent = klawVersion;

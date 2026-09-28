@@ -173,7 +173,7 @@ node overview_writer.mjs --round=N
 
 ### 5.2 가상 판결 생성·채점 (`klaw_runner.mjs`)
 방법론 원문(저장소 루트의 `klaw_vX_Y.md` — 파일명이 내부 버전과 일치하도록 관리한다.
-현재 `klaw_v16_1.md`)과 출력형식 문서를 system 프롬프트로 고정해(라운드 내내 동일 →
+현재 `klaw_v16_2.md`)과 출력형식 문서를 system 프롬프트로 고정해(라운드 내내 동일 →
 API 프롬프트 캐시 재사용), DeepSeek(`deepseek-flash`)로 STEP 0→A→B→C를 차례로
 호출한다. STEP B의 주문을 규칙 기반으로 추출해 실제 결과와 대조한다.
 
