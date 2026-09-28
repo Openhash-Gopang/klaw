@@ -1,11 +1,26 @@
 // explainer_writer.mjs — 부속설명자료(원고 최강 논거·피고 최강 논거·판결 논리 확장·쉬운 설명)를
 // 이미 확정된 K-Law 판결문을 대상으로 DeepSeek에게 작성시킨다. (DeepSeek API, Node 18+)
-// 절대 규칙(부속설명자료_출력형식_v1_0.txt 원칙 1): 이미 확정된 결론을 뒤집지 않는다 — 새 결론을
-// 만들지 않고, 그 결론을 설명·재구성만 한다. 원칙 5: 4개 섹션을 독립 호출·독립 파일로 처리한다.
+// 절대 규칙(부속설명자료_출력형식 최신본 원칙 1): 섹션 1~3은 이미 확정된 K-Law 결론을
+// 뒤집지 않는다 — 새 결론을 만들지 않고, 그 결론을 설명·재구성만 한다. 원칙 5: 4개
+// 섹션을 독립 호출·독립 파일로 처리한다. 원칙 6(v1.1): 쟁점이 여럿인 사건의 결론을
+// 단일 교훈으로 뭉개는 것 금지.
+//
+// v1.2 안전장치(원칙 1·2·7 — 섹션 4 한정 예외): results.csv의 correct 열이 false인
+// "불일치 사건"(K-Law 예측 ≠ 대법원 실제 결론)에서는 섹션 4(쉬운 설명)만 K-Law의
+// 판결문이 아니라 그 사건 폴더의 actual_supreme.txt(대법원 실제 판결문)를 전제로
+// 작성하도록 별도 컨텍스트를 주입하고, misjudgment_diagnosis.md(사람이 미리 작성해
+// 둔 오판 원인 진단 노트, 있는 경우에 한함)를 함께 넘겨 "K-Law가 놓친 이유와 그
+// 이후" 항목을 쓰게 한다. 진단 노트가 없으면 원인을 지어내지 않고 "조사 중"이라고
+// 쓰도록 지시한다. 섹션 1~3은 이 예외와 무관하게 기존 규칙을 그대로 따른다.
+//
+// v1.1 안전장치: --format을 지정하지 않으면 저장소 루트에서
+// 부속설명자료_출력형식_v[0-9_]+\.txt 패턴의 파일을 스캔해 버전이 가장 높은 파일을
+// 자동으로 쓴다(klaw_runner.mjs의 resolveLatestMethod()와 동일한 방식). 이 파일을
+// 개정할 때는 새 버전명으로 파일명을 바꾸기만 하면 되고, 이 스크립트를 고칠 필요가 없다.
 //
 // 사용:
 //   node explainer_writer.mjs --round=1 [--ids=621985,620463] [--force]
-//        [--format=부속설명자료_출력형식_v1_0.txt] [--model=deepseek-flash]
+//        [--format=부속설명자료_출력형식_v1_1.txt] [--model=deepseek-flash]
 //        [--thinking=enabled|disabled] [--effort=high] [--temperature=0.2] [--max-tokens=16000]
 //        [--root=.] [--concurrency=2] [--dry] [--selftest]
 // 환경변수: DEEPSEEK_API_KEY (klaw_runner.mjs 판결 생성과 같은 계정 — 이미 확정된 판결문·개요를
@@ -22,7 +37,18 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   return m ? [m[1], m[2] ?? true] : [a, true];
 }));
 const ROOT = args.root || '.';
-const FORMAT = args.format || '부속설명자료_출력형식_v1_0.txt';
+
+function resolveLatestFormat(root) {
+  const files = fs.readdirSync(root).filter((n) => /^부속설명자료_출력형식_v[\d_]+\.txt$/i.test(n));
+  if (!files.length) throw new Error('저장소 루트에 부속설명자료_출력형식_v*.txt 파일이 없습니다.');
+  const parseVer = (name) => {
+    const m = name.match(/부속설명자료_출력형식_v(\d+)_?(\d*)\.txt/i);
+    return m ? parseFloat(`${m[1]}.${m[2] || '0'}`) : 0;
+  };
+  files.sort((a, b) => parseVer(b) - parseVer(a));
+  return files[0];
+}
+const FORMAT = args.format || resolveLatestFormat(ROOT);
 const ROUND = Number(args.round || 1);
 const RTAG = `r${String(ROUND).padStart(2, '0')}`;
 const ROUND_DIR = path.join(ROOT, 'library', 'benchmark', 'rounds', RTAG);
@@ -85,7 +111,9 @@ if (KEY && !/^[\x21-\x7E]+$/.test(KEY)) { console.error(`DEEPSEEK_API_KEY에 공
 // ── 대상 사건: results.csv에서 읽는다(이미 채점까지 끝난 사건만 대상 — 발동 조건 1) ──
 const resultsCsv = path.join(ROUND_DIR, 'results.csv');
 if (!fs.existsSync(resultsCsv)) { console.error(`없음: ${resultsCsv} — 이 라운드는 아직 채점이 끝나지 않았습니다.`); process.exit(1); }
-let cases = parseCsv(readText(resultsCsv)).map((r) => r.id);
+const resultRows = parseCsv(readText(resultsCsv));
+const resultById = Object.fromEntries(resultRows.map((r) => [r.id, r]));
+let cases = resultRows.map((r) => r.id);
 if (IDS_FILTER) cases = cases.filter((id) => IDS_FILTER.includes(id));
 if (!cases.length) { console.error('대상 사건이 없습니다.'); process.exit(1); }
 
@@ -145,6 +173,25 @@ async function runCase(id) {
 
   const baseCtx = `[사건ID: ${id}]\n\n[사건 개요]\n${overview}\n\n[확정된 K-Law 판결문 전문]\n${verdict}\n\n[참고] ${gammaNote}`;
 
+  // ── 불일치 사건 판정 (원칙 1·2·7 — 섹션 4 한정 예외) ──
+  const row = resultById[id];
+  const isMismatch = row && String(row.correct).trim().toLowerCase() === 'false';
+  let mismatchCtx = '';
+  if (isMismatch) {
+    const actualPath = path.join(cdir, 'actual_supreme.txt');
+    const diagPath = path.join(cdir, 'misjudgment_diagnosis.md');
+    const actualText = fs.existsSync(actualPath) ? readText(actualPath) : null;
+    const diagText = fs.existsSync(diagPath) ? readText(diagPath) : null;
+    if (!actualText) console.error(`참고: ${id}는 불일치 사건인데 actual_supreme.txt를 찾지 못했습니다 — 섹션 4를 실제 결론 없이 생성할 수 없으니 별도 확인이 필요합니다.`);
+    mismatchCtx = `\n\n[불일치 사건 안내 — 섹션 4(쉬운 설명) 전용, 원칙 1·2·7]\n`
+      + `이 사건은 K-Law의 예측(${row.pred_label}/${row.pred_binary})이 대법원 실제 결론(${row.actual_label}/${row.actual_binary})과 다른 "불일치 사건"입니다.\n`
+      + `섹션 4(쉬운 설명)만 다음을 따르십시오 — 섹션 1~3은 이 안내와 무관하게 기존 규칙(K-Law 판결문 전제)을 그대로 따릅니다:\n`
+      + `- 본문·"진짜 다툼이 된 것"·"핵심 교훈"은 위 [확정된 K-Law 판결문 전문]이 아니라, 아래 [대법원 실제 판결문]을 전제로 작성하십시오.\n`
+      + `- 마지막에 "### K-Law가 놓친 이유와 그 이후" 항목을 추가하십시오. 원인은 아래 [오판 원인 진단 노트]가 있을 때만 그 내용을 쉬운 말로 옮기고, 없으면 "원인을 조사하는 중입니다"라고만 쓰십시오(추론으로 채우지 마십시오). 방법론 갱신 내용도 진단 노트에 확정 패치가 적혀 있을 때만 그것을 쓰고, 없으면 "아직 지켜보는 단계"라고 쓰십시오.\n`
+      + (actualText ? `\n[대법원 실제 판결문]\n${actualText}\n` : '\n[대법원 실제 판결문] (찾지 못함 — 실제 결론 레이블만으로 신중하게 작성)\n')
+      + (diagText ? `\n[오판 원인 진단 노트]\n${diagText}\n` : '\n[오판 원인 진단 노트] (없음 — "원인을 조사하는 중입니다"라고만 쓸 것)\n');
+  }
+
   const written = {};
   for (const key of ['plaintiff', 'defendant', 'judgment', 'easy']) {
     const s = SEC[key];
@@ -153,7 +200,8 @@ async function runCase(id) {
     const prevRefs = (key === 'judgment')
       ? `\n\n[참고 — 앞서 작성한 원고/피고 최강 논거]\n[원고]\n${written._plaintiffText || '(없음)'}\n\n[피고]\n${written._defendantText || '(없음)'}`
       : '';
-    const userMsg = `${baseCtx}${prevRefs}\n\n이번에는 아래 [섹션] "${s.label}"만 작성하십시오. 이 섹션의 출력 구조를 그대로 따르되, 굵게 표시된 부분은 실제 내용으로 채우십시오.\n\n${s.spec}`;
+    const extra = (key === 'easy') ? mismatchCtx : '';
+    const userMsg = `${baseCtx}${prevRefs}${extra}\n\n이번에는 아래 [섹션] "${s.label}"만 작성하십시오. 이 섹션의 출력 구조를 그대로 따르되, 굵게 표시된 부분은 실제 내용으로 채우십시오.\n\n${s.spec}`;
     const msgs = [{ role: 'system', content: SYSTEM }, { role: 'user', content: userMsg }];
     let r = await chat(msgs, MAXTOK);
     if (!r.content.trim()) r = await chat(msgs, MAXTOK + 6000);
