@@ -1,7 +1,8 @@
-﻿// klaw_runner.mjs — K-Law 운영 파이프라인(desktop.html 커밋 2742848의 프롬프트·STEP 구조)을 그대로 재현해
+// klaw_runner.mjs — K-Law 운영 파이프라인(desktop.html 커밋 2742848의 프롬프트·STEP 구조)을 그대로 재현해
 // 사건 개요 → 가상 판결(분석 → STEP 0 → A → B → C)을 만들고, 주문을 규칙으로 채점한다. (DeepSeek API, Node 18+)
 // 사용:
-//   node klaw_runner.mjs --round=1 [--method=klaw_v15_1.md] [--format=가상판결_출력형식_v13_3.txt] [--version=v15.1]
+//   node klaw_runner.mjs --round=1 [--method=klaw_v16_1.md] [--format=가상판결_출력형식_v13_3.txt] [--version=v16.1]
+//        (--method 생략 시 저장소 루트의 klaw_v[숫자_숫자].md 중 버전이 가장 높은 파일을 자동 채택)
 //        [--tag=r01] [--model=deepseek-flash] [--thinking=enabled|disabled] [--effort=high] [--temperature=0.2]
 //        [--budget-scale=3] [--self-check=auto] [--dev=split/dev.csv] [--overview=overview] [--out=runs] [--concurrency=3] [--limit=N] [--force] [--dry] [--selftest]
 // 환경변수: DEEPSEEK_API_KEY
@@ -18,9 +19,24 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/);
   return m ? [m[1], m[2] ?? true] : [a, true];
 }));
-const METHOD = args.method || 'klaw_v15_1.md';
+// 저장소 루트에서 klaw_v[숫자_숫자].md 패턴 파일을 스캔해 버전 숫자가 가장 큰 파일을
+// 자동 채택한다(benchmark.html·desktop.html·webapp.html의 GitHub API 버전 스캔과
+// 같은 규칙을 로컬 파일시스템에 적용). --method를 명시하면 그 값을 그대로 쓰고,
+// 이 자동탐지는 --method를 생략했을 때만 동작한다. 방법론 파일명은 이제 내부
+// 버전과 일치시키고(예: klaw_v16_1.md), 버전이 바뀔 때마다 git mv로 파일명도
+// 함께 갱신한다 — 그러면 이 스크립트도 세 브라우저 앱도 코드 수정 없이 최신
+// 버전을 자동으로 호출한다(가상 판결문 작성 프로세스가 구버전을 계속 부르는
+// 사고를 방지하는 안전장치).
+function resolveLatestMethod() {
+  const files = fs.readdirSync('.').filter((n) => /^klaw_v[\d_]+\.md$/i.test(n));
+  if (!files.length) throw new Error('저장소 루트에 klaw_v*.md 방법론 파일이 없습니다.');
+  const parseVer = (name) => { const m = name.match(/klaw_v(\d+)_?(\d*)\.md/i); return m ? parseFloat(`${m[1]}.${m[2] || '0'}`) : 0; };
+  files.sort((a, b) => parseVer(b) - parseVer(a));
+  return files[0];
+}
+const METHOD = args.method || resolveLatestMethod();
 const FORMAT = args.format || '가상판결_출력형식_v13_3.txt';
-const VERSION = args.version || (() => { const m = path.basename(METHOD).match(/klaw_v(\d+)_?(\d*)/); return m ? `v${m[1]}.${m[2] || '0'}` : 'v15.1'; })();
+const VERSION = args.version || (() => { const m = path.basename(METHOD).match(/klaw_v(\d+)_?(\d*)/); return m ? `v${m[1]}.${m[2] || '0'}` : 'v미상'; })();
 const MODEL = args.model || 'deepseek-flash';
 const THINK = (args.thinking || 'enabled') === 'enabled';
 const EFFORT = args.effort || 'high';
@@ -248,7 +264,7 @@ async function runCase(row) {
   const full = Object.values(parts).join('\n\n');
 
   // 3) 결론 추출·채점
-  const declined = /【판단\s*불가\s*선언】(?!\s*미발동)/.test(full);
+  const declined = /【판단\s*불가\s*선언】/.test(full);
   let orderText = extractOrder(parts.stepB || full);
   if (sc.order_after) orderText = sc.order_after;
   const [predLabel, predBinary] = declined ? ['판단불가', '유보'] : classify(orderText);

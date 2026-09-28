@@ -172,14 +172,20 @@ node overview_writer.mjs --round=N
 ```
 
 ### 5.2 가상 판결 생성·채점 (`klaw_runner.mjs`)
-방법론 원문(`klaw_v15_1.md` 등)과 출력형식 문서를 system 프롬프트로 고정해(라운드
-내내 동일 → API 프롬프트 캐시 재사용), DeepSeek(`deepseek-flash`)로 STEP 0→A→B→C를
-차례로 호출한다. STEP B의 주문을 규칙 기반으로 추출해 실제 결과와 대조한다.
+방법론 원문(저장소 루트의 `klaw_vX_Y.md` — 파일명이 내부 버전과 일치하도록 관리한다.
+현재 `klaw_v16_1.md`)과 출력형식 문서를 system 프롬프트로 고정해(라운드 내내 동일 →
+API 프롬프트 캐시 재사용), DeepSeek(`deepseek-flash`)로 STEP 0→A→B→C를 차례로
+호출한다. STEP B의 주문을 규칙 기반으로 추출해 실제 결과와 대조한다.
 
 ```
-node klaw_runner.mjs --round=N --tag=rNN --concurrency=3 --budget-scale=3 \
-     --method=klaw_v15_1.md --version=v15.1 --format=가상판결_출력형식_v13_3.txt
+node klaw_runner.mjs --round=N --tag=rNN --concurrency=3 --budget-scale=3
 ```
+
+`--method`를 생략하면 저장소 루트에서 `klaw_v[숫자_숫자].md` 패턴 파일을 스캔해
+버전 숫자가 가장 큰 파일을 자동으로 채택한다(`resolveLatestMethod()`, 세 브라우저
+앱의 GitHub API 버전 스캔과 동일한 규칙). 특정 과거 버전으로 시험하고 싶을 때만
+`--method=klaw_v15_1_r01_FROZEN.md` 처럼 명시한다. `--version`·`--format`도
+생략 가능(버전은 파일명에서 자동 추출, 형식은 `가상판결_출력형식_v13_3.txt` 기본값).
 
 - `--budget-scale`(기본 3): STEP별 토큰 상한을 운영값의 3배로 늘린다. 시험에서
   thinking 모드의 추론 토큰이 사건마다 4천~1만 개로 크게 변동해 운영 예산(STEP A
@@ -197,9 +203,18 @@ node klaw_runner.mjs --round=N --tag=rNN --concurrency=3 --budget-scale=3 \
   정확히 한 번 있을 때만" 적용되며, 그렇지 않으면 스크립트가 중단된다(동결본을
   실수로 다른 버전과 섞어 패치하는 사고 방지). 모든 변경은 `patch_log.md`에 사건ID·
   원인·조문 근거와 함께 자동 기록된다.
-- 갱신본은 운영 저장소 루트(`klaw_v15_1.md`)에 병합하지 않고 별도 경로에서
-  관리하다가, 여러 라운드에 걸쳐 회귀 없이 검증된 뒤에만 다음 버전(v15.2 등)으로
-  승격한다.
+- 갱신본은 운영 저장소 루트의 방법론 파일에 곧바로 병합하지 않고 별도 경로
+  (`method/dev/` 등)에서 관리하다가, 여러 라운드에 걸쳐 회귀 없이 검증된 뒤에만
+  다음 버전으로 승격한다.
+- **파일명 = 내부 버전 규칙**: 방법론 파일명은 표제의 내부 버전과 항상 일치시킨다
+  (`klaw_v16_1.md`처럼). 버전을 정본에 승격할 때는 `git mv klaw_vX_Y.md
+  klaw_vX2_Y2.md`로 파일명도 함께 갱신한다 — `klaw_runner.mjs`와 세 브라우저 앱
+  (`benchmark.html`·`desktop.html`·`webapp.html`)이 모두 파일명 패턴에서 버전
+  숫자를 읽어 가장 큰 값을 자동 채택하므로, 이 한 번의 `git mv`만으로 어디서도
+  코드를 고치지 않고 가상 판결문 작성 프로세스 전체가 최신 버전을 호출하게 된다.
+  옛 파일명(과거 버전)은 지우지 않고 `method/dev/`나 커밋 히스토리로만 남긴다 —
+  `methodology-history.html`의 "당시 원문" 링크는 특정 커밋을 그대로 가리키므로
+  영향받지 않는다.
 
 ### 5.4 자기 검증(STEP V) 실험 — 폐기
 1라운드에서 "STEP B 직후 결정론적 규칙으로 과잉 파기 신호(확신도 미달, 근거 없는
