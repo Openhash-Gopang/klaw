@@ -56,7 +56,7 @@ table.ver a{color:var(--pri-dk);text-decoration:none;font-weight:600;margin-righ
 <div class="wrap">
   <div class="hero">
     <h1>K-Law 방법론 갱신 과정 · 버전 이력</h1>
-    <p>방법론(<code>klaw_v16_1.md</code> — 파일명이 내부 버전과 항상 일치하도록 관리합니다), 일치도 평가 기준, 출력 형식 세 문서가 라운드 시험을 거치며 어떻게 바뀌어 왔는지, 그리고 각 버전의 원문을 어디서 볼 수 있는지 한곳에 정리했습니다.</p>
+    <p>방법론(<code>klaw_v16_2.md</code> — 파일명이 내부 버전과 항상 일치하도록 관리합니다), 일치도 평가 기준, 출력 형식 세 문서가 라운드 시험을 거치며 어떻게 바뀌어 왔는지, 그리고 각 버전의 원문을 어디서 볼 수 있는지 한곳에 정리했습니다.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 아래 진단·수치는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. "초안" 표시가 있는 문서는 아직 정본으로 채택되지 않았습니다.</div>
 
@@ -69,13 +69,15 @@ table.ver a{color:var(--pri-dk);text-decoration:none;font-weight:600;margin-righ
     <li><b>2라운드(v15.2 초안, 표본 밖) — 편향으로 판정</b><p>617151과 같은 패턴이 622961·616029 두 건에서 재현되어, 파기 적중률이 100%→75%→66.7%로 표본이 바뀔 때마다 일관되게 떨어졌습니다. v15.2 초안을 그대로 채택하지 않고 B-4-β/강제규칙19의 적용범위를 좁히기로 결정했습니다.</p></li>
     <li><b>v16.0 (2026.9.27, 별도 지시) — 결정적 판단 근거 특정 의무(B-4-γ) 신설</b><p>원고·피고 주장이 각자의 전제 범위 내에서는 타당할 수 있되 최종 결론은 반드시 한쪽으로 귀결된다는 전제 아래, 그 결정적 근거를 5개 유형(증명책임·심사기준 문턱·요건 미충족·우선규범·절차적 한계) 중 하나로 특정하도록 하는 절차를 STEP B에 추가했습니다. 2라운드 표본 밖 검증과는 별도 트랙입니다.</p></li>
     <li><b>v16.1 패치 (2026.9.28 정본 편입)</b><p>2라운드에서 확인된 B-4-β/강제규칙19 과잉적용을 좁히는 문구를 추가하는 동시에, 1·2라운드에서 검증을 거친 v15.2 초안 4개 패치를 정식으로 정본에 편입했습니다. 성공/실패 판정 기준은 3라운드 결과가 나오기 전에 미리 문서로 못박아 두었습니다.</p></li>
-    <li><b>3라운드 — 실패 판정</b><p>v16.1을 새 10건(표본 밖)에 적용한 결과 결론 일치 5/10(50%), 파기 적중 3/6(50%) — 2라운드 66.7%보다 악화. 사전등록 실패 기준 충족. B-4-β의 문언은 정상 작동했으나, 판단 기본값을 쥔 <code>A-2-2-κ</code>가 원인으로 확인돼 v16.2 후보를 설계했습니다.</p></li>
+    <li><b>3라운드 — 실패 판정</b><p>v16.1을 새 10건(표본 밖)에 적용한 결과 결론 일치 6/10(60%, 619429 재채점 반영), 파기 적중 3/6(50%) — 2라운드 66.7%보다 악화. 사전등록 실패 기준 충족. 4건의 오판(615767·622919·616709·617165)을 개별 진단한 결과, 원인이 서로 다른 세 갈래로 나뉘었습니다 — ① <code>A-0-S</code>가 핵심 특별법·조문을 검색 없이 "부존재"로 자기인증(622919·617165, 2건 재발 → 패치 대상), ② 판단 기본값을 쥔 <code>A-2-2-κ</code>가 이미 만들어 둔 옳은 해석을 원심 존중 쪽으로 덮어씀(616709, 1건 — 문구형 패치 사전검증 실패, 구조적 재설계 필요로 이번 갱신 범위 밖), ③ "등"을 닫힌 열거로 오독(615767, 1건 — 관찰만).</p></li>
+    <li><b>v16.2 패치 (2026.9.28 정본 편입) — A-0-S/A-0-S-2 법령 커버리지</b><p>①유형(622919·617165)만 처방 범위로 삼아, A-0-S 2단계에 "특별법 부존재" 단정 전 후보 2개 이상 열거·기각 근거 의무를, A-0-S-2에 핵심 조문 존재 여부 체크 질문과 공리 H 배척 전 재확인 절차를 추가했습니다. <b>사전검증(저비용 STEP B 재생성)은 사용자 지시로 생략하고, 4라운드(표본 밖) 시험으로 바로 판정합니다</b> — 이 점은 기록으로 남겨 둡니다. A-2-2-κ 기본값 편향(616709)과 "등" 해석 범위(615767)는 이번 패치에 포함되지 않았고, 각각 관찰·재설계 대상으로 남아 있습니다.</p></li>
   </ul>
   <div class="links">
     <a class="btn btn-pri" href="mismatch-log.html">🗂️ 오판 사례집(4건) 상세</a>
     <a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r01/decision.md">1라운드 결정문</a>
     <a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/rounds/r02/decision.md">2라운드 결정문</a>
     <a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/b4beta_v16_1_patch_design.md">v16.1 패치 설계(사전등록)</a>
+    <a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/a0s_statute_coverage_v16_2_patch_design.md">v16.2 패치 설계(사전등록)</a>
     <a class="btn" href="../../rounds.html">라운드별 상세 기록</a>
   </div>
 
@@ -88,8 +90,8 @@ table.ver a{color:var(--pri-dk);text-decoration:none;font-weight:600;margin-righ
     <tr><td>v15.2 <span class="tagchip">관할특유 보강</span></td><td>2026.8.7</td><td class="note">가사·소년보호·지식재산·도산·행정 5개 버킷 신설(표제는 그대로 v15.1, 당시 파일명도 klaw_v15_1.md). 아래 "v15.2 초안"과는 별개의 갱신입니다.</td><td><a href="https://github.com/Openhash-Gopang/klaw/blob/3b43586/klaw_v15_1.md">당시 원문</a></td></tr>
     <tr><td>v15.2 초안 <span class="tagchip draft">동결본</span></td><td>1라운드 진단</td><td class="note">622917 대응 4개 패치(0-1-π·A-2-2-κ·B-4-β·강제규칙19). r01g·2라운드 시험에 실제 사용된 텍스트지만 정본에는 편입되지 않았고, 재현성 확보용으로 소급 동결됨.</td><td><a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/dev/klaw_v15_1_r01_FROZEN.md">동결본</a><a href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/scripts/patch_method_r01.mjs">패치 스크립트</a></td></tr>
     <tr><td>v16.0</td><td>2026.9.27</td><td class="note">결정적 판단 근거 특정 의무(B-4-γ) 신설 (당시 파일명 klaw_v15_1.md)</td><td><a href="https://github.com/Openhash-Gopang/klaw/blob/198de3a/klaw_v15_1.md">당시 원문</a></td></tr>
-    <tr><td>v16.1</td><td>2026.9.28</td><td class="note">B-4-β·강제규칙19 적용범위 한정 + v15.2 초안 4개 패치 정식 편입. 3라운드(신규 10건)로 검증 — 파기 적중 3/6(50%, 2라운드 66.7%보다 악화)로 <b>실패 판정</b>. 사전등록 규칙에 따라 의심을 <code>A-2-2-κ</code>로 이전, v16.2 후보 설계 중. 파일명도 klaw_v16_1.md로 갱신 — 현재 저장소 정본.</td><td><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/b4beta_v16_1_patch_design.md">패치 설계 문서</a><a href="https://github.com/Openhash-Gopang/klaw/blob/c899326/klaw_v15_1.md">당시 원문</a><a class="btn-inline" href="https://github.com/Openhash-Gopang/klaw/blob/main/klaw_v16_1.md">최신(현행)</a></td></tr>
-    <tr><td>v16.2 <span class="tagchip draft">설계 중</span></td><td>사전등록</td><td class="note">A-2-2-κ ①·③ "법리오해 없음" 판단의 불확실성 처리 보강 후보. 4라운드로 검증 예정.</td><td><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/a22kappa_v16_2_patch_design.md">패치 설계 문서</a></td></tr>
+    <tr><td>v16.1</td><td>2026.9.28</td><td class="note">B-4-β·강제규칙19 적용범위 한정 + v15.2 초안 4개 패치 정식 편입. 3라운드(신규 10건)로 검증 — 파기 적중 3/6(50%, 2라운드 66.7%보다 악화)로 <b>실패 판정</b>. 4건 오판 진단 결과 원인이 A-0-S 법령 커버리지(622919·617165)·A-2-2-κ 기본값 편향(616709)·"등" 해석 범위(615767) 세 갈래로 갈려, 재발 2건 기준을 충족한 A-0-S 유형만 v16.2로 처방.</td><td><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/b4beta_v16_1_patch_design.md">패치 설계 문서</a><a href="https://github.com/Openhash-Gopang/klaw/blob/c899326/klaw_v15_1.md">당시 원문</a><a href="https://github.com/Openhash-Gopang/klaw/blob/main/klaw_v16_1.md">당시 원문(v16.1)</a></td></tr>
+    <tr><td>v16.2</td><td>2026.9.28</td><td class="note">A-0-S 2단계(법령 정의)에 "특별법 부존재" 단정 전 후보 2개 이상 열거·기각 근거 의무, A-0-S-2(조문 특정적 법리 생성기)에 핵심 조문 존재 여부 체크 질문과 공리 H 배척 전 재확인 절차 추가. 622919·617165의 법령·조문 누락 재발을 근거로 처방. <b>사전검증 생략(사용자 지시) — 4라운드(표본 밖) 결과로 최초 판정</b>. A-2-2-κ 기본값 편향(616709)·"등" 해석 범위(615767)는 범위 밖, 별도 관찰·재설계 대상. 파일명도 klaw_v16_2.md로 갱신 — 현재 저장소 정본.</td><td><a class="btn" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/benchmark/method/a0s_statute_coverage_v16_2_patch_design.md">패치 설계 문서</a><a class="btn-inline" href="https://github.com/Openhash-Gopang/klaw/blob/main/klaw_v16_2.md">최신(현행)</a></td></tr>
   </table>
 
   <h2 class="sec">일치도 평가 기준 버전별 링크</h2>
