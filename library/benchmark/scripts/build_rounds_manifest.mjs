@@ -63,24 +63,59 @@ for (let r = 1; r <= 10; r++) {
   const meta = readJson(path.join(dir, 'round-meta.json'), {});
   const rows = readCsv(path.join(dir, 'results.csv'));
   const expected = expectedByRound[r] || null;
+  const docsOnly = !!meta.docs_only && !rows.length;
+
+  function docOrNullFor(cdir) { return (name) => exists(path.join(cdir, name)) ? rel(path.join(cdir, name)) : null; }
+
+  let cases;
+  if (rows.length) {
+    // 채점 완료: results.csv 행 기준(기존 방식).
+    cases = rows.map((row) => {
+      const cdir = path.join(dir, row.id);
+      const docOrNull = docOrNullFor(cdir);
+      return {
+        id: row.id, actual_label: row.actual_label, actual_binary: row.actual_binary,
+        pred_label: row.pred_label, pred_binary: row.pred_binary, correct: row.correct === 'true',
+        conclusion_type: row.conclusion_type || null,
+        docs: {
+          supreme: docOrNull('actual_supreme.txt'), second: docOrNull('actual_second.txt'), first: docOrNull('actual_first.txt'),
+          overview_review: docOrNull('overview_review.txt'), overview_independent: docOrNull('overview_independent.txt'),
+          verdict: docOrNull('klaw_verdict.txt'), easy_explain: docOrNull('easy_explain.md'),
+          plaintiff_theory: docOrNull('plaintiff_theory.md'), defendant_theory: docOrNull('defendant_theory.md'), judgment_logic: docOrNull('judgment_logic.md'),
+        },
+      };
+    });
+  } else if (docsOnly) {
+    // 채점 전, 원문만 게시된 상태(build_round_folder.mjs --docs-only, v1.1 신설): results.csv가 아직
+    // 없으므로 라운드 폴더 아래 사건ID 하위 폴더를 직접 스캔해 대법원/2심/1심 원문 링크만 채운다.
+    // actual_label·pred_label·correct 등 채점 관련 필드는 전부 null(아직 모름) — rounds.html이
+    // 이를 "채점 대기중"으로 표시한다.
+    cases = fs.readdirSync(dir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort()
+      .map((id) => {
+        const cdir = path.join(dir, id);
+        const docOrNull = docOrNullFor(cdir);
+        return {
+          id, actual_label: null, actual_binary: null, pred_label: null, pred_binary: null, correct: null,
+          conclusion_type: null,
+          docs: {
+            supreme: docOrNull('actual_supreme.txt'), second: docOrNull('actual_second.txt'), first: docOrNull('actual_first.txt'),
+            overview_review: docOrNull('overview_review.txt'), overview_independent: docOrNull('overview_independent.txt'),
+            verdict: docOrNull('klaw_verdict.txt'), easy_explain: docOrNull('easy_explain.md'),
+            plaintiff_theory: docOrNull('plaintiff_theory.md'), defendant_theory: docOrNull('defendant_theory.md'), judgment_logic: docOrNull('judgment_logic.md'),
+          },
+        };
+      });
+  } else {
+    cases = [];
+  }
+
   const status = meta.status || (expected ? `${rows.length}/${expected} 건 게재` : `${rows.length}건 게재`);
-  const cases = rows.map((row) => {
-    const cdir = path.join(dir, row.id);
-    const docOrNull = (name) => exists(path.join(cdir, name)) ? rel(path.join(cdir, name)) : null;
-    return {
-      id: row.id, actual_label: row.actual_label, actual_binary: row.actual_binary,
-      pred_label: row.pred_label, pred_binary: row.pred_binary, correct: row.correct === 'true',
-      conclusion_type: row.conclusion_type || null,
-      docs: {
-        supreme: docOrNull('actual_supreme.txt'), second: docOrNull('actual_second.txt'), first: docOrNull('actual_first.txt'),
-        overview_review: docOrNull('overview_review.txt'), overview_independent: docOrNull('overview_independent.txt'),
-        verdict: docOrNull('klaw_verdict.txt'), easy_explain: docOrNull('easy_explain.md'),
-        plaintiff_theory: docOrNull('plaintiff_theory.md'), defendant_theory: docOrNull('defendant_theory.md'), judgment_logic: docOrNull('judgment_logic.md'),
-      },
-    };
-  });
   rounds.push({
     round: r, status, method_version: meta.method_version || null,
+    docs_only: docsOnly,
     decision_doc: exists(path.join(dir, 'decision.md')) ? rel(path.join(dir, 'decision.md')) : null,
     results_csv: exists(path.join(dir, 'results.csv')) ? rel(path.join(dir, 'results.csv')) : null,
     summary: rows.length ? summarize(rows) : null,

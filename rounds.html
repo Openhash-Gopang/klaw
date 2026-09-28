@@ -63,6 +63,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .analysis-group .na-only{color:#6B7480;background:#EEF1F3;padding:7px 14px}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
 .badge-ok{background:var(--pri-bg);color:var(--pri-dk)} .badge-ng{background:var(--red-bg);color:var(--red)}
+.badge-pending{background:var(--bg);color:var(--txt4)}
 .ctable td a{font-size:12px;padding:3px 10px;border-radius:6px;border:1px solid var(--bdr2);color:var(--txt2);text-decoration:none;white-space:nowrap;display:inline-block}
 .ctable td a:hover{background:var(--bg)}
 .na{color:var(--txt4)}
@@ -115,11 +116,12 @@ function renderRound(r) {
   html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
+    const graded = c.actual_label !== null && c.actual_label !== undefined;
     html += `<tr>
       <td>${esc(c.id)}</td>
-      <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
-      <td>${esc(c.pred_label)} (${esc(c.pred_binary)})</td>
-      <td><span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span></td>
+      <td>${graded ? `${esc(c.actual_label)} (${esc(c.actual_binary)})` : '<span class="na">–</span>'}</td>
+      <td>${graded ? `${esc(c.pred_label)} (${esc(c.pred_binary)})` : '<span class="na">–</span>'}</td>
+      <td>${graded ? `<span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span>` : '<span class="badge badge-pending">채점 대기중</span>'}</td>
       <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
         ${d.easy_explain ? `<a href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">쉬운 설명</a>` : '<span class="na-cell">쉬운 설명</span>'}
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
