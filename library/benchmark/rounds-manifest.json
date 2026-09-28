@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-28T03:28:16.360Z",
+  "generated": "2026-09-28T20:53:55.358Z",
   "rounds": [
     {
       "round": 1,
@@ -708,7 +708,235 @@
     },
     {
       "round": 4,
-      "status": "예정"
+      "status": "10/10 건 게재",
+      "method_version": "v16.2",
+      "decision_doc": null,
+      "results_csv": "library/benchmark/rounds/r04/results.csv",
+      "summary": {
+        "n": 10,
+        "correct": 3,
+        "keep": {
+          "n": 4,
+          "correct": 0
+        },
+        "reverse": {
+          "n": 6,
+          "correct": 3
+        }
+      },
+      "candidate": null,
+      "cases": [
+        {
+          "id": "618665",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "전부파기환송",
+          "pred_binary": "파기",
+          "correct": false,
+          "conclusion_type": "절차적 환송 (파기환송)",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/618665/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/618665/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/618665/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/618665/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/618665/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/618665/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "623067",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": false,
+          "conclusion_type": "절차적 환송 (파기환송)",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/623067/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/623067/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/623067/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/623067/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/623067/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/623067/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "614385",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "전부파기환송",
+          "pred_binary": "파기",
+          "correct": false,
+          "conclusion_type": "절차적 환송",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/614385/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/614385/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/614385/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/614385/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/614385/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/614385/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "620411",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "절차적 환송(파기환송)",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/620411/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/620411/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/620411/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/620411/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/620411/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/620411/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618511",
+          "actual_label": "상고기각",
+          "actual_binary": "유지",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": false,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/618511/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/618511/actual_second.txt",
+            "first": null,
+            "overview_review": "library/benchmark/rounds/r04/618511/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/618511/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/618511/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "617161",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "파기자판",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "확정적",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/617161/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/617161/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/617161/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/617161/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/617161/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/617161/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615947",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": false,
+          "conclusion_type": "확정적 결론 (상고기각)",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/615947/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/615947/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/615947/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/615947/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/615947/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/615947/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "613237",
+          "actual_label": "일부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": false,
+          "conclusion_type": "확정적 결론",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/613237/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/613237/actual_second.txt",
+            "first": null,
+            "overview_review": "library/benchmark/rounds/r04/613237/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/613237/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/613237/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616235",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "일부파기환송",
+          "pred_binary": "파기",
+          "correct": true,
+          "conclusion_type": "절차적 환송",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/616235/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/616235/actual_second.txt",
+            "first": "library/benchmark/rounds/r04/616235/actual_first.txt",
+            "overview_review": "library/benchmark/rounds/r04/616235/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/616235/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/616235/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621987",
+          "actual_label": "전부파기환송",
+          "actual_binary": "파기",
+          "pred_label": "상고기각",
+          "pred_binary": "유지",
+          "correct": false,
+          "conclusion_type": "확정적 결론",
+          "docs": {
+            "supreme": "library/benchmark/rounds/r04/621987/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r04/621987/actual_second.txt",
+            "first": null,
+            "overview_review": "library/benchmark/rounds/r04/621987/overview_review.txt",
+            "overview_independent": "library/benchmark/rounds/r04/621987/overview_independent.txt",
+            "verdict": "library/benchmark/rounds/r04/621987/klaw_verdict.txt",
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 5,
