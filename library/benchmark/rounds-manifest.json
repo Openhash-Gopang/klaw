@@ -1,10 +1,11 @@
 {
-  "generated": "2026-09-28T03:28:16.360Z",
+  "generated": "2026-09-28T07:20:27.780Z",
   "rounds": [
     {
       "round": 1,
       "status": "8/10 건 게재 (2건은 Anthropic 콘솔 크레딧 소진으로 개요 생성 불가 — 아래 결정 문서 참고)",
       "method_version": "v15.1 (기준선)",
+      "docs_only": false,
       "decision_doc": "library/benchmark/rounds/r01/decision.md",
       "results_csv": "library/benchmark/rounds/r01/results.csv",
       "summary": {
@@ -246,6 +247,7 @@
       "round": 2,
       "status": "10건 게재",
       "method_version": "v15.2 초안(표본 밖 검증 라운드)",
+      "docs_only": false,
       "decision_doc": "library/benchmark/rounds/r02/decision.md",
       "results_csv": "library/benchmark/rounds/r02/results.csv",
       "summary": {
@@ -478,6 +480,7 @@
       "round": 3,
       "status": "10/10 건 게재",
       "method_version": "v16.1",
+      "docs_only": false,
       "decision_doc": null,
       "results_csv": "library/benchmark/rounds/r03/results.csv",
       "summary": {
@@ -708,31 +711,1346 @@
     },
     {
       "round": 4,
-      "status": "예정"
+      "status": "0/0 건 게재",
+      "method_version": "v16.2",
+      "docs_only": false,
+      "decision_doc": null,
+      "results_csv": "library/benchmark/rounds/r04/results.csv",
+      "summary": null,
+      "candidate": null,
+      "cases": []
     },
     {
       "round": 5,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "613189",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/613189/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/613189/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "613241",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/613241/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/613241/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618199",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/618199/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/618199/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618507",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/618507/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/618507/actual_second.txt",
+            "first": "library/benchmark/rounds/r05/618507/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "619451",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/619451/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/619451/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "620421",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/620421/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/620421/actual_second.txt",
+            "first": "library/benchmark/rounds/r05/620421/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622111",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/622111/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/622111/actual_second.txt",
+            "first": "library/benchmark/rounds/r05/622111/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622255",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/622255/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/622255/actual_second.txt",
+            "first": "library/benchmark/rounds/r05/622255/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622971",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/622971/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/622971/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622983",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r05/622983/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r05/622983/actual_second.txt",
+            "first": "library/benchmark/rounds/r05/622983/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 6,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "613239",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/613239/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/613239/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/613239/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "614341",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/614341/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/614341/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615973",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/615973/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/615973/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/615973/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616499",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/616499/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/616499/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/616499/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618693",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/618693/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/618693/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/618693/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618697",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/618697/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/618697/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/618697/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621979",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/621979/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/621979/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622247",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/622247/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/622247/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622261",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/622261/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/622261/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/622261/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622969",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r06/622969/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r06/622969/actual_second.txt",
+            "first": "library/benchmark/rounds/r06/622969/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 7,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "614371",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/614371/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/614371/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "614373",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/614373/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/614373/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/614373/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615963",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/615963/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/615963/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615971",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/615971/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/615971/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618663",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/618663/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/618663/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/618663/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "619453",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/619453/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/619453/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "619461",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/619461/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/619461/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/619461/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "619471",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/619471/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/619471/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/619471/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621995",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/621995/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/621995/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/621995/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622253",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r07/622253/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r07/622253/actual_second.txt",
+            "first": "library/benchmark/rounds/r07/622253/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 8,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "613235",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/613235/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/613235/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "613261",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/613261/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/613261/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/613261/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "614049",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/614049/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/614049/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/614049/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615953",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/615953/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/615953/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/615953/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616575",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/616575/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/616575/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616587",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/616587/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/616587/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/616587/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "620415",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/620415/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/620415/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/620415/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "620425",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/620425/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/620425/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/620425/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "620453",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/620453/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/620453/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "623013",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r08/623013/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r08/623013/actual_second.txt",
+            "first": "library/benchmark/rounds/r08/623013/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 9,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "613207",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/613207/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/613207/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "615667",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/615667/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/615667/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/615667/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616515",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/616515/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/616515/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/616515/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616543",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/616543/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/616543/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/616543/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618075",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/618075/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/618075/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/618075/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618133",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/618133/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/618133/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618165",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/618165/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/618165/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/618165/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618705",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/618705/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/618705/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/618705/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621907",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/621907/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/621907/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "623025",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r09/623025/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r09/623025/actual_second.txt",
+            "first": "library/benchmark/rounds/r09/623025/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     },
     {
       "round": 10,
-      "status": "예정"
+      "status": "원문 10건 게재, K-Law 채점 진행 중",
+      "method_version": null,
+      "docs_only": true,
+      "decision_doc": null,
+      "results_csv": null,
+      "summary": null,
+      "candidate": null,
+      "cases": [
+        {
+          "id": "615951",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/615951/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/615951/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/615951/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616519",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/616519/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/616519/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/616519/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "616527",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/616527/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/616527/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/616527/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618179",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/618179/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/618179/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/618179/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618229",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/618229/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/618229/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/618229/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618479",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/618479/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/618479/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/618479/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "618661",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/618661/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/618661/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/618661/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621973",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/621973/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/621973/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/621973/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "621989",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/621989/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/621989/actual_second.txt",
+            "first": "library/benchmark/rounds/r10/621989/actual_first.txt",
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        },
+        {
+          "id": "622259",
+          "actual_label": null,
+          "actual_binary": null,
+          "pred_label": null,
+          "pred_binary": null,
+          "correct": null,
+          "conclusion_type": null,
+          "docs": {
+            "supreme": "library/benchmark/rounds/r10/622259/actual_supreme.txt",
+            "second": "library/benchmark/rounds/r10/622259/actual_second.txt",
+            "first": null,
+            "overview_review": null,
+            "overview_independent": null,
+            "verdict": null,
+            "easy_explain": null,
+            "plaintiff_theory": null,
+            "defendant_theory": null,
+            "judgment_logic": null
+          }
+        }
+      ]
     }
   ]
 }
