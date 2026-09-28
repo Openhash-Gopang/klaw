@@ -115,8 +115,11 @@ function lintB(bText, predBinary, overview) {
   if (confKnown && conf <= 5) out.push(`V-1: 종합 확신도 ${conf}/10 이하인데 결론이 파기`);
   if (confKnown && conf < 7 && /방향\s*일치\s*여부[:：]\s*\**\s*불일치/.test(bText)) out.push(`V-1: 원심과 반대 결론인데 종합 확신도 ${conf}/10 (7 미만)`);
   if (/법리\s*오해\s*(가\s*)?(없|인정되지)/.test(bText)) out.push('V-4: 법리오해가 없다고 판정하고도 파기');
+  // v17.0: K-Law에 넘기는 개요(overview_independent)에는 원심의 판단 요지가 없으므로,
+  // 원심 요지 문구와 대조하는 이 점검은 더 이상 성립하지 않는다. overview에 그 섹션이
+  // 있을 때만(overview_review 등을 넘긴 과거 실행/디버그 경로) 동작하도록 한정한다.
   const ovSection = (overview.split('【원심의 판단 요지】')[1] || '');
-  if (/판단\s*누락|심리\s*미진/.test(bText) && !/판단하지\s*(아니|않)|심리하지\s*(아니|않)|누락/.test(ovSection)) out.push('V-2: 판단누락·심리미진을 근거로 파기했으나 입력의 원심 요지에는 그런 진술이 없음');
+  if (ovSection && /판단\s*누락|심리\s*미진/.test(bText) && !/판단하지\s*(아니|않)|심리하지\s*(아니|않)|누락/.test(ovSection)) out.push('V-2: 판단누락·심리미진을 근거로 파기했으나 입력의 원심 요지에는 그런 진술이 없음');
   if (/\[B-6-π:\s*발동\]/.test(bText)) out.push('V-5: 복수 시나리오(B-6-π)가 발동했는데 결론은 파기 하나로 확정');
   if (/배척\s*이유[\s\S]{0,700}?(명시적\s*(판단|설시)[^\n]{0,24}없|입력[^\n]{0,16}없)/.test(bText)) out.push('V-3: 반전 논거를 "명시된 판단이 없다/입력에 없다"는 이유로 배척');
   return out;
@@ -214,7 +217,10 @@ async function runCase(row) {
   if (!FORCE && fs.existsSync(jsonPath)) return JSON.parse(readText(jsonPath));
   const ovPath = path.join(OVDIR, `${row.id}.json`);
   if (!fs.existsSync(ovPath)) throw new Error(`개요 없음: ${ovPath}`);
-  const overview = JSON.parse(readText(ovPath)).overview_review;
+  // v17.0: K-Law는 1심·2심·대법원의 결론과 몇 심까지 갔는지를 전혀 보지 않고 법리만으로 판단해야 하므로,
+  // 원심 판단 요지가 포함된 overview_review 대신 그것이 빠진 overview_independent를 사용한다.
+  // (절차적 분류 — 전부파기/일부파기/기각/일부기각/자판/환송 — 은 이 점수 산출 이후 별도 단계에서 원심 결과와 대조해 정한다.)
+  const overview = JSON.parse(readText(ovPath)).overview_independent;
   const caseNo = `SIM-2026-${String(row.seq).padStart(4, '0')}`;
   const t0 = Date.now(); const usages = [];
 
@@ -301,7 +307,7 @@ if (args['lint-only']) {   // API 호출 없이, 이미 만든 결과(runs/<tag>
   for (const row of dev) {
     const jp = path.join(OUT, `${row.id}.json`); if (!fs.existsSync(jp)) continue;
     const rec = JSON.parse(readText(jp)); const bText = rec.parts?.stepB || '';
-    const op = path.join(OVDIR, `${row.id}.json`); const ov = fs.existsSync(op) ? JSON.parse(readText(op)).overview_review : '';
+    const op = path.join(OVDIR, `${row.id}.json`); const ov = fs.existsSync(op) ? JSON.parse(readText(op)).overview_independent : '';
     const [, bin] = classify(extractOrder(bText)); const tr = lintB(bText, bin, ov);
     console.log(`${row.id} | ${row.binary} | ${bin} | ${tr.length}건 ${tr.map((x) => x.split(':')[0]).join(',')}`);
   }
@@ -309,7 +315,7 @@ if (args['lint-only']) {   // API 호출 없이, 이미 만든 결과(runs/<tag>
 }
 if (DRY) {
   console.log(`system 프롬프트 ${SYSTEM.length.toLocaleString()}자 | 버전 ${VERSION} | 모델 ${MODEL} | thinking ${THINK ? 'enabled/' + EFFORT : 'disabled'} | 대상 ${jobs.length}건`);
-  for (const r of jobs.slice(0, 3)) { const p = path.join(OVDIR, `${r.id}.json`); console.log(`[dry] ${r.id} round=${r.round} 개요 ${fs.existsSync(p) ? JSON.parse(readText(p)).overview_review.length + '자' : '없음'}`); }
+  for (const r of jobs.slice(0, 3)) { const p = path.join(OVDIR, `${r.id}.json`); console.log(`[dry] ${r.id} round=${r.round} 개요 ${fs.existsSync(p) ? JSON.parse(readText(p)).overview_independent.length + '자' : '없음'}`); }
   process.exit(0);
 }
 const results = []; let failed = 0; const queue = [...jobs];
