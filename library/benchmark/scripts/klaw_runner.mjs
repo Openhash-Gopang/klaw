@@ -78,7 +78,20 @@ const P = {
 };
 
 // ── 채점 규칙(label_civil.ps1과 같은 규칙) ─────────────
+// v17.0.3(절차적 주문 어휘 전면 폐지) 이후 K-Law 출력은 "원고 전부승소/일부승소/
+// 원고 패소(=피고 승소)" 또는(형사) "피고인 유죄/무죄"로만 결론을 표시한다.
+// 이 새 포맷은 binary 'v3'로 표시하고, dev.csv의 실제 라벨(유지/파기, 절차적
+// 주문 기반 역사적 기록)과는 척도가 다르므로 아래 correct 계산에서 자동
+// 정오 비교 대상에서 제외한다 — 일치도 평가 기준 v3.0에 따라 사람이 법리·
+// 승소 당사자·영역·수준을 직접 대조해야 한다(자동 비교 불가, 육안 확인 필요).
 function classify(o) {
+  if (/원고\s*전부\s*승소/.test(o)) return ['원고전부승소', 'v3'];
+  if (/원고\s*일부\s*승소/.test(o)) return ['원고일부승소', 'v3'];
+  if (/원고\s*패소|피고\s*승소/.test(o)) return ['원고패소', 'v3'];
+  if (/피고인\s*무죄/.test(o)) return ['피고인무죄', 'v3'];
+  if (/피고인\s*유죄/.test(o)) return ['피고인유죄', 'v3'];
+  // ── 이하 구 포맷(절차적 주문) 하위호환 — v17.0.2 이하 과거 결과 재채점 전용.
+  //    v17.0.3 이후 정상 실행에서는 도달하지 않는 것이 정상이다.
   if (!/파기/.test(o)) {
     if (/상고를\s*(모두\s*)?각하/.test(o)) return ['상고각하', '유지'];
     if (/상고를\s*(모두\s*)?기각/.test(o)) return ['상고기각', '유지'];
@@ -292,7 +305,7 @@ async function runCase(row) {
   const rec = {
     id: row.id, round: Number(row.round), seq: row.seq, caseNo_sim: caseNo, level,
     actual: { label: row.label, binary: row.binary }, predicted: { label: predLabel, binary: predBinary, order: orderText, conclusion_type: concl, declined },
-    correct: predBinary === row.binary, correct_before_sc: sc.binary_before ? sc.binary_before === row.binary : null, self_check: sc, extraQ_present: !!extraQ && extraQ !== '없음',
+    correct: predBinary === 'v3' ? null : predBinary === row.binary, correct_before_sc: sc.binary_before ? sc.binary_before === row.binary : null, self_check: sc, extraQ_present: !!extraQ && extraQ !== '없음',
     truncated_steps: truncated,
     config: { budget_scale: SCALE, model: MODEL, version: VERSION, method: METHOD, format: FORMAT, thinking: THINK, effort: THINK ? EFFORT : null, temperature: TEMP },
     usage: usages, cache_hit_ratio: hit + miss ? hit / (hit + miss) : null, elapsed_s: Math.round((Date.now() - t0) / 1000),
@@ -335,20 +348,28 @@ await Promise.all(Array.from({ length: CONC }, async () => {
     const row = queue.shift();
     try {
       const rec = await runCase(row); results.push(rec);
-      console.log(`${progress()} ${rec.correct ? '일치  ' : '불일치'} ${row.id} 실제 ${rec.actual.label}(${rec.actual.binary}) / 예측 ${rec.predicted.label}(${rec.predicted.binary}) | 결론유형 ${rec.predicted.conclusion_type || '-'} | ${rec.elapsed_s}s | 캐시 ${rec.cache_hit_ratio === null ? '-' : Math.round(100 * rec.cache_hit_ratio) + '%'}`);
+      const verdict = rec.correct === null ? '육안확인' : (rec.correct ? '일치  ' : '불일치');
+      console.log(`${progress()} ${verdict} ${row.id} 실제 ${rec.actual.label}(${rec.actual.binary}) / 예측 ${rec.predicted.label}(${rec.predicted.binary}) | 결론유형 ${rec.predicted.conclusion_type || '-'} | ${rec.elapsed_s}s | 캐시 ${rec.cache_hit_ratio === null ? '-' : Math.round(100 * rec.cache_hit_ratio) + '%'}`);
     } catch (e) { failed++; console.error(`${progress()} 실패 ${row.id}: ${e.message}`); }
   }
 }));
 
-const n = results.length; const ok = results.filter((r) => r.correct).length;
-const of = (b) => results.filter((r) => r.actual.binary === b);
+const n = results.length;
+const v3 = results.filter((r) => r.predicted.binary === 'v3');
+const scored = results.filter((r) => r.predicted.binary !== 'v3');
+const ok = scored.filter((r) => r.correct).length;
+const of = (b) => scored.filter((r) => r.actual.binary === b);
 const line = (name, arr) => `  ${name}: ${arr.filter((r) => r.correct).length}/${arr.length}`;
-console.log(`\n[${TAG}] 완료 ${n}건 (실패 ${failed}) | 결론 일치 ${ok}/${n}${n ? ` (${(100 * ok / n).toFixed(0)}%)` : ''}`);
-console.log(line('실제 유지(기각) 적중', of('유지')) + '\n' + line('실제 파기 적중', of('파기')));
+console.log(`\n[${TAG}] 완료 ${n}건 (실패 ${failed})`);
+if (v3.length) console.log(`  v17.0.3 승패 포맷 ${v3.length}건: 자동 정오 비교 대상 아님(척도 다름) — 일치도 평가 기준 v3.0으로 육안 확인 필요: ${v3.map((r) => `${r.id}(${r.predicted.label})`).join(', ')}`);
+if (scored.length) {
+  console.log(`  [구 포맷 ${scored.length}건만] 결론 일치 ${ok}/${scored.length}${scored.length ? ` (${(100 * ok / scored.length).toFixed(0)}%)` : ''}`);
+  console.log(line('실제 유지(기각) 적중', of('유지')) + '\n' + line('실제 파기 적중', of('파기')));
+}
 const scRan = results.filter((r) => r.self_check?.ran);
 if (SELFCHECK) {
   const fixed = scRan.filter((r) => r.self_check.changed && !r.correct_before_sc && r.correct).length; const broke = scRan.filter((r) => r.self_check.changed && r.correct_before_sc && !r.correct).length;
-  console.log(`  자기 검증: 발동 ${scRan.length}건 | 결론 변경 ${scRan.filter((r) => r.self_check.changed).length}건 (오답→정답 ${fixed}, 정답→오답 ${broke}) | 점검 전 결론 기준 일치 ${results.filter((r) => (r.correct_before_sc ?? r.correct)).length}/${n} → 점검 후 ${ok}/${n}`);
+  console.log(`  자기 검증: 발동 ${scRan.length}건 | 결론 변경 ${scRan.filter((r) => r.self_check.changed).length}건 (오답→정답 ${fixed}, 정답→오답 ${broke}) | 점검 전 결론 기준 일치(구 포맷만) ${scored.filter((r) => (r.correct_before_sc ?? r.correct)).length}/${scored.length} → 점검 후 ${ok}/${scored.length}`);
 }
 const dm = results.filter((r) => r.self_check?.display?.mismatch);
 console.log(`  표시 수치(일치도 예상)가 종합 확신도×10%를 15%p 넘게 초과한 사건 ${dm.length}건${dm.length ? ': ' + dm.map((r) => r.id).join(', ') : ''}`);
