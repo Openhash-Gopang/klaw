@@ -67,11 +67,12 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .ctable td a:hover{background:var(--bg)}
 .na{color:var(--txt4)}
 .empty{color:var(--txt4);font-size:13px;padding:30px 10px;text-align:center;background:var(--sur);border:1px dashed var(--bdr2);border-radius:var(--r)}
-.daylog{position:relative;display:inline-block;margin-bottom:20px}
+.daylog-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.daylog{position:relative;display:inline-block}
 .daylog-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-size:13px;font-weight:600;
   padding:9px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--sur);color:var(--txt2);cursor:pointer}
 .daylog-btn:hover{background:var(--bg);color:var(--txt)}
-.daylog-btn .caret{font-size:10px;color:var(--txt4);transition:transform .15s}
+.daylog-btn .caret{font-size:22px;line-height:1;color:var(--txt4);transition:transform .15s}
 .daylog.open .daylog-btn .caret{transform:rotate(180deg)}
 .daylog-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:320px;z-index:10;
   background:var(--sur);border:1px solid var(--bdr2);border-radius:var(--r);box-shadow:0 8px 24px rgba(17,24,39,.1);overflow:hidden}
@@ -92,11 +93,19 @@ span.btn-disabled{color:var(--txt4);cursor:default}
     <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·일치 여부, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 이 기록에 수록된 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 아직 진행되지 않은 라운드는 표시만 있고 내용이 없습니다.</div>
-  <div class="daylog" id="daylog">
-    <button class="daylog-btn" id="daylogBtn" type="button" aria-haspopup="true" aria-expanded="false">
-      날짜별 진행 기록<span class="caret">▾</span>
-    </button>
-    <div class="daylog-menu" id="daylogMenu" role="menu"></div>
+  <div class="daylog-row">
+    <div class="daylog" id="daylog">
+      <button class="daylog-btn" id="daylogBtn" type="button" aria-haspopup="true" aria-expanded="false">
+        날짜별 진행 기록<span class="caret">▾</span>
+      </button>
+      <div class="daylog-menu" id="daylogMenu" role="menu"></div>
+    </div>
+    <div class="daylog" id="methodlog">
+      <button class="daylog-btn" id="methodlogBtn" type="button" aria-haspopup="true" aria-expanded="false">
+        방법론 갱신 기록<span class="caret">▾</span>
+      </button>
+      <div class="daylog-menu" id="methodlogMenu" role="menu"></div>
+    </div>
   </div>
   <div class="rtabs" id="rtabs"></div>
   <div id="rpanels"></div>
@@ -165,15 +174,19 @@ const DAY_LOGS = [
   { date: '2026-09-30', desc: '일치도 평가 기준 v3.0 완성 · r01 잔여 4건 재검증 · v15.1↔v17.0 비교의 함정(원심 판단 요지 제거) 발견', href: 'library/benchmark/log/2026-09-30.md' },
   { date: '2026-09-29', desc: 'classify() v3 승패 포맷 인식 버그 발견·수정(확인필요 오분류 해소)', href: 'library/benchmark/log/2026-09-29.md' },
 ];
-(function initDayLog() {
-  const wrap = document.getElementById('daylog');
-  const btn = document.getElementById('daylogBtn');
-  const menu = document.getElementById('daylogMenu');
-  menu.innerHTML = DAY_LOGS.length
-    ? DAY_LOGS.map((d) => `<a href="${esc(viewerUrl(d.href, d.date + ' 진행 기록'))}" target="_blank" rel="noopener" role="menuitem">
-        <span class="dl-date">${esc(d.date)}</span><span class="dl-desc">${esc(d.desc)}</span>
-      </a>`).join('')
-    : '<div class="daylog-empty">아직 기록이 없습니다.</div>';
+// 방법론 갱신 기록 — 방법론 문서(md) 자체의 버전별 스냅샷을 연결한다.
+// 새 버전이 생기면 이 배열 맨 앞에 추가한다(최신순).
+const METHOD_LOGS = [
+  { version: 'v17.0.4', desc: '확신도 보정 개선 3건 반영 — 국제비교(B-5-B) 근거 구체성 요건, 당사자 프레임 대체 정당화 의무(B-4-δ 신설), 법령 원문 대조 플래그(공리 J §7-2 신설)', href: 'klaw_v17_0.md' },
+  { version: 'v17.0', desc: '변증법적 공방 절차 도입 · 원심 결과 완전 비공개(독립 개요) 전환 — v17.0.1~v17.0.4 패치 노트가 이 파일 상단에 누적 기록됨', href: 'klaw_v17_0.md' },
+  { version: 'v15.1', desc: '결정 회피 방지 장치 도입 버전(원심 판단 요지 포함, 라운드 1 시험판) — v17.0 이후 원심 판단 요지를 비공개로 전환하기 전 방법론', href: 'library/benchmark/method/dev/klaw_v15_1_r01_FROZEN.md' },
+];
+
+function initDropdownLog(wrapId, btnId, menuId, items, renderItem, emptyText) {
+  const wrap = document.getElementById(wrapId);
+  const btn = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  menu.innerHTML = items.length ? items.map(renderItem).join('') : `<div class="daylog-empty">${esc(emptyText)}</div>`;
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const open = wrap.classList.toggle('open');
@@ -185,7 +198,17 @@ const DAY_LOGS = [
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
   });
-})();
+}
+
+initDropdownLog('daylog', 'daylogBtn', 'daylogMenu', DAY_LOGS, (d) =>
+  `<a href="${esc(viewerUrl(d.href, d.date + ' 진행 기록'))}" target="_blank" rel="noopener" role="menuitem">
+    <span class="dl-date">${esc(d.date)}</span><span class="dl-desc">${esc(d.desc)}</span>
+  </a>`, '아직 기록이 없습니다.');
+
+initDropdownLog('methodlog', 'methodlogBtn', 'methodlogMenu', METHOD_LOGS, (m) =>
+  `<a href="${esc(viewerUrl(m.href, m.version + ' 방법론'))}" target="_blank" rel="noopener" role="menuitem">
+    <span class="dl-date">${esc(m.version)}</span><span class="dl-desc">${esc(m.desc)}</span>
+  </a>`, '아직 기록이 없습니다.');
 
 fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data) => {
   const tabs = document.getElementById('rtabs'); const panels = document.getElementById('rpanels');
