@@ -230,7 +230,16 @@ async function runCase(row) {
   const empty = (t) => !(tag(t, '사건의 개요') || tag(t, '원고의 주장') || tag(t, '피고의 주장'));
   if (empty(a.content)) { a = await chat(aMsgs, 14000, true); usages.push(usageRow('analysis-retry', a)); }
   const analysis = a.content;
-  const lv = tag(analysis, '심급').match(/1심|2심|3심|헌법재판/); const level = lv ? lv[0] : '3심';
+  // v17.0.1-fix: 본 벤치마크의 모든 사건은 실제 대법원(상고심) 사건이다. overview_independent가
+  // 몇 심까지 갔는지를 포함한 심급 신호를 의도적으로 제거했기 때문에, STEP 0가 개요 텍스트만으로
+  // 심급을 자체 추정하면 신호 부재로 "1심"으로 오판되고(사건 621985 등에서 실제 확인됨), 그 결과
+  // 이후 모든 STEP에 "심급: 1심"이 주입되어 1심 스타일 주문(예: "피고는 원고에게 ...를 지급하라",
+  // "소송비용은 ... 부담한다", "가집행할 수 있다")이 생성된다. 이는 classify()의 상고심 전용 어휘
+  // (상고기각/파기/환송/이송)와 전혀 매칭되지 않아 전 사건이 '확인필요'로 빠지는 구조적 결함이었다.
+  // "이 사건이 상고심에 계속 중이다"는 사실은 원심의 실제 결과(승패)를 드러내는 것이 아니라
+  // 벤치마크 설계상의 불변 전제이므로, 이를 자체 추정에 맡지 않고 항상 고정한다.
+  // (klaw_v17_0.md STEP 0-1-σ "벤치마크/시뮬레이션 실행 모드 규칙"과 짝을 이룬다.)
+  const level = '3심';
   const extraQ = tag(analysis, '추가질문');
   const baseCtx = '사용자: ' + aMsgs[1].content + '\n\nK-Law: ' + analysis;
 
