@@ -55,6 +55,12 @@ function summarize(rows) {
   return { n, correct, keep: byBin('유지'), reverse: byBin('파기') };
 }
 
+function summarizeLegal(pipe) {
+  const gs = Object.values(pipe.cases || {}).map((c) => c.legal_match?.grade).filter(Boolean);
+  const cnt = (g) => gs.filter((x) => x === g).length;
+  return { n: gs.length, match: cnt('일치'), provisional: cnt('잠정 일치'), mismatch: cnt('불일치') };
+}
+
 const rounds = [];
 for (let r = 1; r <= 10; r++) {
   const rd = `r${String(r).padStart(2, '0')}`;
@@ -64,13 +70,19 @@ for (let r = 1; r <= 10; r++) {
   const rows = readCsv(path.join(dir, 'results.csv'));
   const expected = expectedByRound[r] || null;
   const status = meta.status || (expected ? `${rows.length}/${expected} 건 게재` : `${rows.length}건 게재`);
+  // 최신 방법론 파이프라인(가상 판결→검수→재검토→최종) 결과 + 법리 일치 판정 — 손으로 쓰는 pipeline.json에서 읽는다.
+  const pipe = readJson(path.join(dir, 'pipeline.json'), null);
   const cases = rows.map((row) => {
     const cdir = path.join(dir, row.id);
+    const pc = pipe?.cases?.[row.id] || null;
     const docOrNull = (name) => exists(path.join(cdir, name)) ? rel(path.join(cdir, name)) : null;
     return {
       id: row.id, actual_label: row.actual_label, actual_binary: row.actual_binary,
       pred_label: row.pred_label, pred_binary: row.pred_binary, correct: row.correct === 'true',
       conclusion_type: row.conclusion_type || null,
+      latest_label: pc?.latest_label || null,
+      legal_match: pc?.legal_match || null,
+      stages: pc?.stages || null,
       docs: {
         supreme: docOrNull('actual_supreme.txt'), second: docOrNull('actual_second.txt'), first: docOrNull('actual_first.txt'),
         overview_review: docOrNull('overview_review.txt'), overview_independent: docOrNull('overview_independent.txt'),
@@ -84,6 +96,8 @@ for (let r = 1; r <= 10; r++) {
     decision_doc: exists(path.join(dir, 'decision.md')) ? rel(path.join(dir, 'decision.md')) : null,
     results_csv: exists(path.join(dir, 'results.csv')) ? rel(path.join(dir, 'results.csv')) : null,
     summary: rows.length ? summarize(rows) : null,
+    legal_summary: pipe ? summarizeLegal(pipe) : null,
+    pipeline_version: pipe?.method_version || null,
     candidate: buildCandidate(dir, meta),
     cases,
   });
