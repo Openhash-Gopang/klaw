@@ -19,8 +19,8 @@
         ↓ 산출물: runs/<T>/<id>.json, <id>.txt, (있으면) <id>_final.txt, results.csv
 
 ② klaw_check_runner.mjs     (독립 검수 — 기본 KLAW_CHECK_API_KEY, 가능하면 다른 모델)
-   K-Law-Check v1.1(klaw_check_v1_1.md)로 ①의 판결문 전문(STEP 0~C·STEP V·STEPVSC
-   전부 포함)을 별도 세션에서 사후 검수. M-1/M-1b/M-2/M-3 모듈.
+   K-Law-Check(기본 klaw_check_v17_0.md, 자동탐지 — §5 참조)로 ①의 판결문 전문
+   (STEP 0~C·STEP V·STEPVSC 전부 포함)을 별도 세션에서 사후 검수. M-1/M-1b/M-2/M-3 모듈.
         ↓ 산출물: runs/<T>-check/<id>.json(report 필드), results 없음(사건별 파일만)
 
 ③ klaw_reconcile_runner.mjs (재검토 — 기본 DEEPSEEK_API_KEY, ①과 같은 모델을 기본값으로 함)
@@ -101,7 +101,7 @@ runs/<TAG>-final/        ③ klaw_reconcile_runner.mjs 산출물 (기본: <TAG>-
 
 ②가 ①과 다른 변수명을 쓰는 것은 우연이 아니라 설계다 — 검수는 가능하면 다른
 모델/제공사 키로 실행해 "같은 모델의 순수 자기 확인(에코 챔버)"이 되는 것을 피하기
-위함이다(`klaw_check_v1_1.md` §0 참조). ③이 기본적으로 ①과 **같은** 키를 쓰는 것도
+위함이다(`klaw_check_v17_0.md` §0 참조). ③이 기본적으로 ①과 **같은** 키를 쓰는 것도
 설계다 — 재검토·최종본 작성은 "저자 본인의 방법론 일관성"을 위해 원 생성 모델로
 수행하는 것이 기본값이며, `--key-env=KLAW_CHECK_API_KEY`처럼 바꾸는 것은 "재검토를
 검수와 같은 모델로 실험해 보고 싶을 때"의 예외적 옵션이다.
@@ -112,18 +112,29 @@ runs/<TAG>-final/        ③ klaw_reconcile_runner.mjs 산출물 (기본: <TAG>-
 
 ---
 
-## 5. 방법론 파일 버전 관리 차이
+## 5. 방법론·검수 SP 버전 관리 (2026-09-30 통일)
 
-- **K-Law 본체**(`klaw_v[MAJOR]_[MINOR].md`, 예: `klaw_v17_0.md`)는 `resolveLatestMethod()`
-  (`klaw_pipeline_shared.mjs`)가 저장소 루트를 스캔해 버전이 가장 높은 파일을 **자동
-  채택**한다. MAJOR.MINOR가 바뀔 때만 파일명을 git mv로 갱신하고, 그 안의 패치 번호
-  (v17.0.1~v17.0.8처럼 세 번째 숫자)는 같은 파일 안에 패치노트로 누적된다.
-- **K-Law-Check**(`klaw_check_v[MAJOR]_[MINOR].md`, 예: `klaw_check_v1_1.md`)는 자동 채택이
-  없다 — `klaw_check_runner.mjs`가 `--check` 인자로 받거나, 생략 시 **고정된 기본값**
-  (현재 `klaw_check_v1_1.md`)을 쓴다. 버전을 올릴 때는 (a) git mv로 파일명 갱신, (b)
-  `klaw_check_runner.mjs`의 기본값 문자열 갱신, (c) `rounds.html`의 `CHECK_LOGS` 배열에
-  새 항목 추가, 세 가지를 함께 해야 한다 — 자동화돼 있지 않으므로 누락하기 쉽다.
-  과거 버전은 재현성을 위해 `library/benchmark/method/dev/klaw_check_v1_0_FROZEN.md`처럼
+K-Law 본체와 K-Law-Check는 **같은 파일명·버전 표기·자동탐지 규칙**을 쓴다
+(`klaw_pipeline_shared.mjs`의 `resolveLatestMethod()`/`resolveLatestCheck()`, 둘 다
+내부적으로 `parseMajorMinor()`로 비교). 두 파일명의 버전 숫자는 **같은 의미가 아니라는
+점**만 유의한다.
+
+- **K-Law 본체**(`klaw_v[MAJOR]_[MINOR].md`, 예: `klaw_v17_0.md`): 파일명 버전 = 이
+  방법론 자신의 버전. `resolveLatestMethod()`가 저장소 루트를 스캔해 버전이 가장 높은
+  파일을 자동 채택한다. MAJOR.MINOR가 바뀔 때만 파일명을 git mv로 갱신하고, 그 안의
+  패치 번호(v17.0.1~v17.0.8처럼 세 번째 숫자)는 같은 파일 안에 패치노트로 누적된다.
+- **K-Law-Check**(`klaw_check_v[MAJOR]_[MINOR].md`, 예: `klaw_check_v17_0.md`): 파일명
+  버전 = **이 SP가 검토·반영한 K-Law 본체 버전**(SP 자신의 개정 차수가 아니다 — SP
+  자신의 개정 차수는 파일 내부 "버전 이력" 표에서 v1.0/v1.1처럼 별도로 추적한다).
+  `resolveLatestCheck()`가 똑같이 자동 채택하고, `klaw_check_runner.mjs`는 매 실행 시
+  검수 대상 사건을 실제로 생성한 본체 버전(`rec.config.version`)과 이 파일명 버전을
+  비교해, 본체가 더 높으면(=SP가 아직 그 버전을 검토하지 않았을 가능성) 콘솔에 경고를
+  낸다. K-Law-Check가 v17.0.4에 고정된 채 v17.0.5~v17.0.8을 전혀 몰랐던 문제(2026-09-30
+  검토에서 지적)가 다시 "사람이 우연히 알아챌 때까지" 방치되지 않게 하는 안전장치다.
+  **주의**: 이 경고는 파일명 숫자만 비교하는 기계적 신호일 뿐, 내용이 실제로 새 버전에
+  맞게 검토됐는지는 사람이 판단해야 한다 — 검토 없이 파일명만 올리지 않는다
+  (`klaw_check_v17_0.md` 파일 상단 "파일명·버전 표기 규칙" 참조).
+- 과거 버전은 재현성을 위해 `library/benchmark/method/dev/klaw_check_v1_0_FROZEN.md`처럼
   보존한다(이미 그 버전으로 감사한 사건이 있다면 그 감사 결과를 나중에 재현·검증할 수
   있어야 하므로).
 
