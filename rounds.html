@@ -66,6 +66,16 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .ctable td a{font-size:12px;padding:3px 10px;border-radius:6px;border:1px solid var(--bdr2);color:var(--txt2);text-decoration:none;white-space:nowrap;display:inline-block}
 .ctable td a:hover{background:var(--bg)}
 .na{color:var(--txt4)}
+.badge-pv{background:#fffbeb;color:#92400e} .badge-na{background:var(--bg);color:var(--txt4)}
+.stabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 14px;border-bottom:1px solid var(--bdr)}
+.stab-btn{padding:9px 16px;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.stab-btn.active{color:var(--pri-dk);border-bottom-color:var(--pri)}
+.stab-btn:not(.active):hover{color:var(--txt)}
+.spanel{display:none} .spanel.active{display:block}
+.snote{font-size:12.5px;color:var(--txt3);margin-bottom:12px;max-width:760px}
+.ctable td.sum{font-size:12px;color:var(--txt3);line-height:1.55;min-width:260px}
+.ctable td .lm-score{display:block;font-size:11px;color:var(--txt4);margin-top:3px}
+
 .empty{color:var(--txt4);font-size:13px;padding:30px 10px;text-align:center;background:var(--sur);border:1px dashed var(--bdr2);border-radius:var(--r)}
 .daylog-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
 .daylog{position:relative;display:inline-block}
@@ -90,7 +100,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
   <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
   <div class="hero">
     <h1>K-Law 라운드별 시험 기록</h1>
-    <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·일치 여부, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
+    <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·법리 일치 여부, 가상 판결 → 검수 → 재검토 → 최종 단계별 결과, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 이 기록에 수록된 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 아직 진행되지 않은 라운드는 표시만 있고 내용이 없습니다.</div>
   <div class="daylog-row">
@@ -122,6 +132,54 @@ function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;
 function viewerUrl(href, label) { return 'doc.html?src=' + encodeURIComponent(href) + '&title=' + encodeURIComponent(label); }
 function docLink(label, href) { return href ? `<a href="${esc(viewerUrl(href, label))}" target="_blank" rel="noopener">열기</a>` : `<span class="na">–</span>`; }
 
+function legalBadge(c) {
+  const m = c.legal_match;
+  if (!m) return '<span class="badge badge-na">미평가</span>';
+  const cls = m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+  return `<span class="badge ${cls}" title="${esc(m.note)}">${esc(m.grade)}</span><span class="lm-score">${esc(m.score || '')}</span>`;
+}
+
+// 단계별 탭(가상 판결·검수·재검토·최종) — 사건별로 그 단계의 산출물과 요약을 보여준다.
+const STAGE_TABS = [
+  { key: 'virtual', label: '가상 판결', note: 'K-Law가 사건 개요(원심 결과를 가린 독립본)만 보고 생성한 가상 판결. 왼쪽에 v15.1 기준선 판결문, 오른쪽에 최신 방법론 생성본이 있으면 함께 표시합니다.' },
+  { key: 'check', label: '검수', note: '생성과 별도 세션·별도 키로 돌리는 독립 검수(K-Law-Check). 법령 원문 대조(M-1)·미검증 플래그 전파(M-1b)·특별법 열거(M-2)·프레임 대체(M-3)를 문자열 대조와 열거로만 점검하며 결론의 옳고 그름은 판단하지 않습니다.' },
+  { key: 'reconcile', label: '재검토', note: '검수 지적을 K-Law가 사건별로 [수용]/[반박]하고 완결된 최종 판결문을 다시 제출하는 단계. 지적 건수와 수용·반박 건수, 결론 유지 여부를 표시합니다.' },
+  { key: 'final', label: '최종', note: '재검토를 거쳐 제출된 최종 판결문과 실제 대법원 결론에 대한 법리 일치 판정입니다.' },
+];
+function stageCells(c, key) {
+  const st = c.stages || {}; const d = c.docs || {}; const x = st[key];
+  if (key === 'virtual') {
+    const links = [];
+    if (d.verdict) links.push(`<a href="${esc(viewerUrl(d.verdict, 'v15.1 가상 판결 - ' + c.id))}" target="_blank" rel="noopener">v15.1 판결문</a>`);
+    if (x?.final) links.push(`<a href="${esc(viewerUrl(x.final, '가상 판결 최종 생성본 - ' + c.id))}" target="_blank" rel="noopener">최신 생성본</a>`);
+    if (x?.raw) links.push(`<a href="${esc(viewerUrl(x.raw, '가상 판결 생성 원문 - ' + c.id))}" target="_blank" rel="noopener">생성 원문</a>`);
+    return { sum: x?.summary || (x?.final ? '' : '최신 방법론 생성본 미게재'), link: links.join(' ') || '<span class="na">–</span>' };
+  }
+  if (!x) return { sum: '<span class="na">이 단계 기록 없음</span>', link: '<span class="na">–</span>' };
+  const link = x.path ? docLink(key, x.path) : '<span class="na">–</span>';
+  if (key === 'check') return { sum: `<span class="badge ${/불요/.test(x.verdict) ? 'badge-ok' : 'badge-pv'}">${esc(x.verdict)}</span> ${esc(x.summary || '')}`, link };
+  if (key === 'reconcile') return { sum: `지적 ${x.items}건 · 수용 ${x.accepted} · 반박 ${x.rebutted} · 결론 <b>${esc(x.conclusion)}</b> ${x.summary ? '— ' + esc(x.summary) : ''}`, link };
+  return { sum: `최종 결론 <b>${esc(x.label)}</b>`, link };
+}
+function renderStage(r, tab) {
+  const rows = r.cases.filter((c) => c.stages && c.stages[tab.key]);
+  let html = `<div class="snote">${tab.note}</div>`;
+  if (!rows.length) return html + `<div class="empty">이 라운드에는 아직 ${tab.label} 단계 기록이 게재되지 않았습니다.</div>`;
+  const last = tab.key === 'final';
+  html += `<table class="ctable"><thead><tr><th>사건</th><th>${last ? '최종 결론' : '요약'}</th>${last ? '<th style="min-width:110px">실제 대법원</th><th>법리 일치</th>' : ''}<th>문서</th></tr></thead><tbody>`;
+  for (const c of rows) {
+    const cell = stageCells(c, tab.key);
+    html += `<tr><td>${esc(c.id)}</td><td class="sum">${cell.sum}</td>${last ? `<td style="white-space:nowrap">${esc(c.actual_label)} (${esc(c.actual_binary)})</td><td>${legalBadge(c)}<span class="lm-score">${esc(c.legal_match?.note || '')}</span></td>` : ''}<td>${cell.link}</td></tr>`;
+  }
+  return html + '</tbody></table>';
+}
+function renderSubTabs(r) {
+  const defs = [{ key: 'cases', label: '사건별 자료' }, ...STAGE_TABS];
+  const bar = defs.map((t, i) => `<button class="stab-btn${i === 0 ? ' active' : ''}" data-r="${r.round}" data-k="${t.key}" type="button">${t.label}</button>`).join('');
+  const panels = defs.map((t, i) => `<div class="spanel${i === 0 ? ' active' : ''}" id="sp-${r.round}-${t.key}">${t.key === 'cases' ? renderCases(r) : renderStage(r, t)}</div>`).join('');
+  return `<div class="stabs">${bar}</div>${panels}`;
+}
+
 function renderRound(r) {
   const done = r.status && r.status !== '예정';
   if (!done) return `<div class="empty">${r.round}라운드는 아직 진행되지 않았습니다.</div>`;
@@ -129,12 +187,20 @@ function renderRound(r) {
   let html = `<div class="rhead">
     <h2>라운드 ${r.round}${r.method_version ? ' — ' + esc(r.method_version) : ''}</h2>
     <div class="ver">${esc(r.status)}</div>`;
-  if (s) {
+  if (r.legal_summary) {
+    const l = r.legal_summary;
     html += `<div class="rstats">
-      <div class="rstat"><b>${s.correct}/${s.n}</b><span>전체 결론 일치</span></div>
+      <div class="rstat"><b>${l.match + l.provisional}/${l.n}</b><span>법리 일치 (확정 ${l.match} · 잠정 ${l.provisional})</span></div>
+      <div class="rstat"><b>${l.mismatch}/${l.n}</b><span>법리 불일치</span></div>
+    </div>
+    <div class="snote">일치 여부는 결론 문구가 아니라 <b>법리 일치</b>(일치도 평가 기준 v3.0, 육안 대조)로 판정합니다. 기준 방법론: ${esc(r.pipeline_version || '')}. 잠정 일치 = 핵심 법리·결론 방향은 대법원 이유와 맞으나 ①~③ 정밀 채점이 끝나지 않은 사건.</div>`;
+  } else if (s) {
+    html += `<div class="rstats">
+      <div class="rstat"><b>${s.correct}/${s.n}</b><span>결론 문구 일치 (구 방식·참고)</span></div>
       <div class="rstat"><b>${s.keep.correct}/${s.keep.n}</b><span>실제 유지 적중</span></div>
       <div class="rstat"><b>${s.reverse.correct}/${s.reverse.n}</b><span>실제 파기 적중</span></div>
-    </div>`;
+    </div>
+    <div class="snote">이 라운드는 아직 법리 일치 판정을 하지 않아 구 방식(결론 문구 일치)의 집계만 표시합니다.</div>`;
   }
   html += `<div class="rlinks">
     ${r.results_csv ? `<a class="btn btn-pri" href="${esc(r.results_csv)}" target="_blank" rel="noopener">일치도 성적표(csv)</a>` : ''}
@@ -144,18 +210,21 @@ function renderRound(r) {
   if (r.candidate) {
     const c = r.candidate; const cs = c.summary;
     html += `<div class="cand"><b>검증용 후보 방법론(${esc(c.label)}, 실행 태그 ${esc(c.tag)})</b> — 같은 라운드 사건에 후보 방법론을 시험 적용한 기록입니다. 채택 여부는 위 결정 문서를 보세요.
-      ${cs ? ` 결과: ${cs.correct}/${cs.n} 일치.` : ''} ${c.note ? esc(c.note) : ''}
+      ${cs ? ` 결과: ${cs.correct}/${cs.n} 결론 문구 일치(구 방식).` : ''} ${c.note ? esc(c.note) : ''}
       ${c.results_csv ? ` <a href="${esc(c.results_csv)}" target="_blank" rel="noopener">성적표</a>` : ''}
     </div>`;
   }
-  html += `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 예측</th><th>일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
+  return html + renderSubTabs(r);
+}
+function renderCases(r) {
+  let html = `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 결론</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>
       <td>${esc(c.id)}</td>
       <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
-      <td>${esc(c.pred_label)} (${esc(c.pred_binary)})</td>
-      <td><span class="badge ${c.correct ? 'badge-ok' : 'badge-ng'}">${c.correct ? '일치' : '불일치'}</span></td>
+      <td>${c.latest_label ? esc(c.latest_label) : `${esc(c.pred_label)} (${esc(c.pred_binary)})`}</td>
+      <td>${legalBadge(c)}</td>
       <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
         ${d.easy_explain ? `<a href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">쉬운 설명</a>` : '<span class="na-cell">쉬운 설명</span>'}
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
@@ -230,6 +299,13 @@ initDropdownLog('checklog', 'checklogBtn', 'checklogMenu', CHECK_LOGS, (c) =>
   `<a href="${esc(viewerUrl(c.href, 'K-Law-Check ' + c.version))}" target="_blank" rel="noopener" role="menuitem">
     <span class="dl-date">${esc('K-Law-Check ' + c.version)}</span><span class="dl-desc">${esc(c.desc)}</span>
   </a>`, '아직 기록이 없습니다.');
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.stab-btn'); if (!b) return;
+  const r = b.dataset.r; const panel = document.getElementById('rpanel-' + r);
+  panel.querySelectorAll('.stab-btn').forEach((x) => x.classList.toggle('active', x === b));
+  panel.querySelectorAll('.spanel').forEach((x) => x.classList.toggle('active', x.id === 'sp-' + r + '-' + b.dataset.k));
+});
 
 fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data) => {
   const tabs = document.getElementById('rtabs'); const panels = document.getElementById('rpanels');
