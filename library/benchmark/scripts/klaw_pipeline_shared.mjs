@@ -65,16 +65,36 @@ export const lastMatch = (t, re) => {
   return last ? last[1] : null;
 };
 
-// 저장소 루트에서 klaw_v[숫자_숫자].md 패턴 파일을 스캔해 버전 숫자가 가장 큰 파일을
-// 자동 채택한다(benchmark.html·desktop.html·webapp.html의 GitHub API 버전 스캔과
-// 같은 규칙을 로컬 파일시스템에 적용). 방법론 파일명은 내부 버전과 일치시키고
-// (예: klaw_v16_1.md), 버전이 바뀔 때마다 git mv로 파일명도 함께 갱신한다 — 그러면
-// 이 함수를 쓰는 스크립트도 세 브라우저 앱도 코드 수정 없이 최신 버전을 자동으로
-// 호출한다(가상 판결문 작성 프로세스가 구버전을 계속 부르는 사고를 방지하는 안전장치).
-export function resolveLatestMethod() {
-  const files = fs.readdirSync('.').filter((n) => /^klaw_v[\d_]+\.md$/i.test(n));
-  if (!files.length) throw new Error('저장소 루트에 klaw_v*.md 방법론 파일이 없습니다.');
-  const parseVer = (name) => { const m = name.match(/klaw_v(\d+)_?(\d*)\.md/i); return m ? parseFloat(`${m[1]}.${m[2] || '0'}`) : 0; };
-  files.sort((a, b) => parseVer(b) - parseVer(a));
+// 버전 문자열("v17.0", "17.0", "klaw_v17_0.md" 등)에서 major.minor를 뽑아 비교 가능한
+// 숫자로 변환한다. 파일명 자동탐지와 버전 불일치 경고(klaw_check_runner.mjs)가 모두
+// 이 함수로 통일해 비교한다.
+export function parseMajorMinor(s) {
+  const m = String(s || '').match(/v?(\d+)[._](\d+)/i);
+  return m ? parseFloat(`${m[1]}.${m[2]}`) : 0;
+}
+
+// 저장소 루트에서 주어진 접두사(prefix)_v[숫자_숫자].md 패턴 파일을 스캔해 버전 숫자가
+// 가장 큰 파일을 자동 채택한다(benchmark.html·desktop.html·webapp.html의 GitHub API
+// 버전 스캔과 같은 규칙을 로컬 파일시스템에 적용). 파일명은 내부 버전과 일치시키고,
+// 버전이 바뀔 때마다 git mv로 파일명도 함께 갱신한다 — 그러면 이 함수를 쓰는 스크립트도
+// 세 브라우저 앱도 코드 수정 없이 최신 버전을 자동으로 호출한다(구버전을 계속 부르는
+// 사고를 방지하는 안전장치).
+function resolveLatestVersionedFile(prefix, label) {
+  const re = new RegExp(`^${prefix}_v[\\d_]+\\.md$`, 'i');
+  const files = fs.readdirSync('.').filter((n) => re.test(n));
+  if (!files.length) throw new Error(`저장소 루트에 ${prefix}_v*.md ${label} 파일이 없습니다.`);
+  files.sort((a, b) => parseMajorMinor(b) - parseMajorMinor(a));
   return files[0];
+}
+
+// K-Law 본체 방법론(klaw_v[숫자_숫자].md, 예: klaw_v17_0.md) 자동탐지.
+export function resolveLatestMethod() {
+  return resolveLatestVersionedFile('klaw', '방법론');
+}
+
+// K-Law-Check 검수 SP(klaw_check_v[숫자_숫자].md, 예: klaw_check_v17_0.md) 자동탐지.
+// 이 파일명의 버전은 검수 SP 자신의 개정 차수가 아니라 "이 SP가 검토·반영한 K-Law
+// 본체 버전"을 나타낸다(klaw_check_v17_0.md 파일 상단 "파일명·버전 표기 규칙" 참조).
+export function resolveLatestCheck() {
+  return resolveLatestVersionedFile('klaw_check', 'K-Law-Check');
 }

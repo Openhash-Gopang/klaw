@@ -1,8 +1,17 @@
-// klaw_check_runner.mjs — klaw_runner.mjs가 생성한 판결문을 K-Law-Check(klaw_check_v1_1.md)로
-// 별도 API 호출에서 사후 검수한다. (OpenAI 호환 chat completions API, Node 18+)
+// klaw_check_runner.mjs — klaw_runner.mjs가 생성한 판결문을 K-Law-Check로 별도 API
+// 호출에서 사후 검수한다. (OpenAI 호환 chat completions API, Node 18+)
+//
+// 검수 SP 자동탐지·버전 불일치 경고(2026-09-30 신설): --check를 생략하면 저장소 루트의
+// klaw_check_v[숫자_숫자].md 중 버전이 가장 높은 파일을 klaw_v*.md와 똑같은 규칙으로
+// 자동 채택한다(klaw_pipeline_shared.mjs의 resolveLatestCheck). 이 파일명의 버전은
+// "이 SP가 검토·반영한 K-Law 본체 버전"을 뜻한다 — 검수 대상 사건을 생성한 본체
+// 버전(rec.config.version)이 이보다 높으면(예: 본체 v18.0인데 검수 SP는 여전히
+// klaw_check_v17_0.md) 실행 시작 시 콘솔에 경고를 출력한다. K-Law-Check가 한동안
+// v17.0.4에 고정된 채 v17.0.5~v17.0.8을 전혀 모르고 있었던 문제(2026-09-30 검토에서
+// 지적됨)가 다음에는 사람이 우연히 알아챌 때까지 방치되지 않도록 하기 위함이다.
 //
 // 사용:
-//   node klaw_check_runner.mjs --tag=r01_retest_v17_0_4 [--check=klaw_check_v1_1.md]
+//   node klaw_check_runner.mjs --tag=r01_retest_v17_0_4 [--check=klaw_check_v17_0.md]
 //        [--overview=overview] [--runs=runs] [--out=runs/<tag>-check]
 //        [--model=deepseek-flash] [--url=https://api.deepseek.com/chat/completions]
 //        [--key-env=KLAW_CHECK_API_KEY] [--max-tokens=20000] [--concurrency=2] [--limit=N] [--force] [--dry]
@@ -13,7 +22,7 @@
 //   환경변수 이름을 지정할 수 있다. 검수에 DeepSeek을 그대로 쓰더라도, 키 자체를
 //   판결문 생성용과 별도로 발급받아 이 변수에 넣는 것을 권장한다.
 //
-// 설계 메모(klaw_check_v1_1.md §0 참조): 1차 판결문을 생성한 것과 같은 모델·같은 API 키로
+// 설계 메모(klaw_check_v17_0.md §0 참조): 1차 판결문을 생성한 것과 같은 모델·같은 API 키로
 // 돌려도 M-1(법령 원문 텍스트 대조)·M-2(특별법 구조적 열거)는 "제공된 자료와의 대조",
 // "구체적 목록 열거"로 범위를 좁혀 설계돼 있어 순수 자기 확인보다는 신뢰도가 높다.
 // 다만 가능하면 1차 생성과 다른 모델로 이 스크립트를 돌리는 것을 권장한다(--model 또는
@@ -21,6 +30,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveLatestCheck, parseMajorMinor } from './klaw_pipeline_shared.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/);
@@ -29,7 +39,7 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
 
 const TAG = args.tag;
 if (!TAG) { console.error('사용: node klaw_check_runner.mjs --tag=<klaw_runner.mjs 실행 시 사용한 --tag>'); process.exit(1); }
-const CHECK = args.check || 'klaw_check_v1_1.md';
+const CHECK = args.check || resolveLatestCheck();
 const OVDIR = args.overview || 'overview';
 const RUNS = args.runs || 'runs';
 const IN = path.join(RUNS, TAG);
@@ -61,6 +71,25 @@ const ids = fs.readdirSync(IN)
   .slice(0, LIMIT);
 
 if (!ids.length) { console.error(`${IN}에서 사건 json을 찾지 못했습니다.`); process.exit(1); }
+
+// ── 버전 불일치 경고: 검수 SP가 검토·반영한 K-Law 본체 버전(CHECK 파일명)과, 실제로
+//    검수 대상 사건을 생성한 본체 버전(rec.config.version, klaw_runner.mjs가 기록)을
+//    비교한다. 여러 버전이 섞여 있으면(같은 태그를 여러 시점에 이어 실행한 경우 등)
+//    가장 높은 생성 버전을 기준으로 판단한다. ──
+(function warnVersionDrift() {
+  const checkVer = parseMajorMinor(CHECK);
+  let maxMethodVer = 0; let maxMethodStr = '';
+  for (const id of ids) {
+    try {
+      const rec = JSON.parse(readText(path.join(IN, `${id}.json`)));
+      const v = parseMajorMinor(rec.config?.version || '');
+      if (v > maxMethodVer) { maxMethodVer = v; maxMethodStr = rec.config?.version || ''; }
+    } catch { /* 개별 사건 파싱 실패는 이 경고 목적상 무시 — 본 실행에서 다시 에러가 난다 */ }
+  }
+  if (maxMethodVer > checkVer) {
+    console.error(`⚠ 버전 불일치: 검수 대상 사건이 K-Law ${maxMethodStr}로 생성됐는데, 지금 쓰는 검수 SP(${CHECK})는 v${checkVer.toFixed(1)}까지만 검토·반영돼 있습니다. K-Law-Check 내용이 최신 본체 버전(새 공리·새 자기검증 장치 등)을 반영했는지 확인하고, 반영했다면 klaw_check_v${String(maxMethodStr).replace(/^v/, '').replace('.', '_')}.md로 git mv 하세요.`);
+  }
+})();
 
 // ── API 호출 (klaw_runner.mjs와 동일한 스트리밍 방식) ──
 async function chat(messages, maxTokens, thinking = true) {
