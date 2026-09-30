@@ -1,32 +1,45 @@
 // klaw_reconcile_runner.mjs — K-Law-Check(klaw_check_runner.mjs)가 찾아낸 지적사항을
 // K-Law 생성 모델 자신에게 되돌려, 기존 STEP V(자기 검증) 경로와 동일한 방식으로
-// "해당/비해당 판정 + 근거 인용 + 필요시 재판단"을 강제하는 재검토(reconciliation) 단계.
+// "해당/비해당 판정 + 근거 인용"을 강제한 뒤, 그 판단을 반영한 완결된 최종 판결문
+// (필요하면 결론을 번복한 최종본)을 K-Law 스스로 다시 제출하게 하는 단계.
 // (OpenAI 호환 chat completions API, Node 18+)
 //
 // 파이프라인 위치:
 //   klaw_runner.mjs (생성, --tag=T)
-//     → klaw_check_runner.mjs (독립 검수, runs/T-check/<id>.json 생성)
-//       → klaw_reconcile_runner.mjs (본 스크립트, runs/T-reconcile/<id>.json 생성)
+//     → klaw_check_runner.mjs (독립 검수, 다른 API 키, runs/T-check/<id>.json 생성)
+//       → klaw_reconcile_runner.mjs (본 스크립트, runs/T-final/<id>.json 생성)
+//
+// v2 설계 변경(2026-09-30): 최초 버전은 "항목별 수용/반박 + 교정 메모"까지만
+//만들고, 그 교정을 반영한 완결된 판결문을 내놓지 않았다 — 그 결과 원본
+// runs/T/<id>.json의 판결문은 검수 이후에도 전혀 갱신되지 않아, 검수·재검토가
+// 이 사건의 실제 "최종 결과물"에는 아무 영향을 주지 못했다. 이번 버전은
+// 항목별 판정(3단계)에 이어 "[최종 판결문 시작]...[최종 판결문 끝]"으로
+// 감싼 완결된 주문·이유 전문을 반드시 새로 작성하게 하고, 그 안에서 추출한
+// 주문을 이 사건의 최종 결론으로 채택한다. 지적을 수용해 결론이 달라져야
+// 한다면 주저 없이 번복하도록 명시적으로 지시한다.
 //
 // 설계 메모:
 // - STEP V는 klaw_runner.mjs 안에서 lintB()가 만든 내부 결정론적 트리거(V-1~V-7)만
 //   입력으로 받는다. 본 스크립트는 그 트리거 대신 외부 독립 검수(K-Law-Check) 보고서
 //   원문을 입력으로 삼아 "같은 SYSTEM(같은 방법론)"으로 K-Law 자신에게 재검토를
 //   요청한다 — 검수는 독립성을 위해 다른 모델/키를 쓰지만(klaw_check_runner.mjs 상단
-//   설계 메모 참조), 재검토는 저자 본인의 방법론 일관성을 위해 원 생성 모델(기본
-//   DEEPSEEK_API_KEY)로 수행하는 것을 기본값으로 한다.
+//   설계 메모 참조), 재검토·최종본 작성은 저자 본인의 방법론 일관성을 위해 원 생성
+//   모델(기본 DEEPSEEK_API_KEY)로 수행하는 것을 기본값으로 한다.
 // - 검수 보고서는 모듈(M-1/M-2/M-3)별 자유서술형 markdown이라 매 실행마다 문구가
 //   달라질 수 있으므로, 정규식으로 파싱해 트리거 배열로 변환하지 않고 원문 전체를
 //   그대로 프롬프트에 넣는다. 대신 "인용·근거 없는 판정은 무효"라는 조항으로 형식적
 //   통과 의례가 되는 것을 막는다.
 // - 검수가 스스로 오인지했을 가능성이 있으므로 지적을 자동으로 사실로 취급하지 않고,
 //   K-Law가 각 항목을 [수용]/[반박]으로 직접 판정하게 하며, 그 결과([STEP-RECONCILE-
-//   COMPLETE | 지적 N건 | 수용 A건 | 반박 B건 | 결론: 유지/변경])를 그대로 기록해
-//   추후 사람이나 별도 심사로 감사할 수 있게 한다.
+//   COMPLETE | 지적 N건 | 수용 A건 | 반박 B건 | 결론: 유지/번복])와 완결된 최종
+//   판결문을 함께 기록해 추후 사람이나 별도 심사로 감사할 수 있게 한다.
+// - 원본 runs/T/<id>.json은 감사 추적을 위해 건드리지 않는다. "최종본"은 별도
+//   디렉터리(runs/T-final)에 원본과 나란히 저장되며, 어느 쪽이 실제로 채택된
+//   결론인지는 이 스크립트가 생성하는 final_verdict/binary_final 필드로 판단한다.
 //
 // 사용:
 //   node klaw_reconcile_runner.mjs --tag=r01_retest_v17_0_5 [--check=<tag>-check]
-//        [--overview=overview] [--runs=runs] [--out=<tag>-reconcile]
+//        [--overview=overview] [--runs=runs] [--out=<tag>-final]
 //        [--model=<원 실행에 쓰인 모델 자동 사용>] [--effort=high] [--max-tokens=24000]
 //        [--concurrency=2] [--limit=N] [--force] [--dry]
 //        [--url=https://api.deepseek.com/chat/completions] [--key-env=DEEPSEEK_API_KEY]
@@ -48,7 +61,7 @@ const IN = path.join(RUNS, TAG);
 const CHECK_TAG = args.check || `${TAG}-check`;
 const CHECK_DIR = path.join(RUNS, CHECK_TAG);
 const OVDIR = args.overview || 'overview';
-const OUT = args.out || path.join(RUNS, `${TAG}-reconcile`);
+const OUT = args.out || path.join(RUNS, `${TAG}-final`);
 const EFFORT = args.effort || 'high';
 const MAXTOK = Number(args['max-tokens'] || 24000);
 const CONC = Math.max(1, Number(args.concurrency || 2));
@@ -132,13 +145,24 @@ ${checkReport}
 2. 각 항목에 대해 [수용] 또는 [반박] 중 하나로 판정하십시오. 판정에는 반드시
    판결문 원문의 근거 문장을 인용하거나(반박의 경우) 그 근거를 구체적으로
    제시해야 합니다 — 인용·근거 없는 판정은 무효입니다.
-3. [수용]으로 판정한 항목이 결론(주문)에 영향을 미치는 경우, 그 영향을 반영하여
-   [V-재판단]을 수행하고 주문을 다시 산정하십시오. 영향이 없는 [수용] 항목은
-   그 이유(다른 근거로 결론이 유지됨 등)를 명시하십시오.
-4. 모든 항목을 처리한 뒤, 마지막 줄에 '최종 주문: (변경 없음 | 주문 문장)'을
-   쓰십시오.
+3. [수용]으로 판정한 항목이 결론(주문)에 영향을 미치는지 검토하십시오. 영향이
+   있다면 주저하지 말고 결론을 번복하십시오 — 기존 결론을 그대로 지키려는
+   방향으로 판단을 왜곡해서는 안 됩니다. 영향이 없는 [수용] 항목은 그 이유
+   (다른 독립된 근거로 결론이 유지됨 등)를 명시하십시오.
+4. 위 재검토를 모두 반영하여, 이 사건에 대해 지금 다시 선고한다면 나올 완결된
+   판결문 전문을 새로 작성하십시오. 이것은 기존 판결문에 대한 부분 수정
+   메모가 아니라 그 자체로 완결된 하나의 문서여야 하며, 가상판결 출력형식
+   v13.3의 주문·이유 형식을 그대로 따라야 합니다. 결론이 번복됐다면 번복된
+   결론과 그 이유를, 유지된다면 보강된 이유와 함께 원래 결론을 그대로
+   싣습니다. 반드시 아래 구분자로 감싸십시오:
+   [최종 판결문 시작]
+   주 문:
+   (주문 전문)
+   이 유:
+   (이유 전문)
+   [최종 판결문 끝]
 5. 맨 마지막 줄은 반드시 다음 형식의 태그로 마무리하십시오(N=A+B):
-   [STEP-RECONCILE-COMPLETE | 지적 N건 | 수용 A건 | 반박 B건 | 결론: 유지/변경]`;
+   [STEP-RECONCILE-COMPLETE | 지적 N건 | 수용 A건 | 반박 B건 | 결론: 유지/번복]`;
 
 // ── API 호출 (klaw_check_runner.mjs와 동일한 스트리밍 방식) ──
 async function chat(model, messages, maxTokens, thinking = true) {
@@ -217,6 +241,7 @@ async function reconcileCase(id) {
 
   const orderBefore = rec.predicted?.order || '';
   const binaryBefore = rec.predicted?.binary || '';
+  const labelBefore = rec.predicted?.label || (orderBefore ? classify(orderBefore)[0] : '');
 
   if (DRY) { console.log(`[dry] ${id} ctx ${ctx.length}자 / 검수보고서 ${checkReport.length}자 / method=${methodPath}`); return; }
 
@@ -238,25 +263,33 @@ async function reconcileCase(id) {
   if (r.finish === 'length') console.error(`[${id}] 경고: 상한(120,000)에서도 finish=length — 재검토가 잘렸을 수 있습니다(본문 ${r.content.length}자).`);
   else if (!r.content.trim()) console.error(`[${id}] 경고: 재시도에도 재검토 응답이 비어 있습니다(finish=${r.finish}).`);
 
-  const tagMatch = r.content.match(/\[STEP-RECONCILE-COMPLETE\s*\|\s*지적\s*(\d+)\s*건\s*\|\s*수용\s*(\d+)\s*건\s*\|\s*반박\s*(\d+)\s*건\s*\|\s*결론[:：]\s*(유지|변경)\]/);
+  const tagMatch = r.content.match(/\[STEP-RECONCILE-COMPLETE\s*\|\s*지적\s*(\d+)\s*건\s*\|\s*수용\s*(\d+)\s*건\s*\|\s*반박\s*(\d+)\s*건\s*\|\s*결론[:：]\s*(유지|번복|변경)\]/);
   const items = { total: tagMatch ? Number(tagMatch[1]) : null, accepted: tagMatch ? Number(tagMatch[2]) : null, rebutted: tagMatch ? Number(tagMatch[3]) : null, conclusion_tag: tagMatch ? tagMatch[4] : null };
 
-  const finOrderRaw = lastMatch(r.content, /최종\s*주문\s*[:：]\s*[`*]*([^\n`]+)/g);
-  const orderChanged = !!(finOrderRaw && !/변경\s*없음/.test(finOrderRaw));
-  const orderAfter = orderChanged ? finOrderRaw.replace(/\*+/g, '').trim() : orderBefore;
-  const [, binaryAfter] = orderAfter ? classify(orderAfter) : [null, binaryBefore];
-  const changed = binaryBefore !== binaryAfter || orderChanged;
+  // 완결된 최종 판결문 전문을 [최종 판결문 시작]...[최종 판결문 끝]에서 추출한다.
+  // 이 블록이 곧 "이 사건의 최종 결과물"이다 — 원본 parts.stepB는 감사를 위해
+  // 그대로 두고, 최종 결론은 이 블록에서 다시 판정한다.
+  const fvMatch = r.content.match(/\[최종\s*판결문\s*시작\]([\s\S]*?)\[최종\s*판결문\s*끝\]/);
+  const finalVerdictText = fvMatch ? fvMatch[1].trim() : '';
+  if (!finalVerdictText) console.error(`[${id}] 경고: [최종 판결문 시작]...[최종 판결문 끝] 블록을 찾지 못했습니다 — 원 결론을 그대로 유지 처리합니다.`);
+  const orderFinal = finalVerdictText ? extractOrder(finalVerdictText) : orderBefore;
+  const [labelFinal, binaryFinal] = orderFinal ? classify(orderFinal) : [labelBefore, binaryBefore];
+  // "번복" 여부는 binary(파기/유지/v3처럼 거친 채점 범주)가 아니라 label(원고전부승소/
+  // 원고일부승소/원고패소 등 세부 결론)로 판정한다 — v3 포맷은 승패 방향이 실제로
+  // 달라져도(예: 일부승소 → 전부승소) binary가 똑같이 'v3'로 묶여 감지되지 않는다.
+  const reversed = labelBefore !== labelFinal;
 
   const out = {
     id, model, elapsed_s: elapsed, usage: r.usage, finish: r.finish,
     method: methodPath, version: versionStr,
-    order_before: orderBefore, binary_before: binaryBefore,
-    order_after: orderAfter, binary_after: binaryAfter, changed,
-    items, report: r.content,
+    order_before: orderBefore, label_before: labelBefore, binary_before: binaryBefore,
+    order_final: orderFinal, label_final: labelFinal, binary_final: binaryFinal, reversed,
+    items, final_verdict: finalVerdictText, report: r.content,
   };
   fs.writeFileSync(outJson, JSON.stringify(out, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, `${id}.md`), r.content, 'utf8');
-  console.log(`[재검토 완료] ${id} (${elapsed}s) | 지적 ${items.total ?? '?'}건 수용 ${items.accepted ?? '?'} 반박 ${items.rebutted ?? '?'} | 결론 ${changed ? '변경' : '유지'}`);
+  if (finalVerdictText) fs.writeFileSync(path.join(OUT, `${id}_final.txt`), finalVerdictText, 'utf8');
+  console.log(`[재검토 완료] ${id} (${elapsed}s) | 지적 ${items.total ?? '?'}건 수용 ${items.accepted ?? '?'} 반박 ${items.rebutted ?? '?'} | 결론 ${reversed ? '번복' : '유지'}`);
 }
 
 let idx = 0;
@@ -275,11 +308,11 @@ if (!DRY) {
     .filter((p) => fs.existsSync(p))
     .map((p) => JSON.parse(readText(p)));
   if (rows.length) {
-    const header = 'id,binary_before,binary_after,changed,items_total,accepted,rebutted,conclusion_tag,elapsed_s';
-    const csvRows = rows.map((r) => [r.id, r.binary_before, r.binary_after, r.changed, r.items.total, r.items.accepted, r.items.rebutted, r.items.conclusion_tag, r.elapsed_s].map((v) => `"${String(v ?? '')}"`).join(','));
+    const header = 'id,label_before,label_final,binary_before,binary_final,reversed,items_total,accepted,rebutted,conclusion_tag,elapsed_s';
+    const csvRows = rows.map((r) => [r.id, r.label_before, r.label_final, r.binary_before, r.binary_final, r.reversed, r.items.total, r.items.accepted, r.items.rebutted, r.items.conclusion_tag, r.elapsed_s].map((v) => `"${String(v ?? '')}"`).join(','));
     fs.writeFileSync(path.join(OUT, 'results.csv'), [header, ...csvRows].join('\n') + '\n', 'utf8');
-    const changedN = rows.filter((r) => r.changed).length;
-    console.log(`\n완료: ${OUT} | 재검토 ${rows.length}건 중 결론 변경 ${changedN}건`);
+    const reversedN = rows.filter((r) => r.reversed).length;
+    console.log(`\n완료: ${OUT} | 재검토 ${rows.length}건 중 결론 번복 ${reversedN}건`);
   } else {
     console.log(`\n완료: ${OUT}`);
   }
