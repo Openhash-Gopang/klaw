@@ -58,7 +58,8 @@ function summarize(rows) {
 function summarizeLegal(pipe) {
   const gs = Object.values(pipe.cases || {}).map((c) => c.legal_match?.grade).filter(Boolean);
   const cnt = (g) => gs.filter((x) => x === g).length;
-  return { n: gs.length, match: cnt('일치'), provisional: cnt('잠정 일치'), mismatch: cnt('불일치') };
+  const graded = cnt('일치') + cnt('잠정 일치') + cnt('불일치');   // '재실행 대기' 등은 집계에서 제외
+  return { n: graded, match: cnt('일치'), provisional: cnt('잠정 일치'), mismatch: cnt('불일치'), pending: gs.length - graded, total: gs.length };
 }
 
 const rounds = [];

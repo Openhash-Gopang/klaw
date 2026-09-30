@@ -139,7 +139,7 @@ function docLink(label, href) { return href ? `<a href="${esc(viewerUrl(href, la
 function legalBadge(c) {
   const m = c.legal_match;
   if (!m) return '<span class="badge badge-na">미평가</span>';
-  const cls = m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+  const cls = m.grade === '재실행 대기' ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
   return `<span class="badge ${cls}" title="${esc(m.note)}">${esc(m.grade)}</span><span class="lm-score">${esc(m.score || '')}</span>`;
 }
 
@@ -149,8 +149,8 @@ function legalCell(c) {
   const klaw = c.latest_label || `${c.pred_label} (${c.pred_binary})`;
   const card = `<dl><dt>실제 대법원</dt><dd>${esc(c.actual_label)} (${esc(c.actual_binary)})</dd>
     <dt>K-Law 결론</dt><dd>${esc(klaw)}</dd>
-    ${m ? `<dt>법리 일치</dt><dd>${esc(m.grade)}${m.score ? ' · ' + esc(m.score) : ''}</dd>${m.note ? `<dt>근거</dt><dd>${esc(m.note)}</dd>` : ''}` : '<dt>법리 일치</dt><dd>미평가</dd>'}</dl>`;
-  const cls = !m ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+    ${m ? `<dt>법리 일치</dt><dd>${esc(m.grade)}${m.score ? ' · ' + esc(m.score) : ''}</dd>${m.basis ? `<dt>채점 기준</dt><dd>${esc(m.basis)}</dd>` : ''}${m.note ? `<dt>근거</dt><dd>${esc(m.note)}</dd>` : ''}` : '<dt>법리 일치</dt><dd>미평가</dd>'}</dl>`;
+  const cls = !m || m.grade === '재실행 대기' ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
   return `<span class="lm-tip" tabindex="0"><span class="badge ${cls}">${m ? esc(m.grade) : '미평가'}</span><div class="lm-src" hidden>${card}</div></span>`;
 }
 
@@ -207,8 +207,9 @@ function renderRound(r) {
     html += `<div class="rstats">
       <div class="rstat"><b>${l.match + l.provisional}/${l.n}</b><span>법리 일치 (확정 ${l.match} · 잠정 ${l.provisional})</span></div>
       <div class="rstat"><b>${l.mismatch}/${l.n}</b><span>법리 불일치</span></div>
+      ${l.pending ? `<div class="rstat"><b>${l.pending}</b><span>재실행 대기(집계 제외)</span></div>` : ''}
     </div>
-    <div class="snote">일치 여부는 결론 문구가 아니라 <b>법리 일치</b>(일치도 평가 기준 v3.0, 육안 대조)로 판정합니다. 기준 방법론: ${esc(r.pipeline_version || '')}. 잠정 일치 = 핵심 법리·결론 방향은 대법원 이유와 맞으나 ①~③ 정밀 채점이 끝나지 않은 사건.</div>`;
+    <div class="snote">일치 여부는 결론 문구가 아니라 <b>법리 일치</b>(일치도 평가 기준 v3.0, 육안 대조)로 판정합니다. 기준 방법론: ${esc(r.pipeline_version || '')}. 잠정 일치 = 핵심 법리·결론 방향은 대법원 이유와 맞으나 ①~③ 정밀 채점이 끝나지 않은 사건. 사건마다 채점 기준이 된 실행 버전은 호버 카드의 '채점 기준'에 표시합니다.</div>`;
   } else if (s) {
     html += `<div class="rstats">
       <div class="rstat"><b>${s.correct}/${s.n}</b><span>결론 문구 일치 (구 방식·참고)</span></div>
