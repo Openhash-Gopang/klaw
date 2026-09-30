@@ -132,6 +132,25 @@ function lintB(bText, predBinary, overview) {
   const deltaSeg = (bText.match(/\[B-4-δ[^\]]{0,20}\][\s\S]{0,1000}?(?=\n\[|\n{2,}|$)/) || [''])[0];
   if (banned.test(gammaSeg)) out.push('V-6: B-4-γ "결정적 근거"가 금지된 총합 서술(종합적으로 고려할 때/제반 사정에 비추어 등)로 갈음됨');
   if (banned.test(deltaSeg)) out.push('V-6: B-4-δ "배척 근거"가 금지된 총합 서술(종합하여 보더라도/제반 사정에 비추어 등)로 갈음됨');
+  // v17.0.6 후보(공리 J §7-3, 미검증 플래그 전파 원칙): "[원문 확인: 파라메트릭
+  // 기억(미검증)]"·"[출처 없음]"으로 스스로 미검증 표시를 붙인 직후, 같은 블록 안에서
+  // "문언상 명확하다"류 확정적 단언으로 그 표시를 곧바로 뒤집는지 점검한다. 617151을
+  // v17.0.5로 재실행한 K-Law-Check 검수에서, B-1·B-2-β·B-5-B의 미검증 표기는 끝까지
+  // 지켜졌으나 [형식-실질 비교 분석] 블록만 미검증 표기 직후 "문언상 명확하다"고
+  // 단언해 §7-2/§7-3 취지를 스스로 무력화한 자기모순이 실제로 확인됐다. 이 점검
+  // 역시 결론 유형과 무관하게 항상 실행한다.
+  const unverifiedTagRe = /\[원문\s*확인[:：]\s*파라메트릭\s*기억\s*\(미검증\)\]|\[출처\s*없음\]/g;
+  const definitiveRe = /문언상\s*명확|법문상\s*명확|명확(?:하다|하게|히)\s*(?:규정|정하)|확정적(?:으로|인|이다)|의문의\s*여지\s*없이/;
+  let um;
+  const v7hits = [];
+  while ((um = unverifiedTagRe.exec(bText))) {
+    const tail = bText.slice(um.index + um[0].length);
+    const sepIdx = tail.search(/\n-{3,}\n/);
+    const win = sepIdx === -1 ? tail.slice(0, 1500) : tail.slice(0, sepIdx);
+    const dm = win.match(definitiveRe);
+    if (dm) v7hits.push(dm[0]);
+  }
+  if (v7hits.length) out.push(`V-7: [미검증/출처 없음] 표시 직후 같은 블록에서 "${v7hits[0]}" 등 확정적 단언으로 뒤집음(공리 J §7-3 위반 의심)`);
   if (predBinary !== '파기') return out;          // 이하 점검은 '파기' 결론의 과잉 여부를 겨냥한다
   const conf = Number(lastMatch(bText, /종합\s*확신도[^\d\n]{0,14}([\d.]+)\s*\/\s*10/g));
   const confKnown = Number.isFinite(conf) && conf > 0;
