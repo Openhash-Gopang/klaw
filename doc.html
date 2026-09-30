@@ -59,6 +59,9 @@ function escapeHtml(s) {
 }
 function inlineFormat(s) {
   s = escapeHtml(s);
+  // [텍스트](경로) — 진행 기록(log) 문서 등에서 다른 문서를 가리킬 때 쓴다.
+  // 절대/상대 URL은 그대로, doc.html 기준 상대경로(레포 루트 기준)도 그대로 쓴다.
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   return s;

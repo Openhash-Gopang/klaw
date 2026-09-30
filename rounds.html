@@ -177,12 +177,16 @@ function renderRound(r) {
 // 날짜별 진행 기록 — 라운드와 무관하게, 방법론·평가기준 갱신 과정 자체를 날짜순으로 기록한다.
 // 새 기록이 생기면 이 배열 맨 앞에 추가한다(최신순).
 const DAY_LOGS = [
-  { date: '2026-09-30', desc: '일치도 평가 기준 v3.0 완성 · r01 잔여 4건 재검증 · v15.1↔v17.0 비교의 함정(원심 판단 요지 제거) 발견', href: 'library/benchmark/log/2026-09-30.md' },
+  { date: '2026-09-30', desc: '일치도 평가 기준 v3.0 완성 · r01 잔여 4건 재검증 · v15.1↔v17.0 비교의 함정(원심 판단 요지 제거) 발견 · K-Law-Check v1.0 파일럿(617151) · 재검토(reconcile) 파이프라인 v1→v2 설계 · SELFCHECK 자동 감지 결함 수정 · STEPVSC 신설 · 정정 내용 최종 판결문 실제 병합(v17.0.5~v17.0.8)', href: 'library/benchmark/log/2026-09-30.md' },
   { date: '2026-09-29', desc: 'classify() v3 승패 포맷 인식 버그 발견·수정(확인필요 오분류 해소)', href: 'library/benchmark/log/2026-09-29.md' },
 ];
 // 방법론 갱신 기록 — 방법론 문서(md) 자체의 버전별 스냅샷을 연결한다.
 // 새 버전이 생기면 이 배열 맨 앞에 추가한다(최신순).
 const METHOD_LOGS = [
+  { version: 'v17.0.8', desc: 'STEP V·STEPVSC가 찾아낸 정정 내용을 실제 최종 판결문 전체에 병합 — `[최종 판결문 시작]...[최종 판결문 끝]` 전체 재작성 요구, `self_check.final_text` 채택 및 채점용 주문(order) 재추출, `<id>_final.txt`·`results.csv`의 `sc_final_source` 열 추가', href: 'klaw_v17_0.md' },
+  { version: 'v17.0.7', desc: 'SELFCHECK 자동 감지 결함 수정(anchor 문자열 불일치로 V-6·V-7 lint가 실행 경로에서 한 번도 발동하지 않던 버그) · STEP V-공통점검(STEPVSC) 신설 — lintB 트리거 유무와 무관하게 STEP B 직후 항상 실행되는 범용 자기 정합성 점검', href: 'klaw_v17_0.md' },
+  { version: 'v17.0.6', desc: '§7-3 자동 린트(V-7) 신설 — 미검증 표시 직후 같은 블록에서 확정 단언하는 자기모순 패턴을 정규식으로 탐지, 결론 유형과 무관하게 항상 실행', href: 'klaw_v17_0.md' },
+  { version: 'v17.0.5', desc: 'K-Law-Check v1.0 파일럿(617151)에서 발견한 자기모순 반영 — 공리 J §7-3 신설(미검증 플래그 전파 원칙), B-4-δ 총합 서술 린트를 결론 유형 무관 상시 실행으로 개정, B-5-C에서 B-5-B 확신도 가감 폐지', href: 'klaw_v17_0.md' },
   { version: 'v17.0.4', desc: '확신도 보정 개선 3건 반영 — 국제비교(B-5-B) 근거 구체성 요건, 당사자 프레임 대체 정당화 의무(B-4-δ 신설), 법령 원문 대조 플래그(공리 J §7-2 신설)', href: 'klaw_v17_0.md' },
   { version: 'v17.0', desc: '변증법적 공방 절차 도입 · 원심 결과 완전 비공개(독립 개요) 전환 — v17.0.1~v17.0.4 패치 노트가 이 파일 상단에 누적 기록됨', href: 'klaw_v17_0.md' },
   { version: 'v15.1', desc: '결정 회피 방지 장치 도입 버전(원심 판단 요지 포함, 라운드 1 시험판) — v17.0 이후 원심 판단 요지를 비공개로 전환하기 전 방법론', href: 'library/benchmark/method/dev/klaw_v15_1_r01_FROZEN.md' },
