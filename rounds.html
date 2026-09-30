@@ -106,6 +106,12 @@ span.btn-disabled{color:var(--txt4);cursor:default}
       </button>
       <div class="daylog-menu" id="methodlogMenu" role="menu"></div>
     </div>
+    <div class="daylog" id="checklog">
+      <button class="daylog-btn" id="checklogBtn" type="button" aria-haspopup="true" aria-expanded="false">
+        검수 SP<span class="caret">▾</span>
+      </button>
+      <div class="daylog-menu" id="checklogMenu" role="menu"></div>
+    </div>
   </div>
   <div class="rtabs" id="rtabs"></div>
   <div id="rpanels"></div>
@@ -181,6 +187,11 @@ const METHOD_LOGS = [
   { version: 'v17.0', desc: '변증법적 공방 절차 도입 · 원심 결과 완전 비공개(독립 개요) 전환 — v17.0.1~v17.0.4 패치 노트가 이 파일 상단에 누적 기록됨', href: 'klaw_v17_0.md' },
   { version: 'v15.1', desc: '결정 회피 방지 장치 도입 버전(원심 판단 요지 포함, 라운드 1 시험판) — v17.0 이후 원심 판단 요지를 비공개로 전환하기 전 방법론', href: 'library/benchmark/method/dev/klaw_v15_1_r01_FROZEN.md' },
 ];
+// 검수 SP — K-Law 판결문을 별도 세션(가능하면 별도 모델)에서 사후 검수하는 SP.
+// 새 버전이 생기면 이 배열 맨 앞에 추가한다(최신순).
+const CHECK_LOGS = [
+  { version: 'v1.0', desc: '최초 작성 — 법령 원문 텍스트 대조(M-1)·특별법 구조적 열거(M-2)·프레임 대체 대조(M-3, 선택) 3모듈. 1차 생성과 같은 모델의 자기 확인(에코 챔버) 대신 텍스트 대조·구조적 열거로 좁힌 검증만 신뢰하도록 설계', href: 'klaw_check_v1_0.md' },
+];
 
 function initDropdownLog(wrapId, btnId, menuId, items, renderItem, emptyText) {
   const wrap = document.getElementById(wrapId);
@@ -208,6 +219,11 @@ initDropdownLog('daylog', 'daylogBtn', 'daylogMenu', DAY_LOGS, (d) =>
 initDropdownLog('methodlog', 'methodlogBtn', 'methodlogMenu', METHOD_LOGS, (m) =>
   `<a href="${esc(viewerUrl(m.href, m.version + ' 방법론'))}" target="_blank" rel="noopener" role="menuitem">
     <span class="dl-date">${esc(m.version)}</span><span class="dl-desc">${esc(m.desc)}</span>
+  </a>`, '아직 기록이 없습니다.');
+
+initDropdownLog('checklog', 'checklogBtn', 'checklogMenu', CHECK_LOGS, (c) =>
+  `<a href="${esc(viewerUrl(c.href, 'K-Law-Check ' + c.version))}" target="_blank" rel="noopener" role="menuitem">
+    <span class="dl-date">${esc('K-Law-Check ' + c.version)}</span><span class="dl-desc">${esc(c.desc)}</span>
   </a>`, '아직 기록이 없습니다.');
 
 fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data) => {
