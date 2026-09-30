@@ -22,26 +22,17 @@
 //   STEP 토큰 예산을 --budget-scale(기본 3)배로 키움(시험에서 STEP A가 운영 예산 14000과 1.6배 22400에서 모두 잘림; 추론 토큰이 4천~1만 개로 크게 변동). 그래도 잘리면 1.5배로 한 번 더 재시도.
 import fs from 'node:fs';
 import path from 'node:path';
+// classify()·extractOrder()·lastMatch()·resolveLatestMethod()는 klaw_reconcile_runner.mjs와
+// 공유하는 채점 로직이라 klaw_pipeline_shared.mjs로 분리했다(2026-09-30) — 두 스크립트에
+// 복사돼 있으면 한쪽만 고치고 다른 쪽을 깜빡했을 때 채점이 조용히 어긋나는 위험이 있다.
+import { classify, extractOrder, lastMatch, resolveLatestMethod } from './klaw_pipeline_shared.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/);
   return m ? [m[1], m[2] ?? true] : [a, true];
 }));
-// 저장소 루트에서 klaw_v[숫자_숫자].md 패턴 파일을 스캔해 버전 숫자가 가장 큰 파일을
-// 자동 채택한다(benchmark.html·desktop.html·webapp.html의 GitHub API 버전 스캔과
-// 같은 규칙을 로컬 파일시스템에 적용). --method를 명시하면 그 값을 그대로 쓰고,
-// 이 자동탐지는 --method를 생략했을 때만 동작한다. 방법론 파일명은 이제 내부
-// 버전과 일치시키고(예: klaw_v16_1.md), 버전이 바뀔 때마다 git mv로 파일명도
-// 함께 갱신한다 — 그러면 이 스크립트도 세 브라우저 앱도 코드 수정 없이 최신
-// 버전을 자동으로 호출한다(가상 판결문 작성 프로세스가 구버전을 계속 부르는
-// 사고를 방지하는 안전장치).
-function resolveLatestMethod() {
-  const files = fs.readdirSync('.').filter((n) => /^klaw_v[\d_]+\.md$/i.test(n));
-  if (!files.length) throw new Error('저장소 루트에 klaw_v*.md 방법론 파일이 없습니다.');
-  const parseVer = (name) => { const m = name.match(/klaw_v(\d+)_?(\d*)\.md/i); return m ? parseFloat(`${m[1]}.${m[2] || '0'}`) : 0; };
-  files.sort((a, b) => parseVer(b) - parseVer(a));
-  return files[0];
-}
+// --method를 명시하면 그 값을 그대로 쓰고, resolveLatestMethod()의 자동탐지는
+// --method를 생략했을 때만 동작한다.
 const METHOD = args.method || resolveLatestMethod();
 const FORMAT = args.format || '가상판결_출력형식_v13_3.txt';
 const VERSION = args.version || (() => { const m = path.basename(METHOD).match(/klaw_v(\d+)_?(\d*)/); return m ? `v${m[1]}.${m[2] || '0'}` : 'v미상'; })();
@@ -85,49 +76,8 @@ const P = {
  }
 };
 
-// ── 채점 규칙(label_civil.ps1과 같은 규칙) ─────────────
-// v17.0.3(절차적 주문 어휘 전면 폐지) 이후 K-Law 출력은 "원고 전부승소/일부승소/
-// 원고 패소(=피고 승소)" 또는(형사) "피고인 유죄/무죄"로만 결론을 표시한다.
-// 이 새 포맷은 binary 'v3'로 표시하고, dev.csv의 실제 라벨(유지/파기, 절차적
-// 주문 기반 역사적 기록)과는 척도가 다르므로 아래 correct 계산에서 자동
-// 정오 비교 대상에서 제외한다 — 일치도 평가 기준 v3.0에 따라 사람이 법리·
-// 승소 당사자·영역·수준을 직접 대조해야 한다(자동 비교 불가, 육안 확인 필요).
-function classify(o) {
-  if (/원고\s*전부\s*승소/.test(o)) return ['원고전부승소', 'v3'];
-  if (/원고\s*일부\s*승소/.test(o)) return ['원고일부승소', 'v3'];
-  if (/원고\s*패소|피고\s*승소/.test(o)) return ['원고패소', 'v3'];
-  if (/피고인\s*무죄/.test(o)) return ['피고인무죄', 'v3'];
-  if (/피고인\s*유죄/.test(o)) return ['피고인유죄', 'v3'];
-  // ── 이하 구 포맷(절차적 주문) 하위호환 — v17.0.2 이하 과거 결과 재채점 전용.
-  //    v17.0.3 이후 정상 실행에서는 도달하지 않는 것이 정상이다.
-  if (!/파기/.test(o)) {
-    if (/상고를\s*(모두\s*)?각하/.test(o)) return ['상고각하', '유지'];
-    if (/상고를\s*(모두\s*)?기각/.test(o)) return ['상고기각', '유지'];
-    return ['확인필요', '확인필요'];
-  }
-  if (/이송한다/.test(o)) return ['파기이송', '파기'];
-  if (/환송한다/.test(o)) {
-    if (/^(1\.\s*)?원심판결을\s*파기하고,?\s*(이\s*)?사건을/.test(o) && !/상고를\s*(모두\s*)?기각/.test(o)) return ['전부파기환송', '파기'];
-    return ['일부파기환송', '파기'];
-  }
-  return ['파기자판', '파기'];
-}
-function extractOrder(text) {
-  const t = text.replace(/\*\*/g, '');
-  // 라벨: 줄 첫머리의 "주 문:", "【주 문】", "이 유:" 등. 본문이 '이유'로 시작하는 문장은 걸리지 않도록 구분자를 요구한다.
-  const re = /(?:^|\n)[ \t#*【\[]*(주\s*문|이\s*유)[ \t]*(?:[】\]]+[ \t]*[:：]?|[:：]|(?=[ \t]*(?:\n|$)))/g;
-  const labels = []; let m;
-  while ((m = re.exec(t))) labels.push({ kind: m[1].replace(/\s+/g, ''), idx: m.index, end: m.index + m[0].length });
-  for (let i = labels.length - 1; i >= 0; i--) {
-    if (labels[i].kind !== '주문') continue;
-    const next = labels.slice(i + 1).find((l) => l.kind === '이유');
-    if (next) return t.slice(labels[i].end, next.idx).replace(/\s+/g, ' ').trim().slice(0, 600);
-  }
-  const last = [...labels].reverse().find((l) => l.kind === '주문');
-  return last ? t.slice(last.end, last.end + 600).replace(/\s+/g, ' ').trim() : '';
-}
 // ── 자기 검증: STEP B 결과의 결정론적 점검(lint) + STEP V 프롬프트 ──────────
-const lastMatch = (t, re) => { let m; let last = null; const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = g.exec(t))) last = m; return last ? last[1] : null; };
+// classify()·extractOrder()·lastMatch()는 klaw_pipeline_shared.mjs에서 import한다(위 참조).
 // v17.0.8: STEP V·STEP V-공통점검(STEPVSC)이 지적한 정정 사항을, 단순 로그가 아니라
 // 실제 최종 텍스트에 병합한다. 621985 실사용 검증에서 STEPVSC가 결론(주문)을 바꾸지
 // 않는 정정 6건(미검증 플래그 오분류, 조문 재인용 무력화, 강제규칙 19 누락 등)을

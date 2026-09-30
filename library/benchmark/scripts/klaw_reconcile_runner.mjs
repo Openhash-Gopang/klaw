@@ -36,6 +36,15 @@
 // - 원본 runs/T/<id>.json은 감사 추적을 위해 건드리지 않는다. "최종본"은 별도
 //   디렉터리(runs/T-final)에 원본과 나란히 저장되며, 어느 쪽이 실제로 채택된
 //   결론인지는 이 스크립트가 생성하는 final_verdict/binary_final 필드로 판단한다.
+// - v17.0.8 자기 검증 이력 반영 수정(2026-09-30): 이전 버전은 rec.parts에서
+//   step0/stepA/stepB/stepV만 모아 컨텍스트를 구성해 STEPVSC 출력(stepV 없이
+//   STEPVSC만 발동한 사건에서는 이 자기 검증 이력 전체)을 빠뜨렸고, klaw_runner.mjs
+//   v17.0.8이 이미 병합해 둔 rec.self_check.final_text(있다면)도 전혀 참조하지
+//   않았다 — 그 결과 STEPVSC가 이미 고친 정정을 reconcile이 모른 채 처음부터
+//   다시 검토하거나, 반대로 "이미 병합된 최종본"이 있는 걸 모르고 정정 이전
+//   STEP B 초안을 재검토 대상으로 삼는 혼선이 있었다. 이제 stepVSC도 컨텍스트에
+//   포함하고, self_check.final_text가 있으면 그것을 "현재 확정된 판결문"으로
+//   프롬프트에 명시해 재검토가 그 위에서 이뤄지게 한다.
 //
 // 사용:
 //   node klaw_reconcile_runner.mjs --tag=r01_retest_v17_0_5 [--check=<tag>-check]
@@ -48,6 +57,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+// classify()·extractOrder()·lastMatch()·resolveLatestMethod()는 klaw_runner.mjs와 공유하는
+// 채점 로직이라 klaw_pipeline_shared.mjs로 분리했다(2026-09-30) — 재검토도 같은 방법론·같은
+// 판정 규칙으로 채점되어야 하므로, 복사본이 아니라 반드시 같은 소스를 참조해야 한다.
+import { classify, extractOrder, lastMatch, resolveLatestMethod } from './klaw_pipeline_shared.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/);
@@ -81,50 +94,10 @@ const readText = (p) => { let t = fs.readFileSync(p, 'utf8'); if (t.charCodeAt(0
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
 
-// ── klaw_runner.mjs와 동일한 SYSTEM 프롬프트 템플릿·주문 분류기 (재검토도 같은
-//    방법론·같은 판정 규칙으로 채점되어야 하므로 그대로 복제한다) ──
+// ── klaw_runner.mjs와 동일한 SYSTEM 프롬프트 템플릿(재검토도 같은 방법론으로 채점되어야
+//    하므로 문자열 그대로 유지 — classify()·extractOrder()·lastMatch()·resolveLatestMethod()는
+//    klaw_pipeline_shared.mjs에서 import한다, 위 참조) ──
 const SIM_TEMPLATE = "당신은 K-Law 판결 방법론 {{VER}}을 적용하는 대한민국 법원 판결 AI입니다.\n{{BODY}}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.\n사건번호·심급 등 이번 사건의 구체적인 정보는 이어지는 사용자 메시지에서 확인하세요.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.\n가상판결 출력형식 v13.3 | K-Law {{VER}} 적용\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-
-function classify(o) {
-  if (/원고\s*전부\s*승소/.test(o)) return ['원고전부승소', 'v3'];
-  if (/원고\s*일부\s*승소/.test(o)) return ['원고일부승소', 'v3'];
-  if (/원고\s*패소|피고\s*승소/.test(o)) return ['원고패소', 'v3'];
-  if (/피고인\s*무죄/.test(o)) return ['피고인무죄', 'v3'];
-  if (/피고인\s*유죄/.test(o)) return ['피고인유죄', 'v3'];
-  if (!/파기/.test(o)) {
-    if (/상고를\s*(모두\s*)?각하/.test(o)) return ['상고각하', '유지'];
-    if (/상고를\s*(모두\s*)?기각/.test(o)) return ['상고기각', '유지'];
-    return ['확인필요', '확인필요'];
-  }
-  if (/이송한다/.test(o)) return ['파기이송', '파기'];
-  if (/환송한다/.test(o)) {
-    if (/^(1\.\s*)?원심판결을\s*파기하고,?\s*(이\s*)?사건을/.test(o) && !/상고를\s*(모두\s*)?기각/.test(o)) return ['전부파기환송', '파기'];
-    return ['일부파기환송', '파기'];
-  }
-  return ['파기자판', '파기'];
-}
-function extractOrder(text) {
-  const t = text.replace(/\*\*/g, '');
-  const re = /(?:^|\n)[ \t#*【\[]*(주\s*문|이\s*유)[ \t]*(?:[】\]]+[ \t]*[:：]?|[:：]|(?=[ \t]*(?:\n|$)))/g;
-  const labels = []; let m;
-  while ((m = re.exec(t))) labels.push({ kind: m[1].replace(/\s+/g, ''), idx: m.index, end: m.index + m[0].length });
-  for (let i = labels.length - 1; i >= 0; i--) {
-    if (labels[i].kind !== '주문') continue;
-    const next = labels.slice(i + 1).find((l) => l.kind === '이유');
-    if (next) return t.slice(labels[i].end, next.idx).replace(/\s+/g, ' ').trim().slice(0, 600);
-  }
-  const last = [...labels].reverse().find((l) => l.kind === '주문');
-  return last ? t.slice(last.end, last.end + 600).replace(/\s+/g, ' ').trim() : '';
-}
-const lastMatch = (t, re) => { let m; let last = null; const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = g.exec(t))) last = m; return last ? last[1] : null; };
-
-function resolveLatestMethod() {
-  const files = fs.readdirSync('.').filter((n) => /^klaw_v[\d_]+\.md$/i.test(n));
-  if (!files.length) throw new Error('저장소 루트에 klaw_v*.md 방법론 파일이 없습니다.');
-  const parseVer = (name) => { const m = name.match(/klaw_v(\d+)_?(\d*)\.md/i); return m ? parseFloat(`${m[1]}.${m[2] || '0'}`) : 0; };
-  files.sort((a, b) => parseVer(b) - parseVer(a));
-  return files[0];
-}
 
 // ── 재검토 프롬프트: STEP V와 같은 정신("해당/비해당 + 근거 인용 + 필요시 재판단")을
 //    내부 lint 트리거가 아니라 외부 검수 보고서 원문에 적용한다 ──
@@ -236,8 +209,15 @@ async function reconcileCase(id) {
 
   const caseNo = rec.caseNo_sim; const level = rec.level;
   const baseCtx = '사용자: 사건의 개요:\n' + overview + '\n\nK-Law: ' + rec.analysis;
-  const prevSteps = [rec.parts?.step0, rec.parts?.stepA, rec.parts?.stepB, rec.parts?.stepV].filter(Boolean).join('\n\n');
-  const ctx = `[사건번호: ${caseNo} | 심급: ${level}]\n\n[이전 STEP 출력]\n${prevSteps}\n\n[사건 정보]\n${baseCtx}`;
+  // stepVSC도 포함(과거엔 누락 — 위 2026-09-30 설계 메모 참조).
+  const prevSteps = [rec.parts?.step0, rec.parts?.stepA, rec.parts?.stepB, rec.parts?.stepV, rec.parts?.stepVSC].filter(Boolean).join('\n\n');
+  // klaw_runner.mjs v17.0.8이 STEP V·STEPVSC에서 이미 병합해 둔 최종 판결문이 있다면
+  // (rec.self_check.final_text), 원본 STEP B가 아니라 그것이 "지금 확정된 판결문"임을
+  // 명시한다 — 검수 보고서의 지적을 이 재검토 프롬프트가 그 위에 쌓도록 하기 위함.
+  const finalNote = rec.self_check?.final_text
+    ? `\n\n[참고: 위 STEP 이력 중 STEP V·STEP V-공통점검이 이미 정정 사항을 반영해 아래와 같은\n최종 판결문을 새로 작성했습니다(source: ${rec.self_check.final_source || '미상'}). 지금부터의 재검토는\nSTEP B 초안이 아니라 이 최종 판결문을 "현재 확정된 판결문"으로 삼아 그 위에서\n수행하십시오.]\n[최종 판결문 시작]\n${rec.self_check.final_text}\n[최종 판결문 끝]`
+    : '';
+  const ctx = `[사건번호: ${caseNo} | 심급: ${level}]\n\n[이전 STEP 출력]\n${prevSteps}${finalNote}\n\n[사건 정보]\n${baseCtx}`;
 
   const orderBefore = rec.predicted?.order || '';
   const binaryBefore = rec.predicted?.binary || '';
