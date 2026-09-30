@@ -67,6 +67,10 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .ctable td a:hover{background:var(--bg)}
 .na{color:var(--txt4)}
 .badge-pv{background:#fffbeb;color:#92400e} .badge-na{background:var(--bg);color:var(--txt4)}
+.lm-tip{display:inline-block;cursor:help;outline:none}
+.lm-src{display:none}
+#lmCard{position:fixed;z-index:50;width:340px;max-width:calc(100vw - 24px);background:var(--sur);border:1px solid var(--bdr2);border-radius:var(--r);box-shadow:0 8px 24px rgba(17,24,39,.14);padding:12px 14px;font-size:12.5px;line-height:1.55;color:var(--txt2);display:none;pointer-events:none}
+#lmCard dl{margin:0} #lmCard dt{font-size:11px;font-weight:700;color:var(--txt4);margin-top:8px} #lmCard dt:first-child{margin-top:0} #lmCard dd{margin:1px 0 0;color:var(--txt)}
 .stabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 14px;border-bottom:1px solid var(--bdr)}
 .stab-btn{padding:9px 16px;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .stab-btn.active{color:var(--pri-dk);border-bottom-color:var(--pri)}
@@ -137,6 +141,17 @@ function legalBadge(c) {
   if (!m) return '<span class="badge badge-na">미평가</span>';
   const cls = m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
   return `<span class="badge ${cls}" title="${esc(m.note)}">${esc(m.grade)}</span><span class="lm-score">${esc(m.score || '')}</span>`;
+}
+
+// 사건별 표용 압축 셀: 배지만 보이고, 실제 결과·K-Law 결론·채점·근거는 마우스를 올리면 떠오르는 카드로 표시한다.
+function legalCell(c) {
+  const m = c.legal_match;
+  const klaw = c.latest_label || `${c.pred_label} (${c.pred_binary})`;
+  const card = `<dl><dt>실제 대법원</dt><dd>${esc(c.actual_label)} (${esc(c.actual_binary)})</dd>
+    <dt>K-Law 결론</dt><dd>${esc(klaw)}</dd>
+    ${m ? `<dt>법리 일치</dt><dd>${esc(m.grade)}${m.score ? ' · ' + esc(m.score) : ''}</dd>${m.note ? `<dt>근거</dt><dd>${esc(m.note)}</dd>` : ''}` : '<dt>법리 일치</dt><dd>미평가</dd>'}</dl>`;
+  const cls = !m ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+  return `<span class="lm-tip" tabindex="0"><span class="badge ${cls}">${m ? esc(m.grade) : '미평가'}</span><div class="lm-src" hidden>${card}</div></span>`;
 }
 
 // 단계별 탭(가상 판결·검수·재검토·최종) — 사건별로 그 단계의 산출물과 요약을 보여준다.
@@ -217,14 +232,12 @@ function renderRound(r) {
   return html + renderSubTabs(r);
 }
 function renderCases(r) {
-  let html = `<table class="ctable"><thead><tr><th>사건</th><th>실제</th><th>K-Law 결론</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
+  let html = `<table class="ctable"><thead><tr><th>사건</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th><th>K-Law<br>판결</th></tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>
       <td>${esc(c.id)}</td>
-      <td>${esc(c.actual_label)} (${esc(c.actual_binary)})</td>
-      <td>${c.latest_label ? esc(c.latest_label) : `${esc(c.pred_label)} (${esc(c.pred_binary)})`}</td>
-      <td>${legalBadge(c)}</td>
+      <td>${legalCell(c)}</td>
       <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
         ${d.easy_explain ? `<a href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">쉬운 설명</a>` : '<span class="na-cell">쉬운 설명</span>'}
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
@@ -299,6 +312,23 @@ initDropdownLog('checklog', 'checklogBtn', 'checklogMenu', CHECK_LOGS, (c) =>
   `<a href="${esc(viewerUrl(c.href, 'K-Law-Check ' + c.version))}" target="_blank" rel="noopener" role="menuitem">
     <span class="dl-date">${esc('K-Law-Check ' + c.version)}</span><span class="dl-desc">${esc(c.desc)}</span>
   </a>`, '아직 기록이 없습니다.');
+
+(() => {
+  const card = document.createElement('div'); card.id = 'lmCard'; document.body.appendChild(card);
+  const show = (tip) => {
+    card.innerHTML = tip.querySelector('.lm-src').innerHTML; card.style.display = 'block';
+    const r = tip.getBoundingClientRect(); const w = card.offsetWidth; const h = card.offsetHeight;
+    let left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    let top = r.bottom + 6; if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
+    card.style.left = left + 'px'; card.style.top = top + 'px';
+  };
+  const hide = () => { card.style.display = 'none'; };
+  document.addEventListener('mouseover', (e) => { const t = e.target.closest('.lm-tip'); if (t) show(t); });
+  document.addEventListener('mouseout', (e) => { if (e.target.closest('.lm-tip')) hide(); });
+  document.addEventListener('focusin', (e) => { const t = e.target.closest('.lm-tip'); if (t) show(t); });
+  document.addEventListener('focusout', hide);
+  window.addEventListener('scroll', hide, true);
+})();
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('.stab-btn'); if (!b) return;
