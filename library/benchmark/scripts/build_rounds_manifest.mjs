@@ -99,6 +99,7 @@ for (let r = 1; r <= 10; r++) {
     summary: rows.length ? summarize(rows) : null,
     legal_summary: pipe ? summarizeLegal(pipe) : null,
     pipeline_version: pipe?.method_version || null,
+    pipeline_note: pipe?.note || null,
     candidate: buildCandidate(dir, meta),
     cases,
   });
