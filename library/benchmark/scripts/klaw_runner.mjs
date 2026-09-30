@@ -86,7 +86,18 @@ const P = {
 // v2가 이미 채택한 패턴(완결된 최종 판결문을 델리미터로 감싸 요구)을 STEP V·STEPVSC에도
 // 동일하게 적용해, [최종 판결문 시작]...[최종 판결문 끝] 블록이 있으면 그것을 이 사건의
 // 실제 최종 판결문(sc.final_text)으로 채택한다.
-const extractFinalDoc = (t) => { const m = t.match(/\[최종\s*판결문\s*시작\]([\s\S]*?)\[최종\s*판결문\s*끝\]/); return m ? m[1].trim() : null; };
+// 최종 판결문 블록 추출: 마커가 "줄 단독"으로 쓰인 구간만 인정한다(본문 설명·표 안에 `[최종 판결문 시작]…` 같은
+// 인라인 언급이 먼저 나와도 그것을 블록으로 오인하지 않게 함 — 617151 재검토에서 `…`만 추출된 사고의 수정).
+// 줄 단독 마커 쌍이 없으면 기존 방식(첫 인라인 쌍)으로 되돌린다.
+const extractFinalBlock = (t) => {
+  const s = String(t ?? '');
+  const re = /^[ \t*]*\[최종\s*판결문\s*시작\][ \t*]*$([\s\S]*?)^[ \t*]*\[최종\s*판결문\s*끝\][ \t*]*$/gm;
+  let last = null; let m; while ((m = re.exec(s)) !== null) last = m[1];
+  if (last !== null && last.trim().length > 20) return last.trim();
+  const f = s.match(/\[최종\s*판결문\s*시작\]([\s\S]*?)\[최종\s*판결문\s*끝\]/);
+  return f ? f[1].trim() : null;
+};
+const extractFinalDoc = extractFinalBlock;
 function lintB(bText, predBinary, overview) {
   const out = [];
   // v17.0.5: B-4-γ·B-4-δ의 "배척 근거/결정적 근거"가 금지된 총합 서술("종합하여

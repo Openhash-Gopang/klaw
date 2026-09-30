@@ -138,6 +138,18 @@ ${checkReport}
    [STEP-RECONCILE-COMPLETE | 지적 N건 | 수용 A건 | 반박 B건 | 결론: 유지/번복]`;
 
 // ── API 호출 (klaw_check_runner.mjs와 동일한 스트리밍 방식) ──
+// 최종 판결문 블록 추출: 마커가 "줄 단독"으로 쓰인 구간만 인정한다(본문 설명·표 안에 `[최종 판결문 시작]…` 같은
+// 인라인 언급이 먼저 나와도 그것을 블록으로 오인하지 않게 함 — 617151 재검토에서 `…`만 추출된 사고의 수정).
+// 줄 단독 마커 쌍이 없으면 기존 방식(첫 인라인 쌍)으로 되돌린다.
+const extractFinalBlock = (t) => {
+  const s = String(t ?? '');
+  const re = /^[ \t*]*\[최종\s*판결문\s*시작\][ \t*]*$([\s\S]*?)^[ \t*]*\[최종\s*판결문\s*끝\][ \t*]*$/gm;
+  let last = null; let m; while ((m = re.exec(s)) !== null) last = m[1];
+  if (last !== null && last.trim().length > 20) return last.trim();
+  const f = s.match(/\[최종\s*판결문\s*시작\]([\s\S]*?)\[최종\s*판결문\s*끝\]/);
+  return f ? f[1].trim() : null;
+};
+
 async function chat(model, messages, maxTokens, thinking = true) {
   const opt = { temperature: TEMP, thinking };
   for (let attempt = 0; attempt < 6; attempt++) {
@@ -249,8 +261,7 @@ async function reconcileCase(id) {
   // 완결된 최종 판결문 전문을 [최종 판결문 시작]...[최종 판결문 끝]에서 추출한다.
   // 이 블록이 곧 "이 사건의 최종 결과물"이다 — 원본 parts.stepB는 감사를 위해
   // 그대로 두고, 최종 결론은 이 블록에서 다시 판정한다.
-  const fvMatch = r.content.match(/\[최종\s*판결문\s*시작\]([\s\S]*?)\[최종\s*판결문\s*끝\]/);
-  const finalVerdictText = fvMatch ? fvMatch[1].trim() : '';
+  const finalVerdictText = extractFinalBlock(r.content) || '';
   if (!finalVerdictText) console.error(`[${id}] 경고: [최종 판결문 시작]...[최종 판결문 끝] 블록을 찾지 못했습니다 — 원 결론을 그대로 유지 처리합니다.`);
   const orderFinal = finalVerdictText ? extractOrder(finalVerdictText) : orderBefore;
   const [labelFinal, binaryFinal] = orderFinal ? classify(orderFinal) : [labelBefore, binaryBefore];
