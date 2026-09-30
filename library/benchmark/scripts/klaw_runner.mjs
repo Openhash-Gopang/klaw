@@ -4,12 +4,16 @@
 //   node klaw_runner.mjs --round=1 [--method=klaw_v16_1.md] [--format=가상판결_출력형식_v13_3.txt] [--version=v16.1]
 //        (--method 생략 시 저장소 루트의 klaw_v[숫자_숫자].md 중 버전이 가장 높은 파일을 자동 채택)
 //        [--tag=r01] [--model=deepseek-flash] [--thinking=enabled|disabled] [--effort=high] [--temperature=0.2]
-//        [--budget-scale=3] [--self-check=auto] [--dev=split/dev.csv] [--overview=overview] [--out=runs] [--concurrency=3] [--limit=N] [--force] [--dry] [--selftest]
+//        [--budget-scale=3] [--self-check=auto] [--self-consistency=auto] [--dev=split/dev.csv] [--overview=overview] [--out=runs] [--concurrency=3] [--limit=N] [--force] [--dry] [--selftest]
 // 환경변수: DEEPSEEK_API_KEY
 // 운영과 같은 점: system 프롬프트(방법론+출력형식)는 모든 호출에서 바이트 단위로 동일 → DeepSeek 접두 캐시 적중.
 //                STEP 0/A/B/C는 각각 [system, user] 2개 메시지의 독립 호출이며 이전 STEP 출력은 user 메시지에 실린다.
-// 자기 검증(--self-check=auto|on|off, 기본 auto): 방법론에 'STEP V – 자기 검증'이 있으면 STEP B 직후 결정론적 점검(lint)을 돌려
+// 자기 검증(--self-check=auto|on|off, 기본 auto): 방법론에 'STEP V(자기 검증)'이 있으면 STEP B 직후 결정론적 점검(lint)을 돌려
 //   과도한 파기 패턴이 잡히면 STEP V(자기 검증·재검토)를 강제로 실행하고, V의 '최종 주문'을 결론으로 채택한다. 점검 전 결론도 함께 기록한다.
+// 자기 정합성 점검(--self-consistency=auto|on|off, 기본 auto=self-check와 연동, v17.0.7 신설): lintB 트리거 유무와
+//   무관하게 STEP B(및 STEP V) 직후 항상 실행되는 범용 자기모순 점검(STEP V-공통점검). lintB가 아직 코드화하지
+//   못한 새로운 유형의 자기모순을 값싸게 한 번 더 훑는 보조 필터이며, 외부 독립 검수(klaw_check_runner.mjs)를
+//   대체하지 않는다 — 같은 모델의 순수 자기 재검토는 신뢰도 한계가 있음이 이 프로젝트 자체에서 확인됐다(617151).
 // 운영과 다른 점(기록 대상): 후속 질문(【추가질문】)에 답하지 않음, 분석 단계 토큰 예산 4000, 사건번호는 SIM-일련번호,
 //   STEP 토큰 예산을 --budget-scale(기본 3)배로 키움(시험에서 STEP A가 운영 예산 14000과 1.6배 22400에서 모두 잘림; 추론 토큰이 4천~1만 개로 크게 변동). 그래도 잘리면 1.5배로 한 번 더 재시도.
 import fs from 'node:fs';
@@ -168,7 +172,15 @@ function lintB(bText, predBinary, overview) {
 }
 const STEPV = {
   maxTokens: 14000,
-  prompt: (ctx, lint) => `${ctx}\n\nSTEP B가 완료되었습니다. STEP V(자기 검증·재검토 게이트)만 작성하세요.\n자동 점검에서 다음 항목이 발동했습니다. 각 항목은 반드시 '해당'으로 다루고 근거 문장을 인용하세요:\n${lint.map((x) => '- ' + x).join('\n')}\nV-1~V-6 각 항목에 해당/비해당과 근거 문장 인용을 쓰고, 해당 항목이 하나라도 있으면 [V-재판단]을 수행하세요. 마지막 줄은 '최종 주문: (변경 없음 | 주문 문장)'으로 쓰고 [STEP-V-COMPLETE | 점검 6항목 | 해당 N개 | 결론: 유지/변경] 태그로 마무리하세요.`,
+  prompt: (ctx, lint) => `${ctx}\n\nSTEP B가 완료되었습니다. STEP V(자기 검증·재검토 게이트)만 작성하세요.\n자동 점검에서 다음 항목이 발동했습니다. 각 항목은 반드시 '해당'으로 다루고 근거 문장을 인용하세요:\n${lint.map((x) => '- ' + x).join('\n')}\nV-1~V-7 각 항목에 해당/비해당과 근거 문장 인용을 쓰고, 해당 항목이 하나라도 있으면 [V-재판단]을 수행하세요. 마지막 줄은 '최종 주문: (변경 없음 | 주문 문장)'으로 쓰고 [STEP-V-COMPLETE | 점검 7항목 | 해당 N개 | 결론: 유지/변경] 태그로 마무리하세요.`,
+};
+// v17.0.7 신설: lintB 트리거 유무와 무관하게 항상 실행되는 범용 자기 정합성 점검.
+// STEP V는 "이미 코드가 지목한 항목"만 다루지만, STEP V-공통점검(VSC)은 판결문
+// 전체를 처음부터 다시 읽고 아직 코드화되지 않은 자기모순까지 스스로 찾아보게
+// 한다(값싼 1차 보조 필터 — lintB·외부 독립 검수를 대체하지 않는다).
+const STEPVSC = {
+  maxTokens: 10000,
+  prompt: (ctx) => `${ctx}\n\nSTEP B가 완료되었고, 필요한 경우 STEP V(자기 검증)도 완료되었습니다. STEP V-공통점검(전면 자기 정합성 검토)만 작성하세요.\n지금까지 작성한 판결문 전체를 처음부터 다시 읽고, 서로 양립할 수 없는 서술이 있는지 스스로 점검하세요. 특히 다음을 각별히 확인하세요:\n1. 앞선 STEP에서 [원문 확인: 파라메트릭 기억(미검증)] 또는 [출처 없음]으로 표시했던 내용을, 이후 STEP에서 "명확하다"·"확정적으로" 등 확정적 단언으로 재인용하지 않았는지.\n2. B-4-γ·B-4-δ의 결정적 근거·배척 근거가 "종합적으로 고려할 때"·"제반 사정에 비추어" 등 총합 서술로 갈음되지 않았는지.\n3. 그 밖에 판결문 내 두 서술이 서로 양립할 수 없는 지점이 있는지.\n발견한 모순마다 [자기모순 발견] 항목으로 판결문 원문을 인용하고 정정하세요. 발견된 것이 없다면 '점검 결과: 모순 없음'이라고 명시하세요. 정정으로 결론(주문)이 달라지는 경우에만 마지막 줄에 '최종 주문: (변경 없음 | 주문 문장)'을 쓰고, 그렇지 않으면 '최종 주문: 변경 없음'으로 쓰세요. 맨 마지막 줄은 [STEP-VSC-COMPLETE | 발견 N건 | 결론: 유지/변경] 태그로 마무리하세요.`,
 };
 if (args.selftest) {
   const BT = '| 종합 확신도 | **5/10** |\n방향 일치 여부: **불일치**\n[법리오해 인정 여부] 정당 (법리오해 없음). 판단누락으로 파기사유 인정.\n[B-6-π: 발동]\n> 배척 이유 — 원심 판결문에는 이에 관한 명시적 판단이 없다.';
@@ -200,7 +212,24 @@ const readText = (p) => { let t = fs.readFileSync(p, 'utf8'); if (t.charCodeAt(0
 const readCsv = (p) => parseCsv(readText(p));
 const methodText = readText(METHOD); const formatText = readText(FORMAT);
 const SC_MODE = String(args['self-check'] || 'auto');
-const SELFCHECK = SC_MODE === 'on' || (SC_MODE !== 'off' && methodText.includes('STEP V – 자기 검증'));
+// v17.0.7 수정: 기존 anchor 문자열 'STEP V – 자기 검증'(en-dash)은 klaw_v17_0.md
+// 어디에도 실재하지 않아(실제 표기는 'STEP V(자기 검증)', 괄호형) auto 모드에서
+// SELFCHECK가 항상 false로 평가되는 결함이 있었다. 617151 실사용 실행 결과
+// (results.csv의 binary_before_sc 공란, '자기 검증: 발동…' 로그 미출력)로 교차
+// 확인됨 — lintB(V-1~V-7)가 정상 구현·검증되었음에도 실제로는 단 한 번도 실행되지
+// 않았다는 뜻이다. anchor를 실제 문서 표기에 맞게 교정한다.
+const SELFCHECK = SC_MODE === 'on' || (SC_MODE !== 'off' && methodText.includes('STEP V(자기 검증)'));
+// v17.0.7: lintB 트리거(V-1~V-7) 유무와 무관하게 항상 도는 범용 자기 정합성 점검
+// (STEP V-공통점검). lintB는 이미 알려진 결함 패턴만 코드로 잡아내므로, 아직
+// 코드화되지 않은 새로운 유형의 자기모순(예: 앞선 STEP의 미검증 표기를 뒷단에서
+// 확정적으로 재인용하는 617151류 결함의 변종)에는 대응하지 못한다. 다만 같은
+// 모델의 순수 자기 재검토는 신뢰도가 낮다는 것이 이 프로젝트 자체에서 이미 확인된
+// 사실이므로(617151: B-1은 미검증 표기를 지켰는데 같은 생성의 [형식-실질 비교
+// 분석]에서 그 직후 확정적으로 단언 — 같은 컨텍스트 안에서도 스스로 못 잡았다),
+// 이 점검은 lintB·외부 독립 검수(klaw_check_runner.mjs)를 대체하지 않고 그 앞에
+// 두는 값싼 1차 보조 필터로만 취급한다. 기본값은 SELFCHECK와 연동(auto).
+const SC2_MODE = String(args['self-consistency'] || 'auto');
+const SELFCONSISTENCY = SC2_MODE === 'on' || (SC2_MODE !== 'off' && SELFCHECK);
 const SYSTEM = P.sim.replace('{{BODY}}', () => '[K-Law 방법론 원문]\n' + methodText + '\n\n---\n\n' + '[가상판결 출력형식 v13.3]\n' + formatText + '\n\n---\n\n').replace(/\{\{VER\}\}/g, () => VERSION);
 // 주의: 운영 코드는 methodBody + formatBody 뒤에 곧바로 "위 가상판결 출력형식…" 문장을 잇는다(P.sim이 그 구조를 그대로 담고 있다).
 
@@ -286,7 +315,7 @@ async function runCase(row) {
   const baseCtx = '사용자: ' + aMsgs[1].content + '\n\nK-Law: ' + analysis;
 
   // 2) STEP 0 → A → B → C
-  const parts = {}; const truncated = []; const sc = { enabled: SELFCHECK, triggers: [], ran: false };
+  const parts = {}; const truncated = []; const sc = { enabled: SELFCHECK, triggers: [], ran: false, vsc: { enabled: SELFCONSISTENCY, ran: false, findings: null } };
   for (const sid of ['step0', 'stepA', 'stepB', 'stepC']) {
     const prev = Object.values(parts).join('\n\n');
     const ctx = `[사건번호: ${caseNo} | 심급: ${level}]\n\n` + (prev ? `[이전 STEP 출력]\n${prev}\n\n[사건 정보]\n${baseCtx}` : `[사건 정보]\n${baseCtx}`);
@@ -300,11 +329,11 @@ async function runCase(row) {
     }
     if (r.finish === 'length') truncated.push(sid);
     parts[sid] = r.content;
-    if (sid === 'stepB' && SELFCHECK) {
+    if (sid === 'stepB' && (SELFCHECK || SELFCONSISTENCY)) {
       const bOrder = extractOrder(r.content); const [bLabel, bBinary] = classify(bOrder);
       sc.order_before = bOrder; sc.label_before = bLabel; sc.binary_before = bBinary;
-      sc.triggers = lintB(r.content, bBinary, overview);
-      if (sc.triggers.length) {
+      sc.triggers = SELFCHECK ? lintB(r.content, bBinary, overview) : [];
+      if (SELFCHECK && sc.triggers.length) {
         const ctxV = `[사건번호: ${caseNo} | 심급: ${level}]\n\n[이전 STEP 출력]\n${Object.values(parts).join('\n\n')}\n\n[사건 정보]\n${baseCtx}`;
         const msgsV = [{ role: 'system', content: SYSTEM }, { role: 'user', content: STEPV.prompt(ctxV, sc.triggers) }];
         const budgetV = Math.round(STEPV.maxTokens * SCALE);
@@ -316,6 +345,24 @@ async function runCase(row) {
         const fin = lastMatch(rv.content, /최종\s*주문\s*[:：]\s*[`*]*([^\n`]+)/g);
         if (fin && !/변경\s*없음/.test(fin)) sc.order_after = fin.replace(/\*+/g, '').trim();
       }
+      // v17.0.7: lintB 트리거 발동 여부와 무관하게 항상 실행 — STEP V는 이미 코드가
+      // 지목한 항목만 다루므로, 아직 lintB로 코드화되지 않은 새로운 유형의 자기모순은
+      // 이 범용 점검에서만 잡을 기회가 있다(다만 순수 자기 재검토의 신뢰도 한계는
+      // 위 주석 참조 — 외부 독립 검수를 대체하지 않는 값싼 1차 필터).
+      if (SELFCONSISTENCY) {
+        const ctxVSC = `[사건번호: ${caseNo} | 심급: ${level}]\n\n[이전 STEP 출력]\n${Object.values(parts).join('\n\n')}\n\n[사건 정보]\n${baseCtx}`;
+        const msgsVSC = [{ role: 'system', content: SYSTEM }, { role: 'user', content: STEPVSC.prompt(ctxVSC) }];
+        const budgetVSC = Math.round(STEPVSC.maxTokens * SCALE);
+        let rvsc = await chat(msgsVSC, budgetVSC, THINK); usages.push(usageRow('stepVSC', rvsc));
+        if (!rvsc.content.trim()) { rvsc = await chat(msgsVSC, budgetVSC + 6000, THINK); usages.push(usageRow('stepVSC-retry-empty', rvsc)); }
+        if (rvsc.finish === 'length') { const rvsc2 = await chat(msgsVSC, Math.round(budgetVSC * 1.5), THINK); usages.push(usageRow('stepVSC-retry-length', rvsc2)); if (rvsc2.content.trim()) rvsc = rvsc2; }
+        if (rvsc.finish === 'length') truncated.push('stepVSC');
+        parts.stepVSC = rvsc.content; sc.vsc.ran = true;
+        const tagVSC = rvsc.content.match(/\[STEP-VSC-COMPLETE\s*\|\s*발견\s*(\d+)\s*건\s*\|\s*결론[:：]\s*(유지|변경)\]/);
+        sc.vsc.findings = tagVSC ? Number(tagVSC[1]) : null;
+        const finVSC = lastMatch(rvsc.content, /최종\s*주문\s*[:：]\s*[`*]*([^\n`]+)/g);
+        if (finVSC && !/변경\s*없음/.test(finVSC)) sc.order_after = finVSC.replace(/\*+/g, '').trim();
+      }
     }
   }
   const full = Object.values(parts).join('\n\n');
@@ -325,7 +372,7 @@ async function runCase(row) {
   let orderText = extractOrder(parts.stepB || full);
   if (sc.order_after) orderText = sc.order_after;
   const [predLabel, predBinary] = declined ? ['판단불가', '유보'] : classify(orderText);
-  sc.binary_after = predBinary; sc.changed = !!(sc.ran && sc.binary_before && sc.binary_before !== predBinary);
+  sc.binary_after = predBinary; sc.changed = !!((sc.ran || sc.vsc.ran) && sc.binary_before && sc.binary_before !== predBinary);
   const confC = Number(lastMatch(parts.stepC || '', /종합\s*확신도[^\d\n]{0,14}([\d.]+)\s*\/\s*10/g)); const pctC = Number(lastMatch(full, /일치도\s*예상[^\d\n]{0,10}([\d.]+)\s*%/g));
   sc.display = { confidence: Number.isFinite(confC) ? confC : null, match_pct: Number.isFinite(pctC) ? pctC : null };
   sc.display.mismatch = !!(sc.display.confidence && sc.display.match_pct && sc.display.match_pct > sc.display.confidence * 10 + 15);
@@ -395,10 +442,10 @@ if (scored.length) {
   console.log(`  [구 포맷 ${scored.length}건만] 결론 일치 ${ok}/${scored.length}${scored.length ? ` (${(100 * ok / scored.length).toFixed(0)}%)` : ''}`);
   console.log(line('실제 유지(기각) 적중', of('유지')) + '\n' + line('실제 파기 적중', of('파기')));
 }
-const scRan = results.filter((r) => r.self_check?.ran);
-if (SELFCHECK) {
+const scRan = results.filter((r) => r.self_check?.ran || r.self_check?.vsc?.ran);
+if (SELFCHECK || SELFCONSISTENCY) {
   const fixed = scRan.filter((r) => r.self_check.changed && !r.correct_before_sc && r.correct).length; const broke = scRan.filter((r) => r.self_check.changed && r.correct_before_sc && !r.correct).length;
-  console.log(`  자기 검증: 발동 ${scRan.length}건 | 결론 변경 ${scRan.filter((r) => r.self_check.changed).length}건 (오답→정답 ${fixed}, 정답→오답 ${broke}) | 점검 전 결론 기준 일치(구 포맷만) ${scored.filter((r) => (r.correct_before_sc ?? r.correct)).length}/${scored.length} → 점검 후 ${ok}/${scored.length}`);
+  console.log(`  자기 검증: 발동(STEP V) ${results.filter((r) => r.self_check?.ran).length}건 | 자기 정합성 점검(STEP V-공통점검) ${results.filter((r) => r.self_check?.vsc?.ran).length}건 실행, 자기모순 발견 ${results.reduce((s, r) => s + (r.self_check?.vsc?.findings || 0), 0)}건 | 결론 변경 ${scRan.filter((r) => r.self_check.changed).length}건 (오답→정답 ${fixed}, 정답→오답 ${broke}) | 점검 전 결론 기준 일치(구 포맷만) ${scored.filter((r) => (r.correct_before_sc ?? r.correct)).length}/${scored.length} → 점검 후 ${ok}/${scored.length}`);
 }
 const dm = results.filter((r) => r.self_check?.display?.mismatch);
 console.log(`  표시 수치(일치도 예상)가 종합 확신도×10%를 15%p 넘게 초과한 사건 ${dm.length}건${dm.length ? ': ' + dm.map((r) => r.id).join(', ') : ''}`);
@@ -411,6 +458,6 @@ const hit = results.reduce((s, r) => s + r.usage.reduce((x, u) => x + (u.cache_h
 const miss = results.reduce((s, r) => s + r.usage.reduce((x, u) => x + (u.cache_miss || 0), 0), 0);
 console.log(`  캐시 적중 토큰 ${hit.toLocaleString()} / 미적중 ${miss.toLocaleString()}${hit + miss ? ` (적중률 ${(100 * hit / (hit + miss)).toFixed(0)}%)` : ''}`);
 const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-const H = ['id', 'round', 'actual_label', 'actual_binary', 'pred_label', 'pred_binary', 'correct', 'conclusion_type', 'truncated_steps', 'sc_triggers', 'sc_changed', 'binary_before_sc', 'display_mismatch', 'order', 'elapsed_s', 'cache_hit_ratio'];
-fs.writeFileSync(path.join(OUT, 'results.csv'), '\uFEFF' + [H.join(','), ...results.map((r) => [r.id, r.round, r.actual.label, r.actual.binary, r.predicted.label, r.predicted.binary, r.correct, r.predicted.conclusion_type, (r.truncated_steps || []).join('+'), (r.self_check?.triggers || []).join(' | '), r.self_check?.changed ?? '', r.self_check?.binary_before ?? '', r.self_check?.display?.mismatch ?? '', r.predicted.order.slice(0, 200), r.elapsed_s, r.cache_hit_ratio].map(q).join(','))].join('\r\n'), 'utf8');
+const H = ['id', 'round', 'actual_label', 'actual_binary', 'pred_label', 'pred_binary', 'correct', 'conclusion_type', 'truncated_steps', 'sc_triggers', 'sc_vsc_findings', 'sc_changed', 'binary_before_sc', 'display_mismatch', 'order', 'elapsed_s', 'cache_hit_ratio'];
+fs.writeFileSync(path.join(OUT, 'results.csv'), '\uFEFF' + [H.join(','), ...results.map((r) => [r.id, r.round, r.actual.label, r.actual.binary, r.predicted.label, r.predicted.binary, r.correct, r.predicted.conclusion_type, (r.truncated_steps || []).join('+'), (r.self_check?.triggers || []).join(' | '), r.self_check?.vsc?.findings ?? '', r.self_check?.changed ?? '', r.self_check?.binary_before ?? '', r.self_check?.display?.mismatch ?? '', r.predicted.order.slice(0, 200), r.elapsed_s, r.cache_hit_ratio].map(q).join(','))].join('\r\n'), 'utf8');
 console.log(`  저장: ${OUT}${path.sep}results.csv (+ 사건별 .json/.txt)`);
