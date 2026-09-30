@@ -86,6 +86,8 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .daylog-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-size:13px;font-weight:600;
   padding:9px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--sur);color:var(--txt2);cursor:pointer}
 .daylog-btn:hover{background:var(--bg);color:var(--txt)}
+.csv-btn{text-decoration:none}
+.csv-btn.disabled{color:var(--txt4);cursor:default;pointer-events:none;background:var(--bg)}
 .daylog-btn .caret{font-size:22px;line-height:1;color:var(--txt4);transition:transform .15s}
 .daylog.open .daylog-btn .caret{transform:rotate(180deg)}
 .daylog-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:320px;z-index:10;
@@ -97,6 +99,17 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .daylog-menu a .dl-date{display:block;font-weight:700;color:var(--txt);font-size:12.5px;margin-bottom:2px}
 .daylog-menu a .dl-desc{display:block;color:var(--txt3);font-size:11.5px;line-height:1.5}
 .daylog-empty{padding:14px;font-size:12.5px;color:var(--txt4);text-align:center}
+.envbox{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;margin-bottom:20px}
+.envbox h2{font-size:15px;color:var(--txt);margin-bottom:4px}
+.envbox .envsub{font-size:12.5px;color:var(--txt3);margin-bottom:12px}
+.envtable{width:100%;border-collapse:collapse;font-size:12.5px}
+.envtable th{background:var(--bg);color:var(--txt3);font-weight:600;text-align:left;padding:8px 10px;border:1px solid var(--bdr);width:92px;white-space:nowrap;vertical-align:top}
+.envtable td{padding:8px 10px;border:1px solid var(--bdr);vertical-align:top;line-height:1.55;color:var(--txt2)}
+.envtable thead th{width:auto;color:var(--txt)}
+.envtable thead th:first-child{width:92px}
+.envtable b{color:var(--txt)}
+.envtable .ver{color:var(--pri-dk);font-weight:600;font-size:12.5px;margin:0}
+@media(max-width:720px){.envtable{display:block;overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -107,6 +120,30 @@ span.btn-disabled{color:var(--txt4);cursor:default}
     <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·법리 일치 여부, 가상 판결 → 검수 → 재검토 → 최종 단계별 결과, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 이 기록에 수록된 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 아직 진행되지 않은 라운드는 표시만 있고 내용이 없습니다.</div>
+  <div class="envbox" id="envbox">
+    <h2>실험 환경</h2>
+    <div class="envsub">라운드마다 어떤 모델이 어떤 역할을 맡았는지 기록합니다. 세 역할(개요 작성·가상 판결·검수)을 서로 다른 세션·API로 분리해, 한 모델이 자기 결과를 스스로 채점하지 않도록 했습니다.</div>
+    <table class="envtable">
+      <thead><tr><th></th><th>라운드 1</th><th>라운드 2</th></tr></thead>
+      <tbody>
+        <tr><th>개요 작성<br>(사건 단서 제거)</th>
+          <td><b>Claude Sonnet 5.5 채팅 창 1개</b> — 대법원 판례에서 사건 개요를 추출하고, LLM이 사전 학습했을 가능성에 대비해 사건을 식별할 수 있는 단서를 제거했습니다.</td>
+          <td><b>Claude Sonnet 5.5 채팅 창 1개</b> — 대법원 판결문에서 개요를 추출하고 사건 단서를 제거합니다.</td></tr>
+        <tr><th>가상 판결<br>· 재검토</th>
+          <td><b>DeepSeek V4 Flash API 1개</b> — K-Law 방법론으로 가상 판결문을 생성하고, 검수 결과에 대한 재검토(수용·반박, 최종 판결문 재발행)도 같은 API가 맡았습니다.</td>
+          <td><b>Claude Sonnet 5.5 채팅 창 1개</b> — K-Law 방법론에 따라 가상 판결문을 생성하고, 검수 결과에 대한 재검토를 수행합니다.</td></tr>
+        <tr><th>검수</th>
+          <td><b>DeepSeek V4 Flash API 1개</b> — 가상 판결 API와 분리된 별도 호출로, K-Law 검수 방법론(검수 SP)에 따라 검수했습니다.</td>
+          <td><b>Claude Sonnet 5.5 채팅 창 1개</b> — 가상 판결 창과 분리된 별도 창에서 K-Law 검수 SP에 따라 검수합니다.</td></tr>
+        <tr><th>진행 순서</th>
+          <td>가상 판결 → 검수 → 재검토</td>
+          <td>가상 판결 → 검수 → 재검토 (라운드 1과 동일)</td></tr>
+        <tr><th>방법론 버전</th>
+          <td><p class="ver">K-Law 방법론 v17.0.8 · K-Law 검수 v17.0.8</p></td>
+          <td>라운드 2 진행 시 기재</td></tr>
+      </tbody>
+    </table>
+  </div>
   <div class="daylog-row">
     <div class="daylog" id="daylog">
       <button class="daylog-btn" id="daylogBtn" type="button" aria-haspopup="true" aria-expanded="false">
@@ -126,6 +163,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
       </button>
       <div class="daylog-menu" id="checklogMenu" role="menu"></div>
     </div>
+    <a class="daylog-btn csv-btn" id="csvBtn" href="#" download>일치도 성적표 다운로드(CSV)</a>
   </div>
   <div class="rtabs" id="rtabs"></div>
   <div id="rpanels"></div>
@@ -218,11 +256,7 @@ function renderRound(r) {
     </div>
     <div class="snote">이 라운드는 아직 법리 일치 판정을 하지 않아 구 방식(결론 문구 일치)의 집계만 표시합니다.</div>`;
   }
-  html += `<div class="rlinks">
-    ${r.results_csv ? `<a class="btn btn-pri" href="${esc(r.results_csv)}" target="_blank" rel="noopener">일치도 성적표(csv)</a>` : ''}
-    ${r.decision_doc ? `<a class="btn" href="${esc(viewerUrl(r.decision_doc, `라운드 ${r.round} 결정 문서`))}" target="_blank" rel="noopener">방법론 갱신 결정·보류 사항</a>` : '<span class="btn-disabled">결정 문서 작성 중</span>'}
-    <a class="btn" href="library/benchmark/mismatch-log.html" target="_blank" rel="noopener">K-Law 오판 사례 및 방법론 갱신 패치</a>
-  </div></div>`;
+  html += `</div>`;
   if (r.candidate) {
     const c = r.candidate; const cs = c.summary;
     html += `<div class="cand"><b>검증용 후보 방법론(${esc(c.label)}, 실행 태그 ${esc(c.tag)})</b> — 같은 라운드 사건에 후보 방법론을 시험 적용한 기록입니다. 채택 여부는 위 결정 문서를 보세요.
@@ -338,6 +372,16 @@ document.addEventListener('click', (e) => {
   panel.querySelectorAll('.spanel').forEach((x) => x.classList.toggle('active', x.id === 'sp-' + r + '-' + b.dataset.k));
 });
 
+// 일치도 성적표 다운로드 — 선택된 라운드의 results.csv로 연결한다(없으면 비활성).
+function setCsv(r) {
+  const a = document.getElementById('csvBtn');
+  if (r && r.results_csv) {
+    a.href = r.results_csv; a.setAttribute('download', 'klaw_round' + String(r.round).padStart(2, '0') + '_results.csv');
+    a.classList.remove('disabled'); a.removeAttribute('aria-disabled'); a.title = '라운드 ' + r.round + ' 일치도 성적표';
+  } else {
+    a.removeAttribute('href'); a.classList.add('disabled'); a.setAttribute('aria-disabled', 'true'); a.title = '이 라운드는 성적표가 아직 없습니다';
+  }
+}
 fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data) => {
   const tabs = document.getElementById('rtabs'); const panels = document.getElementById('rpanels');
   data.rounds.forEach((r, i) => {
@@ -348,7 +392,7 @@ fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data
     btn.onclick = () => {
       document.querySelectorAll('.rtab-btn').forEach((b) => b.classList.remove('active'));
       document.querySelectorAll('.rpanel').forEach((p) => p.classList.remove('active'));
-      btn.classList.add('active'); document.getElementById('rpanel-' + r.round).classList.add('active');
+      btn.classList.add('active'); document.getElementById('rpanel-' + r.round).classList.add('active'); setCsv(r);
     };
     tabs.appendChild(btn);
     const panel = document.createElement('div');
@@ -356,6 +400,7 @@ fetch('library/benchmark/rounds-manifest.json').then((r) => r.json()).then((data
     panel.innerHTML = renderRound(r);
     panels.appendChild(panel);
   });
+  setCsv(data.rounds[0]);
 }).catch((e) => {
   document.getElementById('rpanels').innerHTML = '<div class="empty">라운드 기록을 불러오지 못했습니다. rounds-manifest.json이 이 페이지와 같은 경로에 있는지 확인하세요.</div>';
   console.error(e);
