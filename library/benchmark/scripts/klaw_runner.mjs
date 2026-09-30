@@ -121,8 +121,18 @@ function extractOrder(text) {
 // ── 자기 검증: STEP B 결과의 결정론적 점검(lint) + STEP V 프롬프트 ──────────
 const lastMatch = (t, re) => { let m; let last = null; const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = g.exec(t))) last = m; return last ? last[1] : null; };
 function lintB(bText, predBinary, overview) {
-  if (predBinary !== '파기') return [];          // 이번 점검은 '파기' 결론의 과잉 여부를 겨냥한다
   const out = [];
+  // v17.0.5: B-4-γ·B-4-δ의 "배척 근거/결정적 근거"가 금지된 총합 서술("종합하여
+  // 보더라도"·"종합적으로 고려할 때"·"제반 사정에 비추어" 등)로 갈음되는지는 결론
+  // 유형(파기/유지)과 무관하게 항상 점검한다 — 617151에서 B-4-γ③·B-4-δ③이 총합
+  // 서술 금지를 스스로 선언한 바로 다음 문단에서 그 금지를 위반한 자기모순이
+  // 확인됐고, 그런 자기모순은 '유지' 결론에서도 얼마든지 발생할 수 있기 때문이다.
+  const banned = /종합(?:하여\s*보더라도|적으로\s*고려할\s*때|해\s*보면|컨대|하여\s*볼\s*때)|제반\s*사정에?\s*비추어/;
+  const gammaSeg = (bText.match(/\[B-4-γ[^\]]{0,20}\][\s\S]{0,1000}?(?=\n\[|\n{2,}|$)/) || [''])[0];
+  const deltaSeg = (bText.match(/\[B-4-δ[^\]]{0,20}\][\s\S]{0,1000}?(?=\n\[|\n{2,}|$)/) || [''])[0];
+  if (banned.test(gammaSeg)) out.push('V-6: B-4-γ "결정적 근거"가 금지된 총합 서술(종합적으로 고려할 때/제반 사정에 비추어 등)로 갈음됨');
+  if (banned.test(deltaSeg)) out.push('V-6: B-4-δ "배척 근거"가 금지된 총합 서술(종합하여 보더라도/제반 사정에 비추어 등)로 갈음됨');
+  if (predBinary !== '파기') return out;          // 이하 점검은 '파기' 결론의 과잉 여부를 겨냥한다
   const conf = Number(lastMatch(bText, /종합\s*확신도[^\d\n]{0,14}([\d.]+)\s*\/\s*10/g));
   const confKnown = Number.isFinite(conf) && conf > 0;
   if (confKnown && conf <= 5) out.push(`V-1: 종합 확신도 ${conf}/10 이하인데 결론이 파기`);
