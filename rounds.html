@@ -184,7 +184,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
         <h3>2. 개요 작성 — Claude Sonnet 5.5 채팅 창 1개</h3>
         <ul>
           <li>대법원 판결문에서 사건 개요를 추출했습니다. 당사자는 "A 회사·B 회사"처럼 익명화하고, 모델이 사전 학습으로 사건을 알아볼 수 있는 단서를 제거했습니다.</li>
-          <li>개요는 두 종류를 만들었습니다. K-Law에는 <b>원심의 판단 요지와 대법원 결론이 없는 독립 개요(<code>overview_independent</code>)만</b> 입력했고, 원심 요지가 들어간 검토용 개요(<code>overview_review</code>)는 입력하지 않았습니다(방법론 v17.0의 원심 결과 완전 비공개).</li>
+          <li>K-Law에는 <b>원심의 판단 요지와 대법원 결론이 없는 독립 개요(<code>overview_independent</code>)만</b> 입력했습니다(방법론 v17.0 이후 원심 결과 완전 비공개). 원심 요지가 들어간 검토용 개요는 2026-10-01부터 이 페이지에서 제외했습니다(저장소 이력에는 남아 있습니다).</li>
           <li>개요를 쓴 모델은 가상 판결·검수·재검토에 관여하지 않습니다.</li>
         </ul>
         <h3>3. 가상 판결 — DeepSeek V4 Flash API ①</h3>
@@ -228,7 +228,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
         <ul>
           <li>서로 다른 계정의 Claude Sonnet 5.5 채팅 창 3개: 개요 작성·채점·진행 총괄(창 ①), 가상 판결·재검토(창 A), 검수(창 B).</li>
           <li>사건 개요 1건과 K-Law 본체를 압축 파일로 묶어 창 A에 주고 가상 판결문을 받는다. 그 판결문을 창 B에 전달해 K-Law 검수 SP로 검수하게 하고, 검수 결과(txt)를 창 A에 다시 주어 재검토·최종 판결문을 받는다. 창 사이의 파일 전달은 사람이 한다.</li>
-          <li>창 A에는 익명화한 개요와 K-Law 본체만 준다. 대법원 판결문, 검토용 개요, 이전 라운드 결과는 주지 않는다. 개요 익명화 규칙과 사건별 변경은 <a href="library/benchmark/rounds/r02/anonymization.md" target="_blank" rel="noopener">익명화 기록</a>에 있다.</li>
+          <li>창 A에는 익명화한 개요와 K-Law 본체만 준다. 대법원 판결문과 이전 라운드 결과는 주지 않는다. 개요 익명화 규칙과 사건별 변경은 <a href="library/benchmark/rounds/r02/anonymization.md" target="_blank" rel="noopener">익명화 기록</a>에 있다.</li>
           <li><b>파일럿(1건).</b> 613169(익명 ID SIM-2026-0001)로 전체 흐름을 먼저 시험했다. 창 A는 작업 지시서 한 장으로 분석→STEP 0→A→B→STEPVSC→C→합본을 "계속" 없이 이어서 끝냈고, 창 B 검수와 창 A 재검토도 각각 한 번에 끝났다. 창 B 검수와 별개로 같은 입력을 DeepSeek(flash)에게도 검수시켜 비교했다(재검토에는 창 B 보고서만 사용). 프로토콜: <a href="library/benchmark/rounds/r02/protocol_chat_pilot.md" target="_blank" rel="noopener">protocol_chat_pilot.md</a>.</li>
         </ul>
         <h3>2. 알려진 한계</h3>
@@ -331,7 +331,7 @@ function renderRound(r) {
   return html + renderSubTabs(r);
 }
 function renderCases(r) {
-  let html = `<table class="ctable"><thead><tr><th>사건</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>개요<br>(검토)</th><th>개요<br>(독립)</th>${STAGE_TABS.map((t) => `<th title="${esc(t.note)}">${t.label}</th>`).join('')}</tr></thead><tbody>`;
+  let html = `<table class="ctable"><thead><tr><th>사건</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th title="원심의 판단 요지와 대법원 결론을 뺀 개요 — K-Law에 입력한 개요">사건<br>개요</th>${STAGE_TABS.map((t) => `<th title="${esc(t.note)}">${t.label}</th>`).join('')}</tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
     html += `<tr>
@@ -346,8 +346,7 @@ function renderCases(r) {
       <td>${docLink('대법원', d.supreme)}</td>
       <td>${docLink('2심', d.second)}</td>
       <td>${docLink('1심', d.first)}</td>
-      <td>${docLink('개요(검토)', d.overview_review)}</td>
-      <td>${docLink('개요(독립)', d.overview_independent)}</td>
+      <td>${docLink('개요', d.overview_independent)}</td>
       ${STAGE_TABS.map((t) => `<td>${stageBtns(c, t.key)}</td>`).join('')}
     </tr>`;
   }
