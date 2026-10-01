@@ -35,7 +35,7 @@ for (const [rn, rows] of [...byRound].sort((a, b) => a[0] - b[0])) {
       const t = String(JSON.parse(readText(jp))?.PrecService?.['판례내용'] ?? '');
       if (t) put(outName, t.replace(/<br\s*\/?>/gi, '\n')); else missing.push(`${rd}/${row.id}: ${j} 본문 비어 있음`);
     }
-    for (const m of ['review', 'independent']) { const op = path.join(src, `overview_${m}.txt`); if (fs.existsSync(op)) put(`overview_${m}.txt`, readText(op)); else missing.push(`${rd}/${row.id}: overview_${m}.txt 없음`); }
+    for (const m of ['independent']) { const op = path.join(src, `overview_${m}.txt`); if (fs.existsSync(op)) put(`overview_${m}.txt`, readText(op)); else missing.push(`${rd}/${row.id}: overview_${m}.txt 없음`); }
   }
   // 사건 목록(결과와 무관) + round-meta(없을 때만)
   const csv = '\uFEFF' + ['id,caseNo,date,actual_label,actual_binary', ...rows.map((r) => [r.id, r.caseNo, r.date, r.label, r.binary].map(q).join(','))].join('\r\n') + '\r\n';
