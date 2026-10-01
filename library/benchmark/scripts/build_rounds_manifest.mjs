@@ -73,13 +73,17 @@ for (let r = 1; r <= 10; r++) {
   const status = meta.status || (expected ? `${rows.length}/${expected} 건 게재` : `${rows.length}건 게재`);
   // 최신 방법론 파이프라인(가상 판결→검수→재검토→최종) 결과 + 법리 일치 판정 — 손으로 쓰는 pipeline.json에서 읽는다.
   const pipe = readJson(path.join(dir, 'pipeline.json'), null);
-  const cases = rows.map((row) => {
+  // 사건 목록(cases.csv, export_prep_cases.mjs가 작성)에는 있으나 results.csv에 아직 없는 사건 = 시험 전 준비 상태로 함께 게재한다.
+  const listed = readCsv(path.join(dir, 'cases.csv'));
+  const haveIds = new Set(rows.map((x) => x.id));
+  const allRows = [...rows, ...listed.filter((x) => !haveIds.has(x.id)).map((x) => ({ id: x.id, actual_label: x.actual_label, actual_binary: x.actual_binary, _prep: true }))];
+  const cases = allRows.map((row) => {
     const cdir = path.join(dir, row.id);
     const pc = pipe?.cases?.[row.id] || null;
     const docOrNull = (name) => exists(path.join(cdir, name)) ? rel(path.join(cdir, name)) : null;
     return {
       id: row.id, actual_label: row.actual_label, actual_binary: row.actual_binary,
-      pred_label: row.pred_label, pred_binary: row.pred_binary, correct: row.correct === 'true',
+      pred_label: row.pred_label || null, pred_binary: row.pred_binary || null, correct: row.correct === 'true', prepared_only: !!row._prep,
       conclusion_type: row.conclusion_type || null,
       latest_label: pc?.latest_label || null,
       legal_match: pc?.legal_match || null,

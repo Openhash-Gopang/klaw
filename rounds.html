@@ -261,7 +261,7 @@ function legalBadge(c) {
 // 사건별 표용 압축 셀: 배지만 보이고, 실제 결과·K-Law 결론·채점·근거는 마우스를 올리면 떠오르는 카드로 표시한다.
 function legalCell(c) {
   const m = c.legal_match;
-  const klaw = c.latest_label || `${c.pred_label} (${c.pred_binary})`;
+  const klaw = c.latest_label || (c.pred_label ? `${c.pred_label} (${c.pred_binary})` : '시험 전');
   const card = `<dl><dt>실제 대법원</dt><dd>${esc(c.actual_label)} (${esc(c.actual_binary)})</dd>
     <dt>K-Law 결론</dt><dd>${esc(klaw)}</dd>
     ${m ? `<dt>법리 일치</dt><dd>${esc(m.grade)}${m.score ? ' · ' + esc(m.score) : ''}</dd>${m.basis ? `<dt>채점 기준</dt><dd>${esc(m.basis)}</dd>` : ''}${m.note ? `<dt>근거</dt><dd>${esc(m.note)}</dd>` : ''}` : '<dt>법리 일치</dt><dd>미평가</dd>'}</dl>`;
