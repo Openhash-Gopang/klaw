@@ -59,7 +59,8 @@ function summarizeLegal(pipe) {
   const gs = Object.values(pipe.cases || {}).map((c) => c.legal_match?.grade).filter(Boolean);
   const cnt = (g) => gs.filter((x) => x === g).length;
   const graded = cnt('일치') + cnt('잠정 일치') + cnt('불일치');   // '재실행 대기' 등은 집계에서 제외
-  return { n: graded, match: cnt('일치'), provisional: cnt('잠정 일치'), mismatch: cnt('불일치'), pending: gs.length - graded, total: gs.length };
+  const excluded = cnt('절차형(채점 제외)');   // 소송수계·당사자적격·소송요건형 — 대법원이 실체를 판단하지 않아 이분 라벨·법리 일치 채점과 비교 불가
+  return { n: graded, match: cnt('일치'), provisional: cnt('잠정 일치'), mismatch: cnt('불일치'), pending: gs.length - graded - excluded, excluded, total: gs.length };
 }
 
 const rounds = [];
@@ -88,6 +89,7 @@ for (let r = 1; r <= maxRound; r++) {
       pred_label: row.pred_label || null, pred_binary: row.pred_binary || null, correct: row.correct === 'true', prepared_only: !!row._prep,
       conclusion_type: row.conclusion_type || null,
       latest_label: pc?.latest_label || null,
+      case_type: pc?.case_type || null,
       legal_match: pc?.legal_match || null,
       stages: pc?.stages || null,
       docs: {
