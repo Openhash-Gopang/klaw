@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-02T06:18:14.397Z",
+  "generated": "2026-10-02T07:41:47.752Z",
   "rounds": [
     {
       "round": 1,
@@ -503,8 +503,8 @@
     },
     {
       "round": 2,
-      "status": "10건 게재(이전 v15.2 초안 기록) · v17.1 채팅 실험 파일럿 1/10건 완료",
-      "method_version": "v17.1 (채팅 실험 진행 중 — 파일럿 1/10건 완료)",
+      "status": "10건 게재 · v17.1 시험 5/10건 완료(Claude 채팅 3건, DeepSeek API 2건) · 나머지 5건 진행 중",
+      "method_version": "v17.1 (절반은 Claude 채팅, 절반은 DeepSeek API — 진행 중, 5/10건 완료)",
       "decision_doc": "library/benchmark/rounds/r02/decision.md",
       "results_csv": "library/benchmark/rounds/r02/results.csv",
       "summary": {
@@ -520,15 +520,15 @@
         }
       },
       "legal_summary": {
-        "n": 3,
+        "n": 5,
         "match": 1,
-        "provisional": 0,
+        "provisional": 2,
         "mismatch": 2,
         "pending": 0,
-        "total": 3
+        "total": 5
       },
-      "pipeline_version": "v17.1 (검수 SP K-Law-Check v1.2 · Claude Sonnet 5.5 채팅 실험)",
-      "pipeline_note": "표본 10건 중 Claude 담당 3건(613169, 614333, 616517)의 최신 방법론 파이프라인이 끝났습니다. 나머지 사건은 진행 중이거나 이전 방법론 기록만 있어 '미평가'로 표시됩니다. 각 사건의 실행 환경은 legal_match.basis에 부기합니다.",
+      "pipeline_version": "v17.1 (검수 SP K-Law-Check v1.2 · Claude Sonnet 5.5 채팅 + DeepSeek V4 Flash API)",
+      "pipeline_note": "표본 10건 중 5건(Claude 채팅 3건: 613169·614333·616517, DeepSeek API 2건: 617163·617157)의 최신 방법론(v17.1) 파이프라인이 끝났습니다. 나머지 사건은 진행 중이거나 이전 방법론 기록만 있어 '미평가'로 표시됩니다. 각 사건의 실행 환경은 legal_match.basis에 부기합니다. 라운드는 절반은 Claude(채팅), 절반은 DeepSeek(API)로 나눠 진행합니다.",
       "candidate": null,
       "cases": [
         {
@@ -592,9 +592,37 @@
           "correct": true,
           "prepared_only": false,
           "conclusion_type": "확정적",
-          "latest_label": null,
-          "legal_match": null,
-          "stages": null,
+          "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "legal_match": {
+            "grade": "잠정 일치",
+            "score": "① 2/3 · ② 1/2 · ③ 1/2 (상고기각 → 원심 인용 범위 승계 기준)",
+            "note": "대법원은 상고를 모두 기각했다. 회고록의 표현이 허위사실 적시이고, 법인인 5·18단체들이 집단 표시에도 피해자로 특정되며, 저자·출판자의 위법성 조각(진실이라고 믿을 상당한 이유)이 인정되지 않는다고 본 원심을 유지했고, 원고 5(조카)도 언론중재법상 유족 범위에 한정되지 않고 개별 사정을 종합해 추모감정 침해를 인정할 수 있다고 보았다. K-Law(최종)는 법인의 명예, 집단 명예훼손의 특정성, 위법성 조각 부정까지는 대법원과 일치해 단체들에게 위자료를 인정했다. 그러나 허위성을 위법성 조각 단계로 미루고 판단하지 않았고, 유족 범위를 법 규정(언론중재법)에 한정해 조카인 원고 5의 청구를 기각했으며, 원심이 인용한 삭제 조건부 금지청구도 집행 가능성 부족으로 배척했다. 위자료 액수(각 2천만 원 대 원심 1천5백만 원)는 대법원이 판단하지 않아 채점에서 제외했다. 재검토 후 결과 표의 라벨이 '원고 전부승소'로 바뀐 것은 대안 주문의 문구를 잘못 읽은 결과이고, 본 주문은 '원고 일부승소'로 그대로다. 주의: 사회적으로 잘 알려진 사건이라 DeepSeek가 사건을 알아봤을 가능성을 배제할 수 없다(식별 신고 절차 없음).",
+            "basis": "v17.1 DeepSeek API 본 주문 채점(육안 대조, 판정 기준: ①·②·③ 합계 6/7 이상 일치, 4~5 잠정 일치, 3 이하 불일치 / 파기환송은 ①만 3 일치, 2 잠정 일치, 1 이하 불일치) · 실행 환경: DeepSeek V4 Flash API(deepseek-flash, thinking 켬, effort high, temperature 0.2) — 가상 판결·재검토는 생성 키, 검수는 별도 검수 키로 분리 호출. 방법론 v17.1 · 검수 SP K-Law-Check v1.2, 익명 개요(SIM-2026-000N)만 입력(팔 0), 웹 검색 없음, 사건당 1회 실행. 1회차는 개요 JSON 직렬화 오류로 무효(판단유보)였고 수정 후 재실행한 결과만 채택."
+          },
+          "stages": {
+            "virtual": {
+              "final": "library/benchmark/rounds/r02/pipeline/617163/generated_final.txt",
+              "raw": "library/benchmark/rounds/r02/pipeline/617163/generated.txt",
+              "summary": "STEPVSC 후 최종 판결문 작성. 단체들 각 2,000만 원 인용, 원고 5 기각, 조건부 금지청구 기각. 결정 규범 의존 선언, 종합 확신도 4/10, 조건부 결론(승패 방향 확정)."
+            },
+            "check": {
+              "path": "library/benchmark/rounds/r02/pipeline/617163/check.md",
+              "verdict": "재검토 권고",
+              "summary": "DeepSeek 검수(검수 키·SP v1.2): 재검토 권고."
+            },
+            "reconcile": {
+              "path": "library/benchmark/rounds/r02/pipeline/617163/reconcile.md",
+              "items": 7,
+              "accepted": 7,
+              "rebutted": 0,
+              "conclusion": "유지",
+              "summary": "수용 7·반박 0. 결론 유지(본 주문 변경 없음). 결과 표 라벨 '원고 전부승소'는 대안 주문 문구를 읽은 오류."
+            },
+            "final": {
+              "path": "library/benchmark/rounds/r02/pipeline/617163/final.txt",
+              "label": "원고 일부승소(조건부 결론 병기)"
+            }
+          },
           "docs": {
             "supreme": "library/benchmark/rounds/r02/617163/actual_supreme.txt",
             "second": "library/benchmark/rounds/r02/617163/actual_second.txt",
@@ -818,9 +846,37 @@
           "correct": true,
           "prepared_only": false,
           "conclusion_type": "확정적",
-          "latest_label": null,
-          "legal_match": null,
-          "stages": null,
+          "latest_label": "원고 패소",
+          "legal_match": {
+            "grade": "잠정 일치",
+            "score": "① 2/3 · ②③ N/A(파기환송)",
+            "note": "대법원은 원심 중 피고 은행 패소 부분을 파기환송했다. 배분요구 종기까지 배분요구를 하지 않은 임금채권자는 구 국세징수법상 배분권자가 될 수 없고, 배분처분은 취소되거나 당연무효가 아닌 한 공정력이 있어 배분금이 곧바로 부당이득이 되지 않는데, 안내 누락만으로 배분요구를 한 채권자로 간주한 원심은 법리오해이며 배분처분의 하자(취소·당연무효)를 심리하지 않았다는 것이다. K-Law(최종)는 배분요구 종기 도과로 배분참가 지위가 없다는 점, 안내 의무 위반이 배분요구로 간주되지 않는다는 점, 확정된 배분이 법률상 원인을 이룬다는 점에서 대법원과 일치한다. 다만 사후 소송으로 다툴 수 없다고 단정해 배분처분이 취소되거나 당연무효일 수 있다는 예외를 놓쳤고, 청구를 확정적으로 기각한 결론은 대법원이 하자를 심리하도록 환송한 것과 다르다. 이 점을 반영해 ① 2/3로 채점했다.",
+            "basis": "v17.1 DeepSeek API 본 주문 채점(육안 대조, 판정 기준: ①·②·③ 합계 6/7 이상 일치, 4~5 잠정 일치, 3 이하 불일치 / 파기환송은 ①만 3 일치, 2 잠정 일치, 1 이하 불일치) · 실행 환경: DeepSeek V4 Flash API(deepseek-flash, thinking 켬, effort high, temperature 0.2) — 가상 판결·재검토는 생성 키, 검수는 별도 검수 키로 분리 호출. 방법론 v17.1 · 검수 SP K-Law-Check v1.2, 익명 개요(SIM-2026-000N)만 입력(팔 0), 웹 검색 없음, 사건당 1회 실행. 1회차는 개요 JSON 직렬화 오류로 무효(판단유보)였고 수정 후 재실행한 결과만 채택."
+          },
+          "stages": {
+            "virtual": {
+              "final": "library/benchmark/rounds/r02/pipeline/617157/generated_final.txt",
+              "raw": "library/benchmark/rounds/r02/pipeline/617157/generated.txt",
+              "summary": "STEPVSC 후 최종 판결문. 원고 패소(원고들 청구 모두 배척). 배분요구 부재로 배분참가 지위 불성립, 미검증 결정 규범 의존, 종합 확신도 6/10."
+            },
+            "check": {
+              "path": "library/benchmark/rounds/r02/pipeline/617157/check.md",
+              "verdict": "재검토 권고",
+              "summary": "DeepSeek 검수(검수 키·SP v1.2): 재검토 권고. 조문 문언을 개요에 없이 구체 열거한 부분 등을 [출처 없음]으로 지적."
+            },
+            "reconcile": {
+              "path": "library/benchmark/rounds/r02/pipeline/617157/reconcile.md",
+              "items": 8,
+              "accepted": 7,
+              "rebutted": 1,
+              "conclusion": "유지",
+              "summary": "수용 7·반박 1. 결론 유지."
+            },
+            "final": {
+              "path": "library/benchmark/rounds/r02/pipeline/617157/final.txt",
+              "label": "원고 패소"
+            }
+          },
           "docs": {
             "supreme": "library/benchmark/rounds/r02/617157/actual_supreme.txt",
             "second": "library/benchmark/rounds/r02/617157/actual_second.txt",

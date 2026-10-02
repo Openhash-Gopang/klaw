@@ -1,4 +1,4 @@
 {
-  "method_version": "v17.1 (채팅 실험 진행 중 — 파일럿 1/10건 완료)",
-  "status": "10건 게재(이전 v15.2 초안 기록) · v17.1 채팅 실험 파일럿 1/10건 완료"
+  "method_version": "v17.1 (절반은 Claude 채팅, 절반은 DeepSeek API — 진행 중, 5/10건 완료)",
+  "status": "10건 게재 · v17.1 시험 5/10건 완료(Claude 채팅 3건, DeepSeek API 2건) · 나머지 5건 진행 중"
 }
