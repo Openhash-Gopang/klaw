@@ -1,5 +1,5 @@
 {
-  "method_version": "v15.1 (기준선)",
+  "method_version": "v17.0.8 (기준선 v15.1 → 파이프라인 v17.0.8 재실행, 검수 SP K-Law-Check v1.1)",
   "status": "10건 게재 — 시험 결과 8건 · 2건(616249·620419)은 원문·개요만 게재(시험 대기)",
   "candidate": {
     "label": "v15_2",
