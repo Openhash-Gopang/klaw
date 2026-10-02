@@ -70,6 +70,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .ctable td .stage-btns .sub a{border:none;padding:0;font-size:11px;color:var(--txt3);text-decoration:underline}
 .ctable td .badge{white-space:nowrap}
 .badge-pv{background:#fffbeb;color:#92400e} .badge-na{background:var(--bg);color:var(--txt4)}
+.badge-excl{background:#eef2ff;color:#4338ca}
 .lm-tip{display:inline-block;cursor:help;outline:none}
 .lm-src{display:none}
 #lmCard{position:fixed;z-index:50;width:340px;max-width:calc(100vw - 24px);background:var(--sur);border:1px solid var(--bdr2);border-radius:var(--r);box-shadow:0 8px 24px rgba(17,24,39,.14);padding:12px 14px;font-size:12.5px;line-height:1.55;color:var(--txt2);display:none;pointer-events:none}
@@ -314,7 +315,7 @@ function docLink(label, href) { return href ? `<a href="${esc(viewerUrl(href, la
 function legalBadge(c) {
   const m = c.legal_match;
   if (!m) return '<span class="badge badge-na">미평가</span>';
-  const cls = m.grade === '재실행 대기' ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+  const cls = m.grade === '재실행 대기' ? 'badge-na' : m.grade === '절차형(채점 제외)' ? 'badge-excl' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
   return `<span class="badge ${cls}" title="${esc(m.note)}">${esc(m.grade)}</span><span class="lm-score">${esc(m.score || '')}</span>`;
 }
 
@@ -325,7 +326,7 @@ function legalCell(c) {
   const card = `<dl><dt>실제 대법원</dt><dd>${esc(c.actual_label)} (${esc(c.actual_binary)})</dd>
     <dt>K-Law 결론</dt><dd>${esc(klaw)}</dd>
     ${m ? `<dt>법리 일치</dt><dd>${esc(m.grade)}${m.score ? ' · ' + esc(m.score) : ''}</dd>${m.basis ? `<dt>채점 기준</dt><dd>${esc(m.basis)}</dd>` : ''}${m.note ? `<dt>근거</dt><dd>${esc(m.note)}</dd>` : ''}` : '<dt>법리 일치</dt><dd>미평가</dd>'}</dl>`;
-  const cls = !m || m.grade === '재실행 대기' ? 'badge-na' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
+  const cls = !m || m.grade === '재실행 대기' ? 'badge-na' : m.grade === '절차형(채점 제외)' ? 'badge-excl' : m.grade === '일치' ? 'badge-ok' : m.grade === '잠정 일치' ? 'badge-pv' : 'badge-ng';
   return `<span class="lm-tip" tabindex="0"><span class="badge ${cls}">${m ? esc(m.grade) : '미평가'}</span><div class="lm-src" hidden>${card}</div></span>`;
 }
 
@@ -369,8 +370,9 @@ function renderRound(r) {
       <div class="rstat"><b>${l.match + l.provisional}/${l.n}</b><span>법리 일치 (확정 ${l.match} · 잠정 ${l.provisional})</span></div>
       <div class="rstat"><b>${l.mismatch}/${l.n}</b><span>법리 불일치</span></div>
       ${l.pending ? `<div class="rstat"><b>${l.pending}</b><span>재실행 대기(집계 제외)</span></div>` : ''}
+      ${l.excluded ? `<div class="rstat"><b>${l.excluded}</b><span>절차형(소송수계·당사자적격·소송요건) — 채점 제외</span></div>` : ''}
     </div>
-    <div class="snote">일치 여부는 결론 문구가 아니라 <b>법리 일치</b>(일치도 평가 기준 v3.0, 육안 대조)로 판정합니다. 기준 방법론: ${esc(r.pipeline_version || '')}. 잠정 일치 = 핵심 법리·결론 방향은 대법원 이유와 맞으나 ①~③ 정밀 채점이 끝나지 않은 사건. 사건마다 채점 기준이 된 실행 버전은 호버 카드의 '채점 기준'에 표시합니다.</div>`;
+    <div class="snote">일치 여부는 결론 문구가 아니라 <b>법리 일치</b>(일치도 평가 기준 v3.0, 육안 대조)로 판정합니다. 기준 방법론: ${esc(r.pipeline_version || '')}. 잠정 일치 = 핵심 법리·결론 방향은 대법원 이유와 맞으나 ①~③ 정밀 채점이 끝나지 않은 사건. 절차형(채점 제외) = 대법원 판결이 사건의 실체를 판단하지 않고 소송수계·당사자적격·소송요건 등 절차 쟁점만으로 결론 낸 사건 — 이분 라벨·법리 일치 채점과 비교 대상이 아니므로 별도 분류하고 집계에서 뺀다. 사건마다 채점 기준이 된 실행 버전은 호버 카드의 '채점 기준'에 표시합니다.</div>`;
   } else if (s) {
     html += `<div class="rstats">
       <div class="rstat"><b>${s.correct}/${s.n}</b><span>결론 문구 일치 (구 방식·참고)</span></div>

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-02T10:08:54.006Z",
+  "generated": "2026-10-02T18:00:02.156Z",
   "rounds": [
     {
       "round": 1,
@@ -25,7 +25,8 @@
         "provisional": 1,
         "mismatch": 2,
         "pending": 0,
-        "total": 8
+        "excluded": 1,
+        "total": 9
       },
       "pipeline_version": "v17.0.8 (검수 SP K-Law-Check v1.1)",
       "pipeline_note": null,
@@ -92,6 +93,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": "원고 일부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3 · ② 2/2 · ③ 2/2",
@@ -127,6 +129,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 패소",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 2/3 · ② 2/2 · ③ 2/2",
@@ -173,6 +176,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": "원고 전부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 1/3 · ② 0/2 · ③ 0/2",
@@ -219,6 +223,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": "원고 전부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3 · ② 2/2 · ③ 1/2",
@@ -265,6 +270,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": "원고 전부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3 · ②③ N/A(파기환송)",
@@ -311,6 +317,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": "원고 일부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 1/3 · ②③ N/A(파기환송)",
@@ -363,6 +370,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송 (파기환송)",
           "latest_label": "원고 전부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3",
@@ -409,6 +417,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": "원고 일부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "잠정 일치",
             "score": "① 2/3 · ②③ N/A(파기환송)",
@@ -461,6 +470,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -485,7 +495,13 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
-          "legal_match": null,
+          "case_type": "절차형(소송수계) — 채점 제외",
+          "legal_match": {
+            "grade": "절차형(채점 제외)",
+            "score": null,
+            "note": "대법원 판결의 주문·이유 전부가 소송수계신청의 적법성(상속포기 신고가 수리된 소송수계피신청인을 당사자로 삼은 원심의 잘못)만을 다루고 있고, 이 사건의 실체 쟁점(A 회사 명의 이전의 귀책, 상계합의, 근저당권·지상권으로 인한 이행불능, 손해액 산정)은 대법원이 전혀 판단하지 않았다. K-Law(v17.2)가 생성한 가상 판결은 반대로 실체 쟁점 전부를 판단하면서 소송수계 적법성 쟁점 자체를 다루지 않아, 두 판결은 비교 가능한 쟁점을 공유하지 않는다. 2026-10-03 재분류: 소송수계·당사자적격·소송요건형 사건으로 분류해 이분 라벨(유지/파기)·법리 일치 채점에서 제외한다. 이런 유형은 별도의 평가 방법론(절차 쟁점 자체의 적법성 판단 일치 여부)을 적용할 예정이다.",
+            "basis": null
+          },
           "stages": null,
           "docs": {
             "supreme": "library/benchmark/rounds/r01/620419/actual_supreme.txt",
@@ -520,11 +536,12 @@
         }
       },
       "legal_summary": {
-        "n": 10,
+        "n": 9,
         "match": 2,
         "provisional": 3,
-        "mismatch": 5,
+        "mismatch": 4,
         "pending": 0,
+        "excluded": 1,
         "total": 10
       },
       "pipeline_version": "v17.1 (검수 SP K-Law-Check v1.2 · Claude Sonnet 5.5 채팅 + DeepSeek V4 Flash API)",
@@ -541,6 +558,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송 (부분 파기환송)",
           "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 2/3 · ② 0/2 · ③ 0/2 (상고기각 → 원심 인용 범위 승계 기준)",
@@ -593,6 +611,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "잠정 일치",
             "score": "① 2/3 · ② 1/2 · ③ 1/2 (상고기각 → 원심 인용 범위 승계 기준)",
@@ -645,6 +664,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": "원고 패소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 1/3 · ② 0/2 · ③ 0/2 (상고기각 → 원심 인용 범위 승계 기준)",
@@ -697,6 +717,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송 (파기환송)",
           "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3 · ②③ N/A(파기환송)",
@@ -751,6 +772,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 1/3 · ②③ N/A(파기환송)",
@@ -807,6 +829,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 일부승소",
+          "case_type": null,
           "legal_match": {
             "grade": "잠정 일치",
             "score": "① 2/3 · ②③ N/A(파기환송)",
@@ -859,6 +882,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": "원고 승소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "일치",
             "score": "① 3/3 · ②③ N/A(파기환송)",
@@ -911,6 +935,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 패소(조건부 결론 병기)",
+          "case_type": null,
           "legal_match": {
             "grade": "불일치",
             "score": "① 1/3 · ② 0/2 · ③ 0/2 (상고기각 → 원심 인용 범위 승계 기준)",
@@ -963,6 +988,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": "원고 패소",
+          "case_type": null,
           "legal_match": {
             "grade": "잠정 일치",
             "score": "① 2/3 · ②③ N/A(파기환송)",
@@ -1015,11 +1041,12 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론 (상고기각)",
           "latest_label": "원고 일부승소(조건부 결론 병기)",
+          "case_type": "절차형(당사자능력·직권조사사항) — 채점 제외",
           "legal_match": {
-            "grade": "불일치",
-            "score": "① 1/3 · ②③ N/A(파기환송)",
-            "note": "대법원은 원심을 파기환송했다. 피고 복지회가 피고 조합과 별개의 독립된 비법인사단인지는 직권조사사항인데, 복지회의 대표자·의사결정기구·재정이 모두 조합과 구별되지 않아 독립 비법인사단으로 보기 어렵다고 보았고, 청구가 복지회의 당사자능력 없음과 조합의 책임을 가르는 구조라면 예비적·선택적 공동소송에 해당할 여지가 있어 이심 범위를 가려야 한다고 지적했다. K-Law(최종)는 복지회를 독립 비법인사단으로 전제하고 복지회에 대한 청구는 인용, 조합에 대한 청구는 기각하는 원고 일부승소로 결론 내렸고, 복지회가 조합의 내부 조직이어서 당사자능력이 없다고 보는 경우는 조건부 대안으로만 병기했다. 개정 절차(회원 2/3 동의)는 대법원이 판단하지 않아 채점에서 제외했다. 재검토 후 결과 표의 라벨이 '원고 전부승소'로 바뀐 것은 대안 주문 문구를 읽은 파서 오류이며 본 주문은 '원고 일부승소'로 그대로다. 주의: 입력한 원심 인정사실 요지 1항(복지회가 운영위원회·임직원·다수결·고유 자산을 갖춘다)은 사실인정이 아니라 원심이 당사자능력을 인정한 근거 평가에 가까워 원심 결론의 앵커가 됐을 가능성이 높다. 대법원은 같은 기록을 두고 대표·의사결정기구·재정이 조합과 구별되지 않는다고 평가했다. 같은 검수 보고서로 Claude(창 D)가 재검토한 결과도 본 주문을 유지하고 당사자능력 부정 등 대안 주문을 병기했다(채점 불변).",
-            "basis": "v17.1 팔 1 본 주문 채점(육안 대조, 판정 기준: 파기환송은 ①만 3 일치·2 잠정 일치·1 이하 불일치) · 실행 환경(팔 1: 개요 + 원심 인정사실·증거판단 요지): 가상 판결 = Claude Sonnet 5.5 채팅 창 A(웹·메모리 끔, 배치 3, 두 사건 연속), 검수 = 같은 창 A의 같은 대화(독립성 훼손: 판결문을 쓴 대화가 검수도 함), 재검토 = DeepSeek V4 Flash API(생성 키; 창 C·D가 사용 한도에 걸려 대체), 방법론 v17.1 · 검수 SP v1.2. 입력 개요는 rounds/r02/<id>/overview_arm1.txt."
+            "grade": "절차형(채점 제외)",
+            "score": null,
+            "note": "대법원은 \"상고이유에 관하여 판단하지 아니한 채\" 피고 복지회의 당사자능력(비법인사단 여부, 직권조사사항)만을 이유로 원심판결을 파기환송했다 — 원고가 다툰 실체 쟁점(복지회 규정 개정의 효력 요건)은 대법원 심리 대상에 오르지 못했다. 2026-10-03 재분류: 당사자능력은 소송요건이므로 소송수계·당사자적격·소송요건형 사건으로 분류해 이분 라벨·법리 일치 채점에서 제외한다. 다만 이 사건은 620419(소송수계, 실체와 무관한 절차적 하자)와 달리 당사자능력 판단 자체가 결과를 좌우하는 사건이었다는 점에서 완전히 같은 유형은 아니다 — 별도 평가 방법론 설계 시 이 차이를 반영할 것. (참고, 구 채점: 불일치 ① 1/3 — 대법원은 원심을 파기환송했다. 피고 복지회가 피고 조합과 별개의 독립된 비법인사단인지는 직권조사사항인데, 복지회의 대표자·의사결정기구·재정이 모두 조합과 구별되지 않아 독립 비법인사단으로 보기 어렵다고 보았고, 청구가 복지회의 당사자능력 없음과 조합의 책임을 가르는 구조라면 예비적·선택적 공동소송에 해당할 여지가 있어 이심 범위를 가려야 한다고 지적했다. K-Law(최종)는 복지회를 독립 비법인사단으로 전제하고 복지회에 대한 청구는 인용, 조합에 대한 청구는 기각하는 원고 일부승소로 결론 내렸고, 복지회가 조합의 내부 조직이어서 당사자능력이 없다고 보는 경우는 조건부 대안으로만 병기했다. 개정 절차(회원 2/3 동의)는 대법원이 판단하지 않아 채점에서 제외했다. 재검토 후 결과 표의 라벨이 '원고 전부승소'로 바뀐 것은 대안 주문 문구를 읽은 파서 오류이며 본 주문은 '원고 일부승소'로 그대로다. 주의: 입력한 원심 인정사실 요지 1항(복지회가 운영위원회·임직원·다수결·고유 자산을 갖춘다)은 사실인정이 아니라 원심이 당사자능력을 인정한 근거 평가에 가까워 원심 결론의 앵커가 됐을 가능성이 높다. 대법원은 같은 기록을 두고 대표·의사결정기구·재정이 조합과 구별되지 않는다고 평가했다. 같은 검수 보고서로 Claude(창 D)가 재검토한 결과도 본 주문을 유지하고 당사자능력 부정 등 대안 주문을 병기했다(채점 불변).)",
+            "basis": "v17.1 팔 1 본 주문 채점(육안 대조, 판정 기준: 파기환송은 ①만 3 일치·2 잠정 일치·1 이하 불일치) · 실행 환경(팔 1: 개요 + 원심 인정사실·증거판단 요지): 가상 판결 = Claude Sonnet 5.5 채팅 창 A(웹·메모리 끔, 배치 3, 두 사건 연속), 검수 = 같은 창 A의 같은 대화(독립성 훼손: 판결문을 쓴 대화가 검수도 함), 재검토 = DeepSeek V4 Flash API(생성 키; 창 C·D가 사용 한도에 걸려 대체), 방법론 v17.1 · 검수 SP v1.2. 입력 개요는 rounds/r02/<id>/overview_arm1.txt. / 2026-10-03: 절차형으로 재분류, 위 사유로 채점 제외(구 채점 기록은 note 참고용 보존)."
           },
           "stages": {
             "virtual": {
@@ -1096,6 +1123,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1120,6 +1148,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송(파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1144,6 +1173,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1168,6 +1198,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1192,6 +1223,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1216,6 +1248,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1240,6 +1273,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송(파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1264,6 +1298,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1288,6 +1323,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송(파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1312,6 +1348,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1361,6 +1398,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송 (파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1385,6 +1423,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송 (파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1409,6 +1448,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1433,6 +1473,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송(파기환송)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1457,6 +1498,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1481,6 +1523,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1505,6 +1548,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론 (상고기각)",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1529,6 +1573,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1553,6 +1598,7 @@
           "prepared_only": false,
           "conclusion_type": "절차적 환송",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1577,6 +1623,7 @@
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1615,6 +1662,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1639,6 +1687,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1663,6 +1712,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1687,6 +1737,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1711,6 +1762,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1735,6 +1787,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1759,6 +1812,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1783,6 +1837,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1807,6 +1862,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1831,6 +1887,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1869,6 +1926,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1893,6 +1951,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1917,6 +1976,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1941,6 +2001,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1965,6 +2026,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -1989,6 +2051,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2013,6 +2076,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2037,6 +2101,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2061,6 +2126,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2085,6 +2151,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2123,6 +2190,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2147,6 +2215,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2171,6 +2240,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2195,6 +2265,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2219,6 +2290,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2243,6 +2315,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2267,6 +2340,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2291,6 +2365,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2315,6 +2390,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2339,6 +2415,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2377,6 +2454,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2401,6 +2479,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2425,6 +2504,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2449,6 +2529,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2473,6 +2554,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2497,6 +2579,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2521,6 +2604,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2545,6 +2629,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2569,6 +2654,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2593,6 +2679,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2631,6 +2718,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2655,6 +2743,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2679,6 +2768,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2703,6 +2793,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2727,6 +2818,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2751,6 +2843,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2775,6 +2868,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2799,6 +2893,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2823,6 +2918,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2847,6 +2943,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2885,6 +2982,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2909,6 +3007,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2933,6 +3032,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2957,6 +3057,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -2981,6 +3082,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -3005,6 +3107,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -3029,6 +3132,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -3053,6 +3157,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -3077,6 +3182,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
@@ -3101,6 +3207,7 @@
           "prepared_only": true,
           "conclusion_type": null,
           "latest_label": null,
+          "case_type": null,
           "legal_match": null,
           "stages": null,
           "docs": {
