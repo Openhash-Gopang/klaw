@@ -350,7 +350,7 @@ function stageBtns(c, key) {
   } else if (x?.path) {
     const tip = key === 'check' ? `${x.verdict || ''} ${x.summary || ''}` : key === 'reconcile' ? `지적 ${x.items}건 · 수용 ${x.accepted} · 반박 ${x.rebutted} · 결론 ${x.conclusion}${x.summary ? ' — ' + x.summary : ''}` : `최종 결론 ${x.label || ''}`;
     out.push(stageBtn('열기', x.path, tip.trim(), STAGE_TABS.find((t) => t.key === key).label + ' - ' + c.id));
-    if (x.alt_path) out.push(`<span class="sub">${stageBtn(esc(x.alt_label || '비교'), x.alt_path, '비교용 보고서(재검토에는 쓰지 않음)', (x.alt_label || '비교') + ' 검수 - ' + c.id)}</span>`);
+    if (x.alt_path) out.push(`<span class="sub">${stageBtn(esc(x.alt_label || '비교'), x.alt_path, (x.alt_tip || '비교용 보고서(재검토에는 쓰지 않음)'), (x.alt_label || '비교') + ' ' + (x.alt_title || '검수') + ' - ' + c.id)}</span>`);
   }
   return out.length ? `<div class="stage-btns">${out.join('')}</div>` : '<span class="na">–</span>';
 }
