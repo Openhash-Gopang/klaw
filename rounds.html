@@ -398,14 +398,16 @@ function renderCases(r) {
   let html = `<table class="ctable"><thead><tr><th>사건</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th title="원심의 판단 요지와 대법원 결론을 뺀 개요 — K-Law에 입력한 개요">사건<br>개요</th>${STAGE_TABS.map((t) => `<th title="${esc(t.note)}">${t.label}</th>`).join('')}</tr></thead><tbody>`;
   for (const c of r.cases) {
     const d = c.docs;
+    const mj = c.legal_match && c.legal_match.model_judgment;
     html += `<tr>
       <td>${esc(c.id)}</td>
       <td>${legalCell(c)}</td>
-      <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
+      <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic && !mj) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
         ${d.easy_explain ? `<a href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">쉬운 설명</a>` : '<span class="na-cell">쉬운 설명</span>'}
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
         ${d.defendant_theory ? `<a href="${esc(viewerUrl(d.defendant_theory, '피고의 법리 - ' + c.id))}" target="_blank" rel="noopener">피고 논거</a>` : '<span class="na-cell">피고 논거</span>'}
         ${d.judgment_logic ? `<a href="${esc(viewerUrl(d.judgment_logic, '판결의 논리 - ' + c.id))}" target="_blank" rel="noopener">판결 논리</a>` : '<span class="na-cell">판결 논리</span>'}
+        ${mj ? `<a href="${esc(viewerUrl(mj, '통합 판결문 - ' + c.id))}" target="_blank" rel="noopener" class="lm-tip" tabindex="0">통합 판결문<span class="lm-src" hidden>1, 2, 3심 판결문을 통합한 하나의 표준 혹은 모범 판결문</span></a>` : '<span class="na-cell">통합 판결문</span>'}
       </div>`}</td>
       <td>${docLink('대법원', d.supreme)}</td>
       <td>${docLink('2심', d.second)}</td>
