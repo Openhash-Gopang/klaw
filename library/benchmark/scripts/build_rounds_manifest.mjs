@@ -63,7 +63,9 @@ function summarizeLegal(pipe) {
 }
 
 const rounds = [];
-for (let r = 1; r <= 10; r++) {
+// 10라운드(개발 세트) 이후에도 klaw_intake.mjs가 r11, r12, …를 계속 만들므로, 존재하는 라운드 폴더 중 가장 큰 번호까지 훑는다.
+const maxRound = Math.max(10, ...fs.readdirSync(ROUNDS_DIR).map((n) => (n.match(/^r(\d+)$/) || [])[1]).filter(Boolean).map(Number));
+for (let r = 1; r <= maxRound; r++) {
   const rd = `r${String(r).padStart(2, '0')}`;
   const dir = path.join(ROUNDS_DIR, rd);
   if (!fs.existsSync(dir)) { rounds.push({ round: r, status: '예정' }); continue; }
