@@ -117,6 +117,8 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 .daylog-menu a .dl-date{display:block;font-weight:700;color:var(--txt);font-size:12.5px;margin-bottom:2px}
 .daylog-menu a .dl-desc{display:block;color:var(--txt3);font-size:11.5px;line-height:1.5}
 .daylog-empty{padding:14px;font-size:12.5px;color:var(--txt4);text-align:center}
+.daylog-menu a.dl-summary{font-weight:700;color:var(--pri-dk);background:var(--bg)}
+.daylog-menu a.dl-summary:hover{color:var(--pri-dk)}
 .envbox[hidden]{display:none}
 .envbox{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;margin-bottom:20px}
 .envbox h2{font-size:15px;color:var(--txt);margin-bottom:4px}
@@ -426,6 +428,7 @@ const DAY_LOGS = [
 // 방법론 갱신 기록 — 방법론 문서(md) 자체의 버전별 스냅샷을 연결한다.
 // 새 버전이 생기면 이 배열 맨 앞에 추가한다(최신순).
 const METHOD_LOGS = [
+  { version: 'v17.2', desc: '3라운드 진행 전 상식·원칙 우선 원칙 보강 3건 반영 — P5 STEP 0-α 순수성 격리(업계·제도 용어 등 영역 특유 전문 개념어 사용 금지, 위반 시 재작성 의무) · P6 강제규칙 3-1 (c-3)·(c-3-1) 신설(상식-법리 상충이 재적용 후에도 남으면 상식을 주위적 결론·법리를 예비적 결론으로 전환, 강행규정 문언·전원합의체 정책적 이유·일반화 심사 중 하나를 적시 못 하면 자동 전환) · P7 공리 B-1 ①-1 일반화 대상 고정(상대방 논거를 한정 조건을 생략한 과장된 버전으로 바꿔 쓴 뒤 일반화 심사를 적용하는 것을 금지, 일반화 심사 직전 원문 보존 자기 점검 의무화). 증거 사건: 616249(P5·P6), 614333(P7). 3라운드 적용', href: 'klaw_v17_2.md' },
   { version: 'v17.1', desc: '1라운드 발견 허점 4건 반영 — P1 대상 대조표(A-0-S-ω, 개요 권리 호칭 치환 방지·게이트 대상 고정) · P2 강제규칙 3-1 개정(방향성 원칙의 수혜자·불이익 당사자 기록, 원칙 재적용, 모순 잔존 시 조건부 결론) · P3 결정 규범 의존 선언(B-7-③-ν, 미검증 결정 규범 보유 시 확신도 6/10 상한) · P4 C-α 게이트 (14)~(16)과 재검토 규약(수용 지적의 결론 영향 표기). 2라운드 적용', href: 'klaw_v17_1.md' },
   { version: 'v17.0.8', desc: 'STEP V·STEPVSC가 찾아낸 정정 내용을 실제 최종 판결문 전체에 병합 — `[최종 판결문 시작]...[최종 판결문 끝]` 전체 재작성 요구, `self_check.final_text` 채택 및 채점용 주문(order) 재추출, `<id>_final.txt`·`results.csv`의 `sc_final_source` 열 추가', href: 'klaw_v17_0.md' },
   { version: 'v17.0.7', desc: 'SELFCHECK 자동 감지 결함 수정(anchor 문자열 불일치로 V-6·V-7 lint가 실행 경로에서 한 번도 발동하지 않던 버그) · STEP V-공통점검(STEPVSC) 신설 — lintB 트리거 유무와 무관하게 STEP B 직후 항상 실행되는 범용 자기 정합성 점검', href: 'klaw_v17_0.md' },
@@ -438,16 +441,19 @@ const METHOD_LOGS = [
 // 검수 SP — K-Law 판결문을 별도 세션(가능하면 별도 모델)에서 사후 검수하는 SP.
 // 새 버전이 생기면 이 배열 맨 앞에 추가한다(최신순).
 const CHECK_LOGS = [
+  { version: 'v1.3 (K-Law v17.2 대응)', desc: 'M-7 신설 — 본체 v17.2의 자기 점검 선언 3종(P5 0-α 순수성 자기 점검, P6 강제규칙 3-1 발동 여부·(c-3)/(c-3-1) 사유 기재, P7 일반화 대상 원문 보존 확인)이 실제 본문과 들어맞는지 독립 세션에서 재대조. 세 하위 대조 모두 텍스트·선언 대조 전용이며, (c-3)의 정책적 근거가 내용상 타당한지는 판정하지 않음(사람의 채점에 위임). 파일명을 klaw_check_v17_1.md에서 klaw_check_v17_2.md로 변경', href: 'klaw_check_v17_2.md' },
   { version: 'v1.2 (K-Law v17.1 대응)', desc: 'M-4 대상 대조(호칭 치환·게이트 대상 이탈) · M-5 방향성 원칙 수혜자 대조(판결문 내부 모순) · M-6 결정 규범 의존 대조(선언 누락·확신도 상한 위반) 신설, 모든 지적에 결론 영향 후보(있음/없음/불명) 병기 — 세 모듈 모두 텍스트 대조 전용이며 법리 판단은 하지 않음', href: 'klaw_check_v17_1.md' },
   { version: 'v1.1 (K-Law v17.0 대응)', desc: 'M-1b 신설(공리 J §7-3·V-7 미검증 플래그 전파 위반을 독립 세션에서 재확인) · STEP V·STEPVSC 자기 검증 이력과 v17.0.8 최종 판결문 병합 블록의 취급 방법을 입력 규약에 명시 · 파일명을 대응 K-Law 본체 버전 표기(klaw_check_v17_0.md)로 변경하고 본체와 동일한 자동탐지·버전 불일치 경고 도입', href: 'klaw_check_v17_0.md' },
   { version: 'v1.0', desc: '최초 작성 — 법령 원문 텍스트 대조(M-1)·특별법 구조적 열거(M-2)·프레임 대체 대조(M-3, 선택) 3모듈. 1차 생성과 같은 모델의 자기 확인(에코 챔버) 대신 텍스트 대조·구조적 열거로 좁힌 검증만 신뢰하도록 설계(617151 파일럿 감사 재현용 원문은 library/benchmark/method/dev/klaw_check_v1_0_FROZEN.md에 보존)', href: 'library/benchmark/method/dev/klaw_check_v1_0_FROZEN.md' },
 ];
 
-function initDropdownLog(wrapId, btnId, menuId, items, renderItem, emptyText) {
+function initDropdownLog(wrapId, btnId, menuId, items, renderItem, emptyText, summary) {
   const wrap = document.getElementById(wrapId);
   const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
-  menu.innerHTML = items.length ? items.map(renderItem).join('') : `<div class="daylog-empty">${esc(emptyText)}</div>`;
+  const body = items.length ? items.map(renderItem).join('') : `<div class="daylog-empty">${esc(emptyText)}</div>`;
+  const summaryHtml = summary ? `<a class="dl-summary" href="${esc(viewerUrl(summary.href, summary.label))}" target="_blank" rel="noopener" role="menuitem">${esc(summary.label)}</a>` : '';
+  menu.innerHTML = summaryHtml + body;
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const open = wrap.classList.toggle('open');
@@ -469,12 +475,14 @@ initDropdownLog('daylog', 'daylogBtn', 'daylogMenu', DAY_LOGS, (d) =>
 initDropdownLog('methodlog', 'methodlogBtn', 'methodlogMenu', METHOD_LOGS, (m) =>
   `<a href="${esc(viewerUrl(m.href, m.version + ' 방법론'))}" target="_blank" rel="noopener" role="menuitem">
     <span class="dl-date">${esc(m.version)}</span><span class="dl-desc">${esc(m.desc)}</span>
-  </a>`, '아직 기록이 없습니다.');
+  </a>`, '아직 기록이 없습니다.',
+  { href: 'library/benchmark/method/CHANGELOG_klaw.md', label: '📄 전체 변경 이력 정리본(CHANGELOG, md)' });
 
 initDropdownLog('checklog', 'checklogBtn', 'checklogMenu', CHECK_LOGS, (c) =>
   `<a href="${esc(viewerUrl(c.href, 'K-Law-Check ' + c.version))}" target="_blank" rel="noopener" role="menuitem">
     <span class="dl-date">${esc('K-Law-Check ' + c.version)}</span><span class="dl-desc">${esc(c.desc)}</span>
-  </a>`, '아직 기록이 없습니다.');
+  </a>`, '아직 기록이 없습니다.',
+  { href: 'library/benchmark/method/CHANGELOG_klaw_check.md', label: '📄 전체 변경 이력 정리본(CHANGELOG, md)' });
 
 (() => {
   const card = document.createElement('div'); card.id = 'lmCard'; document.body.appendChild(card);
