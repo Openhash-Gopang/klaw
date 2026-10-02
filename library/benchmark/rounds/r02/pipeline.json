@@ -1,7 +1,7 @@
 {
  "_doc": "라운드 2(채팅 실험) 최신 방법론 파이프라인 결과 + 법리 일치 판정(일치도 평가 기준 v3.0, 육안 대조). build_rounds_manifest.mjs가 읽어 rounds-manifest.json에 합친다. 이 라운드는 API가 아니라 서로 다른 계정의 Claude Sonnet 5.5 채팅 창(가상 판결·재검토 = 창 A, 검수 = 창 B)에서 진행했다. 조건부 결론은 본 주문만 채점한다.",
  "method_version": "v17.1 (검수 SP K-Law-Check v1.2 · Claude Sonnet 5.5 채팅 + DeepSeek V4 Flash API)",
- "note": "표본 10건 중 5건(Claude 채팅 3건: 613169·614333·616517, DeepSeek API 2건: 617163·617157)의 최신 방법론(v17.1) 파이프라인이 끝났습니다. 나머지 사건은 진행 중이거나 이전 방법론 기록만 있어 '미평가'로 표시됩니다. 각 사건의 실행 환경은 legal_match.basis에 부기합니다. 라운드는 절반은 Claude(채팅), 절반은 DeepSeek(API)로 나눠 진행합니다.",
+ "note": "표본 10건 중 7건(Claude 채팅 5건: 613169·614333·616517·622961·616029, DeepSeek API 2건: 617163·617157)의 최신 방법론(v17.1) 파이프라인이 끝났습니다. 622961·616029는 팔 1(개요 + 원심 인정사실 요지) 입력이며, 나머지는 팔 0(개요만)입니다. 각 사건의 실행 환경은 legal_match.basis에 부기합니다. 라운드는 절반은 Claude(채팅), 절반은 DeepSeek(API)로 나눠 진행합니다.",
  "cases": {
   "613169": {
    "latest_label": "원고 일부승소(조건부 결론 병기)",
@@ -169,8 +169,75 @@
      "label": "원고 패소"
     }
    }
+  },
+  "622961": {
+   "latest_label": "원고 일부승소(조건부 결론 병기)",
+   "legal_match": {
+    "grade": "불일치",
+    "score": "① 1/3 · ②③ N/A(파기환송)",
+    "note": "대법원은 원심 중 피고 패소 부분을 파기환송했다. 정치인의 정치적 주장에는 단정적 어법이 용인되고 악의적이거나 현저히 상당성을 잃은 공격이 아닌 한 가볍게 책임을 추궁해서는 안 되며, 공직자에 대한 의혹 제기는 표현의 자유가 완화되어야 하는데, 당시 다수 언론보도와 금융정보분석원 통보 등으로 상당한 의혹이 제기된 상황이었으므로 위법성조각사유가 인정될 여지가 있다고 보았다. K-Law(생성 본 주문)는 이 표현을 허위사실 적시로 보고 위법성 조각을 부정해 위자료 2천만 원을 인정하는 원고 일부승소로 결론 내렸다. 정치적 주장의 완화된 기준은 조건부 대안(원고 패소)으로만 올렸다. 재검토(DeepSeek)는 본 주문을 단일하게 유지하지 않고 '전제 A: 원고 일부승소 / 전제 B: 원고 패소'의 두 갈래로 바꿨으며, 전제 B가 대법원 방향과 같다. 단일 본 주문이 없어 생성 본 주문(원고 일부승소)으로 채점했다. 주의: 입력한 원심 인정사실 요지 중 4항·7항(당시 구체적 혐의·정황이 드러난 바 없고 발언 이전 보도는 의혹 제기에 그친다)은 원심의 증거 평가이며 대법원은 이를 다르게 평가했다. 이 요지가 원심 방향의 앵커가 됐을 가능성이 있다. 창 A가 사건을 알아봤다고 신고했다(결과는 판단에 쓰지 않았다고 함).",
+    "basis": "v17.1 팔 1 본 주문 채점(육안 대조, 판정 기준: 파기환송은 ①만 3 일치·2 잠정 일치·1 이하 불일치) · 실행 환경(팔 1: 개요 + 원심 인정사실·증거판단 요지): 가상 판결 = Claude Sonnet 5.5 채팅 창 A(웹·메모리 끔, 배치 3, 두 사건 연속), 검수 = 같은 창 A의 같은 대화(독립성 훼손: 판결문을 쓴 대화가 검수도 함), 재검토 = DeepSeek V4 Flash API(생성 키; 창 C·D가 사용 한도에 걸려 대체), 방법론 v17.1 · 검수 SP v1.2. 입력 개요는 rounds/r02/<id>/overview_arm1.txt."
+   },
+   "stages": {
+    "virtual": {
+     "final": "library/benchmark/rounds/r02/pipeline/622961/generated_final.txt",
+     "raw": "library/benchmark/rounds/r02/pipeline/622961/generated.txt",
+     "summary": "STEPVSC 후 최종 판결문. 위자료 2,000만 원의 원고 일부승소, 이 사건 글 부분은 불인정, 조건부 결론(정치적 주장 완화 기준·의견표명 분류·증명책임에 따라 달라짐)."
+    },
+    "check": {
+     "path": "library/benchmark/rounds/r02/pipeline/622961/check.md",
+     "verdict": "재검토 권고",
+     "summary": "창 A 동일 대화에서 작성한 검수 보고서(독립성 훼손): 재검토 권고."
+    },
+    "reconcile": {
+     "path": "library/benchmark/rounds/r02/pipeline/622961/reconcile.md",
+     "items": 25,
+     "accepted": 22,
+     "rebutted": 3,
+     "conclusion": "유지",
+     "summary": "재검토(DeepSeek): 수용 22·반박 3. 결론 태그는 '유지'이나 최종 주문은 조건부 두 갈래(전제 A 일부승소 / 전제 B 패소)로 재구성되어 단일 본 주문이 없다."
+    },
+    "final": {
+     "path": "library/benchmark/rounds/r02/pipeline/622961/final.txt",
+     "label": "원고 일부승소(조건부 결론 병기)"
+    }
+   }
+  },
+  "616029": {
+   "latest_label": "원고 일부승소(조건부 결론 병기)",
+   "legal_match": {
+    "grade": "불일치",
+    "score": "① 1/3 · ②③ N/A(파기환송)",
+    "note": "대법원은 원심을 파기환송했다. 피고 복지회가 피고 조합과 별개의 독립된 비법인사단인지는 직권조사사항인데, 복지회의 대표자·의사결정기구·재정이 모두 조합과 구별되지 않아 독립 비법인사단으로 보기 어렵다고 보았고, 청구가 복지회의 당사자능력 없음과 조합의 책임을 가르는 구조라면 예비적·선택적 공동소송에 해당할 여지가 있어 이심 범위를 가려야 한다고 지적했다. K-Law(최종)는 복지회를 독립 비법인사단으로 전제하고 복지회에 대한 청구는 인용, 조합에 대한 청구는 기각하는 원고 일부승소로 결론 내렸고, 복지회가 조합의 내부 조직이어서 당사자능력이 없다고 보는 경우는 조건부 대안으로만 병기했다. 개정 절차(회원 2/3 동의)는 대법원이 판단하지 않아 채점에서 제외했다. 재검토 후 결과 표의 라벨이 '원고 전부승소'로 바뀐 것은 대안 주문 문구를 읽은 파서 오류이며 본 주문은 '원고 일부승소'로 그대로다. 주의: 입력한 원심 인정사실 요지 1항(복지회가 운영위원회·임직원·다수결·고유 자산을 갖춘다)은 사실인정이 아니라 원심이 당사자능력을 인정한 근거 평가에 가까워 원심 결론의 앵커가 됐을 가능성이 높다. 대법원은 같은 기록을 두고 대표·의사결정기구·재정이 조합과 구별되지 않는다고 평가했다.",
+    "basis": "v17.1 팔 1 본 주문 채점(육안 대조, 판정 기준: 파기환송은 ①만 3 일치·2 잠정 일치·1 이하 불일치) · 실행 환경(팔 1: 개요 + 원심 인정사실·증거판단 요지): 가상 판결 = Claude Sonnet 5.5 채팅 창 A(웹·메모리 끔, 배치 3, 두 사건 연속), 검수 = 같은 창 A의 같은 대화(독립성 훼손: 판결문을 쓴 대화가 검수도 함), 재검토 = DeepSeek V4 Flash API(생성 키; 창 C·D가 사용 한도에 걸려 대체), 방법론 v17.1 · 검수 SP v1.2. 입력 개요는 rounds/r02/<id>/overview_arm1.txt."
+   },
+   "stages": {
+    "virtual": {
+     "final": "library/benchmark/rounds/r02/pipeline/616029/generated_final.txt",
+     "raw": "library/benchmark/rounds/r02/pipeline/616029/generated.txt",
+     "summary": "STEPVSC 후 최종 판결문. 복지회 청구 인용·조합 청구 기각의 원고 일부승소, 종합 확신도 5/10, 조건부 결론."
+    },
+    "check": {
+     "path": "library/benchmark/rounds/r02/pipeline/616029/check.md",
+     "verdict": "재검토 권고",
+     "summary": "창 A 동일 대화에서 작성한 검수 보고서(독립성 훼손): 재검토 권고."
+    },
+    "reconcile": {
+     "path": "library/benchmark/rounds/r02/pipeline/616029/reconcile.md",
+     "items": 22,
+     "accepted": 21,
+     "rebutted": 1,
+     "conclusion": "유지",
+     "summary": "재검토(DeepSeek): 수용 21·반박 1. 결론 유지, 대안 주문 확대 병기(당사자능력 부정 시 조합 청구 심리 등)."
+    },
+    "final": {
+     "path": "library/benchmark/rounds/r02/pipeline/616029/final.txt",
+     "label": "원고 일부승소(조건부 결론 병기)"
+    }
+   }
   }
  },
  "env_claude": "실행 환경: Claude Sonnet 5.5 채팅 창(창 A: 가상 판결·재검토, 창 B: 검수, 서로 다른 계정), 방법론 v17.1 · 검수 SP K-Law-Check v1.2, 웹 검색·메모리 끔, 익명 개요(SIM-2026-000N)만 입력, 한 창에서 2건 연속 처리(배치 2). DeepSeek 미사용.",
- "env_deepseek": "실행 환경: DeepSeek V4 Flash API(deepseek-flash, thinking 켬, effort high, temperature 0.2) — 가상 판결·재검토는 생성 키, 검수는 별도 검수 키로 분리 호출. 방법론 v17.1 · 검수 SP K-Law-Check v1.2, 익명 개요(SIM-2026-000N)만 입력(팔 0), 웹 검색 없음, 사건당 1회 실행. 1회차는 개요 JSON 직렬화 오류로 무효(판단유보)였고 수정 후 재실행한 결과만 채택."
+ "env_deepseek": "실행 환경: DeepSeek V4 Flash API(deepseek-flash, thinking 켬, effort high, temperature 0.2) — 가상 판결·재검토는 생성 키, 검수는 별도 검수 키로 분리 호출. 방법론 v17.1 · 검수 SP K-Law-Check v1.2, 익명 개요(SIM-2026-000N)만 입력(팔 0), 웹 검색 없음, 사건당 1회 실행. 1회차는 개요 JSON 직렬화 오류로 무효(판단유보)였고 수정 후 재실행한 결과만 채택.",
+ "env_batch3": "실행 환경(팔 1: 개요 + 원심 인정사실·증거판단 요지): 가상 판결 = Claude Sonnet 5.5 채팅 창 A(웹·메모리 끔, 배치 3, 두 사건 연속), 검수 = 같은 창 A의 같은 대화(독립성 훼손: 판결문을 쓴 대화가 검수도 함), 재검토 = DeepSeek V4 Flash API(생성 키; 창 C·D가 사용 한도에 걸려 대체), 방법론 v17.1 · 검수 SP v1.2. 입력 개요는 rounds/r02/<id>/overview_arm1.txt."
 }
