@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-02T08:14:20.478Z",
+  "generated": "2026-10-02T08:28:16.515Z",
   "rounds": [
     {
       "round": 1,
@@ -469,10 +469,10 @@
             "first": "library/benchmark/rounds/r01/616249/actual_first.txt",
             "overview_independent": "library/benchmark/rounds/r01/616249/overview_independent.txt",
             "verdict": null,
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r01/616249/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r01/616249/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r01/616249/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r01/616249/judgment_logic.md"
           }
         },
         {
@@ -493,10 +493,10 @@
             "first": "library/benchmark/rounds/r01/620419/actual_first.txt",
             "overview_independent": "library/benchmark/rounds/r01/620419/overview_independent.txt",
             "verdict": null,
-            "easy_explain": null,
-            "plaintiff_theory": null,
-            "defendant_theory": null,
-            "judgment_logic": null
+            "easy_explain": "library/benchmark/rounds/r01/620419/easy_explain.md",
+            "plaintiff_theory": "library/benchmark/rounds/r01/620419/plaintiff_theory.md",
+            "defendant_theory": "library/benchmark/rounds/r01/620419/defendant_theory.md",
+            "judgment_logic": "library/benchmark/rounds/r01/620419/judgment_logic.md"
           }
         }
       ]
