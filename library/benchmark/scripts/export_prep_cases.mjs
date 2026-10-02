@@ -2,7 +2,7 @@
 // 저장소 library/benchmark/rounds/rNN/<id>/ 로 내보낸다. 결과(klaw_verdict 등)는 만들지 않는다.
 // 기존에 있는 파일은 덮어쓰지 않는다(2라운드 익명화 개요 등 보호). 라운드별 cases.csv(사건 목록)는 매번 새로 쓴다.
 // 실행 위치: klaw-bench 폴더(split\dev.csv, dev100\ 가 있는 곳).
-// 사용: node export_prep_cases.mjs --repo="C:\Users\주피터\Downloads\klaw" [--round=5] [--dry]
+// 사용: node export_prep_cases.mjs --repo="C:\Users\주피터\Downloads\klaw" [--round=5] [--dev=split/dev.csv] [--dry]
 import fs from 'node:fs'; import path from 'node:path';
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true]; }));
 const REPO = args.repo; if (!REPO) { console.error('--repo=<저장소 경로> 필요'); process.exit(1); }
@@ -19,7 +19,7 @@ function parseCsv(text) {
   return b.map((r) => Object.fromEntries(h.map((k, i) => [k, r[i] ?? ''])));
 }
 const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-const dev = parseCsv(readText('split/dev.csv')).filter((r) => (ONLY ? Number(r.round) === ONLY : true));
+const dev = parseCsv(readText(args.dev || 'split/dev.csv')).filter((r) => (ONLY ? Number(r.round) === ONLY : true));
 const byRound = new Map(); for (const r of dev) { const k = Number(r.round); if (!byRound.has(k)) byRound.set(k, []); byRound.get(k).push(r); }
 let nNew = 0, nSkip = 0, nMissing = 0; const missing = [];
 for (const [rn, rows] of [...byRound].sort((a, b) => a[0] - b[0])) {
