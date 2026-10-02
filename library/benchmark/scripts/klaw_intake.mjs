@@ -143,7 +143,7 @@ async function auto(round, state) {
   fs.writeFileSync(P(`ROUND_READY_${round.rd}.txt`), `라운드 ${round.rd} 준비 완료 (${new Date().toISOString()})\nDeepSeek 담당: ${round.asg.deepseek.join(', ')}\nClaude 담당: ${round.asg.claude.join(', ')}\n` +
     `다음: ① 저장소에서 build_rounds_manifest.mjs 실행 후 PR ② Claude 담당분은 채팅 창 실험(진행 담당에게 알림) ③ DeepSeek 담당분은 --run-deepseek 또는 klaw_runner.mjs\n`, 'utf8');
   if (args['run-deepseek']) { const rows = readCsv(P('dev_live.csv')).filter((r) => round.asg.deepseek.includes(r.id)); writeCsv(P(`dsk_${round.rd}.csv`), ['round', 'id', 'caseNo', 'date', 'label', 'binary', 'has1', 'has2'], rows);
-    runNode(path.join(here, 'klaw_runner.mjs'), [`--round=${round.rn}`, '--version=v17.1', '--method=klaw_v17_1.md', '--format=가상판결_출력형식_v13_3.txt', `--dev=${P(`dsk_${round.rd}.csv`)}`, `--tag=${round.rd}-dsk`, '--concurrency=2']); }
+    runNode(path.join(here, 'klaw_runner.mjs'), [`--round=${round.rn}`, '--version=v17.2', '--method=klaw_v17_2.md', '--format=가상판결_출력형식_v13_3.txt', `--dev=${P(`dsk_${round.rd}.csv`)}`, `--tag=${round.rd}-dsk`, '--concurrency=2']); }
   log(`라운드 ${round.rd} 자동 처리 완료 — live\\ROUND_READY_${round.rd}.txt 참고`); }
 
 function status() { const s = loadState(); const idx = readCsv(P('index_live.csv'));
