@@ -147,6 +147,7 @@ span.btn-disabled{color:var(--txt4);cursor:default}
   <div class="hero">
     <h1>K-Law 라운드별 시험 기록</h1>
     <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·K-Law 가상 판결문·법리 일치 여부, 가상 판결 → 검수 → 재검토 → 최종 단계별 결과, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
+    <p><b>통합 판결문</b>은 1, 2, 3심 판결문을 통합한 하나의 표준 혹은 모범 판결문입니다.</p>
   </div>
   <div class="notice"><b>면책 문구</b> — 이 기록에 수록된 데이터는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 아직 진행되지 않은 라운드는 표시만 있고 내용이 없습니다.</div>
   <div class="daylog-row">
@@ -407,7 +408,7 @@ function renderCases(r) {
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
         ${d.defendant_theory ? `<a href="${esc(viewerUrl(d.defendant_theory, '피고의 법리 - ' + c.id))}" target="_blank" rel="noopener">피고 논거</a>` : '<span class="na-cell">피고 논거</span>'}
         ${d.judgment_logic ? `<a href="${esc(viewerUrl(d.judgment_logic, '판결의 논리 - ' + c.id))}" target="_blank" rel="noopener">판결 논리</a>` : '<span class="na-cell">판결 논리</span>'}
-        ${mj ? `<a href="${esc(viewerUrl(mj, '통합 판결문 - ' + c.id))}" target="_blank" rel="noopener" class="lm-tip" tabindex="0">통합 판결문<span class="lm-src" hidden>1, 2, 3심 판결문을 통합한 하나의 표준 혹은 모범 판결문</span></a>` : '<span class="na-cell">통합 판결문</span>'}
+        ${mj ? `<a href="${esc(viewerUrl(mj, '통합 판결문 - ' + c.id))}" target="_blank" rel="noopener">통합 판결문</a>` : '<span class="na-cell">통합 판결문</span>'}
       </div>`}</td>
       <td>${docLink('대법원', d.supreme)}</td>
       <td>${docLink('2심', d.second)}</td>
