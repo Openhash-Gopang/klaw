@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-03T22:10:22.217Z",
+  "generated": "2026-10-03T22:29:06.084Z",
   "rounds": [
     {
       "round": 1,
@@ -1549,7 +1549,7 @@
     },
     {
       "round": 4,
-      "status": "10건 게재 · v17.2 시험 진행 중(1/10건 완료: 620411)",
+      "status": "10건 게재 · v17.2 시험 진행 중(3/10건 완료: 620411·613237·618511)",
       "method_version": "v17.2 (진행 중 — 절반은 Claude 채팅, 절반은 DeepSeek API)",
       "decision_doc": null,
       "results_csv": "library/benchmark/rounds/r04/results.csv",
@@ -1566,16 +1566,16 @@
         }
       },
       "legal_summary": {
-        "n": 1,
+        "n": 3,
         "match": 0,
         "provisional": 0,
-        "mismatch": 1,
+        "mismatch": 3,
         "pending": 0,
         "excluded": 0,
-        "total": 1
+        "total": 3
       },
       "pipeline_version": "v17.2 (검수 SP K-Law-Check v1.3 · DeepSeek V4 Flash API + Claude Sonnet 5.5 채팅)",
-      "pipeline_note": "4라운드 진행 중. DeepSeek 배치3(620411) 생성→검수→재검토 전 단계 완료·채점. 나머지 DeepSeek 4건(614385·616235·613237·618511)과 Claude 5건(617161·621987·623067·615947·618665)은 진행 중이라 이 파일에 아직 없음.",
+      "pipeline_note": "4라운드 진행 중. DeepSeek 배치3(620411)·배치2(613237·618511) 생성→검수→재검토 전 단계 완료·채점(3/10건). DeepSeek 나머지 2건(614385·616235)은 검수 단계 API 오류로 재실행 대기, Claude 5건(617161·621987·623067·615947·618665)은 진행 중이라 이 파일에 아직 없음.",
       "candidate": null,
       "cases": [
         {
@@ -1716,10 +1716,39 @@
           "correct": false,
           "prepared_only": false,
           "conclusion_type": "확정적",
-          "latest_label": null,
+          "latest_label": "원고일부승소",
           "case_type": null,
-          "legal_match": null,
-          "stages": null,
+          "legal_match": {
+            "grade": "불일치",
+            "score": "① 1/3 · ②③ 정밀 채점 보류 · 대법원 판단 쟁점 3건 중 차별 주장 기각만 일치",
+            "note": "실제 대법원(2025다214123)은 원고들의 상고를 모두 기각했다. 판단은 세 가지다. ⑴ 원고 1의 외지근무보조비는 특수 근무환경의 추가 비용을 변상하는 실비변상적·복리후생적 금원이라 임금이 아니다. ⑵ 항만운영직 5급은 승진 예정이라 '사회적 신분'이 아니고 4급 이상과 업무·책임이 본질적으로 같다는 자료도 없어 명절상여금 기준액 차이는 차별이 아니다. ⑶ 재직 중 지급되는 중간정산 퇴직금의 지연손해금에는 구 근로기준법 제37조 제1항·시행령 제17조(연 20%)가 적용되지 않는다. K-Law는 ⑴ 실비 부분은 임금성을 부정하면서도 실비를 초과하는 부분은 통상임금으로 보아 인용했고(반대), ⑵ 차별은 합리적 이유 없음에 대한 입증책임이 원고 1에게 있고 제출 사정만으로 단정할 수 없다며 기각해 결론이 일치했으나 '사회적 신분 해당 여부'는 판단하지 않았다. ⑶ 중간정산 퇴직금도 지급 지체 시 근로기준법·퇴직급여법상 지연이자 규정이 적용된다고 보아 반대로 판단했다. 따라서 ① 1/3이다. K-Law는 업적급 최소지급분 초과액도 통상임금에 포함했는데 2심이 제외해 확정된 부분과 어긋나, 인용 범위가 2심 확정 범위보다 넓다. 방향(원고 일부승소=상고기각 유지)은 맞으나 대법원이 직접 판단한 3쟁점 중 2쟁점이 반대라 불일치로 판정한다. 나머지 통상임금 항목(명절·신설 상여금·직무급·개인연금보험료·중식대·식대 포함)은 상고로 다투어지지 않아 대법원이 검증하지 않았으므로 채점에서 제외했다. 검수는 통상임금 정의 문언·근기법 제6조 문언의 [출처 없음] 2건과 미검증 표시 자기모순 2건을 지적해 '재검토 권고'를 냈으나 결론 방향은 뒤집지 않는다고 보았다. 재검토는 8개 지적 중 7 수용·1 반박, 주문 변경 없음. 즉 검수·재검토는 표기 위험을 줄였을 뿐 중간정산 퇴직금과 외지근무보조비 법리 오류는 교정하지 못했다. 표시 일치도가 종합 확신도 6/10×10%를 15%p 넘게 초과해 과대 표시됐다.",
+            "basis": "DeepSeek V4 Flash API(klaw_runner.mjs) · 방법론 v17.2, 익명 개요(overview_independent.txt)만 입력, 웹 검색·메모리 끔, 배치2(613237·618511). klaw_check_runner.mjs 검수(검수 계정 분리) 및 klaw_reconcile_runner.mjs 재검토 완료. 재검토 전·후 결론 동일(원고일부승소)로 전·후 채점 동일. 일치도 평가 기준 v3.0 육안 대조(사람 판정 전 모델 채점).",
+            "model_judgment": "library/benchmark/rounds/r04/pipeline/618511/model_judgment.md"
+          },
+          "stages": {
+            "virtual": {
+              "final": "library/benchmark/rounds/r04/pipeline/618511/generated_final.txt",
+              "raw": "library/benchmark/rounds/r04/pipeline/618511/generated.txt",
+              "summary": "STEP 0→A→B→VSC→C 완주(생성 650초, 7회 호출(분석 포함, 길이 재시도 1회)·프롬프트 63.4만 토큰·완료 14.8만 토큰, 캐시적중 92%). 통상임금 판단에서 고정성 요건을 제외한 법리로 명절·신설 상여금·개인연금보험료·중식대·업적급 초과액·직무급·외지근무보조비 실비 초과분을 통상임금에 포함하고 원고 1의 차별 주장은 기각, 중간정산 퇴직금에도 지연이자 규정을 적용해 원고 일부승소. 종합 확신도 6/10."
+            },
+            "check": {
+              "path": "library/benchmark/rounds/r04/pipeline/618511/check.txt",
+              "verdict": "재검토 권고",
+              "summary": "통상임금 정의 문언·근로기준법 제6조 문언의 [출처 없음] 2건과, STEPVSC가 정정했는데도 최종본에 병합되지 않은 미검증 표시 자기모순 2건. 결론 방향을 뒤집는 지적은 없고 M-2 특별법 미검토·M-4 호칭은 경미. 외지근무보조비·중간정산 퇴직금 지연이자의 법리 방향은 지적 대상이 아니었다."
+            },
+            "reconcile": {
+              "path": "library/benchmark/rounds/r04/pipeline/618511/reconcile.md",
+              "items": 8,
+              "accepted": 7,
+              "rebutted": 1,
+              "conclusion": "유지",
+              "summary": "지적 8건 중 7 수용·1 반박. 문언 재현 완화와 미검증 병합 보완을 반영했고 주문 변경 없음(원고일부승소 유지)."
+            },
+            "final": {
+              "path": "library/benchmark/rounds/r04/pipeline/618511/final.txt",
+              "label": "원고 일부승소"
+            }
+          },
           "docs": {
             "supreme": "library/benchmark/rounds/r04/618511/actual_supreme.txt",
             "second": "library/benchmark/rounds/r04/618511/actual_second.txt",
@@ -1791,10 +1820,39 @@
           "correct": false,
           "prepared_only": false,
           "conclusion_type": "확정적 결론",
-          "latest_label": null,
+          "latest_label": "원고일부승소",
           "case_type": null,
-          "legal_match": null,
-          "stages": null,
+          "legal_match": {
+            "grade": "불일치",
+            "score": "① 0/3 · ②③ N/A(파기환송) · 대법원이 판단한 쟁점은 경매개시결정이 주요사항보고서 제출사유('소송')인지 1건",
+            "note": "실제 대법원(2020나62251 상고심)은 원심 중 피고들 패소 부분을 파기환송했다. 판단 근거는 하나다: 자본시장법 시행령 제171조 제3항 제2호의 '소송'은 시행령 제167조 제1항 제2호 각 목의 증권에 관한 소송만 뜻하고 증권에 중대한 영향을 미치는 모든 소송을 포함하지 않으므로(주요사항보고서의 도입 취지, 구 증권거래법과 달리 상대방이 금융위원회뿐인 점, 형사처벌 수위 상향에 따른 엄격 해석), 임의경매개시결정은 '소송 제기'에 해당하지 않아 주요사항보고서 제출의무가 없다. K-Law는 임의경매신청 사실의 약 3주 지연 공시를 '지체 없는 공시 의무' 위반으로 보아 원고 승소(자본시장법 제162조·제175조, 민법 제750조)로 결론냈다. 제출의무가 있는지, 즉 '소송'의 범위라는 쟁점 자체를 다루지 않고 의무 존재를 전제로 지연 여부만 판단했으며 불성실공시법인 지정을 위반의 징표로 삼았다. 따라서 대법원이 결정적으로 본 법리와 반대 방향이라 ① 0/3이다. 조건부 유상증자 미기재(원고 승소)·분기보고서 수치(원고 패소)·미공개중요정보 이용(원고 패소)은 대법원이 '나머지 상고이유 판단 생략'으로 판단하지 않아 채점에서 제외했다. K-Law의 승소 결론(유지 계열)은 대법원의 파기와 방향이 어긋난다. 검수는 자기모순 2건(미검증 표시 직후 문언 요건 확정 서술)·자기 검증 누락 1건·M-2 누락 4건을 지적하고 '재검토 권고'를 냈으나 결론 무효 소지는 없다고 보았다. 거래소 공시규정(지연 시한의 실질 기준) 미검토가 '약 3주' 판단의 설득력에 영향을 준다고 짚었지만 대법원이 갈라진 지점인 제출의무 범위는 지적하지 못했다. 재검토는 10개 지적 중 8 수용·2 반박, 주문 변경 없음. 즉 검수·재검토는 표기 위험을 줄였을 뿐 틀린 결론은 교정하지 못했다. 표시 일치도 94.44%는 종합 확신도 6/10 기준으로 15%p 넘게 과대 표시됐다.",
+            "basis": "DeepSeek V4 Flash API(klaw_runner.mjs) · 방법론 v17.2, 익명 개요(overview_independent.txt)만 입력, 웹 검색·메모리 끔, 배치2(613237·618511). klaw_check_runner.mjs 검수(검수 계정 분리) 및 klaw_reconcile_runner.mjs 재검토 완료. 재검토 전·후 결론 동일(원고일부승소)로 전·후 채점 동일. 일치도 평가 기준 v3.0 육안 대조(사람 판정 전 모델 채점).",
+            "model_judgment": "library/benchmark/rounds/r04/pipeline/613237/model_judgment.md"
+          },
+          "stages": {
+            "virtual": {
+              "final": "library/benchmark/rounds/r04/pipeline/613237/generated_final.txt",
+              "raw": "library/benchmark/rounds/r04/pipeline/613237/generated.txt",
+              "summary": "STEP 0→A→B→V→VSC→C 완주(생성 453초, 7회 호출(분석 포함)·프롬프트 73.6만 토큰·완료 10.5만 토큰, 캐시적중 90%). 조건부 유상증자 미기재와 임의경매 지연 공시는 원고 승소, 분기보고서 수치와 미공개중요정보 이용은 원고 패소. 자본시장법 제162조 제1·2·5항 문언이 개요에 없어 [미검증]으로 두고 종합 확신도 6/10, 조건부 결론 권고 부기."
+            },
+            "check": {
+              "path": "library/benchmark/rounds/r04/pipeline/613237/check.txt",
+              "verdict": "재검토 권고",
+              "summary": "M-1b 자기모순 2건(예측정보 면책 요건·제척기간 기산점을 미검증 표시와 함께 확정 문형으로 서술)·자기 검증 누락 1건(STEP V·VSC가 놓침)·M-2 누락 4건(거래소 공시규정·기업공시서식 작성기준·자본시장법 제174·178조·외부감사법/회생법). 결론 무효 소지 없음. 대법원이 갈라진 '주요사항보고서 제출의무의 범위'는 지적 대상이 아니었다."
+            },
+            "reconcile": {
+              "path": "library/benchmark/rounds/r04/pipeline/613237/reconcile.md",
+              "items": 10,
+              "accepted": 8,
+              "rebutted": 2,
+              "conclusion": "유지",
+              "summary": "지적 10건 중 8 수용·2 반박. 미검증 문언 서술 완화와 누락 규범 보완 표기를 반영했고 주문 변경 없음(원고일부승소 유지)."
+            },
+            "final": {
+              "path": "library/benchmark/rounds/r04/pipeline/613237/final.txt",
+              "label": "원고 일부승소(=피고 일부 패소)"
+            }
+          },
           "docs": {
             "supreme": "library/benchmark/rounds/r04/613237/actual_supreme.txt",
             "second": "library/benchmark/rounds/r04/613237/actual_second.txt",
