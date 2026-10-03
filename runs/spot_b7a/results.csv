@@ -1,0 +1,3 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"621985","1","상고기각","유지","상고기각","유지","true","확정적","","","false","","true","상고를 기각한다. 상고비용은 피고가 부담한다. ────────────────────────────────────────────","506","0.8875978244925782"
+"620463","1","상고기각","유지","상고기각","유지","true","확정적 결론","","","false","","false","상고를 기각한다. 상고비용은 원고가 부담한다.","245","0.9183908920716579"

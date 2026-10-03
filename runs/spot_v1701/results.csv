@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"621985","1","상고기각","유지","상고기각","유지","true","확정적 결론","","","false","","true","``` 1. 상고를 기각한다. 2. 상고비용은 피고가 부담한다. ``` *※ 본 판단은 상고심(대법원) 판결로서, 통지유예 처분의 위법성을 인정한 원심 판단이 정당하다고 판단한 것이다. 출국금지결정 자체의 위법성 주장은 사실심 전권사항으로서 개요에 다툼 없는 사실로 명확히 기재된 범위에서 원심의 사실인정을 존중하여 배척한다.* ---","393","0.6793005510931402"

@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_vsc_findings,sc_changed,binary_before_sc,sc_final_source,display_mismatch,order,elapsed_s,cache_hit_ratio
+"614333","2","상고기각","유지","원고패소","v3","","확정적","","","3","false","v3","stepVSC","true","원고 패소(= 피고 승소). (구체적 내용: 피고는 원고에게 이 사건 각 부동산에 대한 지료를 지급할 의무가 없다. 다만 무상사용 승낙의 승계 효력을 부정할 만한 특별한 사정이 인정되는 경우에는 결론이 달라질 수 있음.)","439","0.9174442331856965"

@@ -1,0 +1,3 @@
+id,label_before,label_final,binary_before,binary_final,reversed,items_total,accepted,rebutted,conclusion_tag,elapsed_s
+"617157","원고패소","원고패소","v3","v3","false","8","7","1","유지","194"
+"617163","원고일부승소","원고전부승소","v3","v3","true","7","7","0","유지","72"

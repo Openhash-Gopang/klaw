@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"621985","1","상고기각","유지","원고일부승소","v3","","확정적","","","false","","true","원고 일부승소 원고 패소 (원칙 수준 — 확신도 미반영) 핵심 근거: 통지유예 위법 전부 적법 예외 요건 엄격해석 [의사결정 규칙 적용 — B-5-A 단독 기준] ☑ (1) 역방향 판결이 K-Law와 다른 결론 → -1점 (법리) + 차이 지점 판결문 명시 → 차이 지점: 통지유예 요건의 독립성 및 개별 결정 시점에서의 구체적 소명 요구 □ (2) 해당 없","267","0.913646869121204"

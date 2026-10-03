@@ -1,0 +1,5 @@
+id,label_before,label_final,binary_before,binary_final,reversed,items_total,accepted,rebutted,conclusion_tag,elapsed_s
+"616249","원고패소","원고패소","v3","v3","false","4","4","0","유지","70"
+"618155","확인필요","원고패소","확인필요","v3","true","6","6","0","유지","211"
+"618185","원고패소","원고일부승소","v3","v3","true","9","4","5","유지","208"
+"618533","원고일부승소","원고일부승소","v3","v3","false","5","3","2","유지","74"

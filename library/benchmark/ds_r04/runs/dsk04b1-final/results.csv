@@ -1,0 +1,3 @@
+id,label_before,label_final,binary_before,binary_final,reversed,items_total,accepted,rebutted,conclusion_tag,elapsed_s
+"614385","확인필요","원고전부승소","확인필요","v3","true","4","4","0","유지","81"
+"616235","원고패소","원고패소","v3","v3","false","2","2","0","유지","71"

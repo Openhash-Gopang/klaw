@@ -1,0 +1,3 @@
+id,label_before,label_final,binary_before,binary_final,reversed,items_total,accepted,rebutted,conclusion_tag,elapsed_s
+"SIM-2026-0004","원고일부승소","원고일부승소","","v3","false","25","22","3","유지","215"
+"SIM-2026-0005","원고일부승소","원고전부승소","","v3","true","22","21","1","유지","85"
