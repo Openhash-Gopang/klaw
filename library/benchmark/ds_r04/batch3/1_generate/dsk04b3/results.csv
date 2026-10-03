@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_vsc_findings,sc_changed,binary_before_sc,sc_final_source,display_mismatch,order,elapsed_s,cache_hit_ratio
+"620411","4","일부파기환송","파기","원고패소","v3","","확정적","","","5","false","v3","stepVSC","true","원고 패소(=피고 승소) 원고의 피고들에 대한 이 사건 청구를 모두 기각한다. 소송비용은 원고가 부담한다. ---","330","0.9007103382780166"

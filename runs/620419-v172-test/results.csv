@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_vsc_findings,sc_changed,binary_before_sc,sc_final_source,display_mismatch,order,elapsed_s,cache_hit_ratio
+"620419","1","일부파기환송","파기","원고일부승소","v3","","확정적","","","5","true","확인필요","stepVSC","true","원고 일부승소 1. 피고들은 원고에게, 이 사건 각 토지 중 근저당권 및 지상권이 설정된 토지 부분의 매매대금 상당액을 각 2분의 1의 비율로 지급하라. 2. 원고의 나머지 청구를 기각한다. 3. (다만 아래 이유에서 밝히는 관련 법령 및 상속 관련 규정의 내용이 인정되지 않는 경우에는 결론이 달라질 수 있음.)","462","0.752803458997939"

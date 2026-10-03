@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_vsc_findings,sc_changed,binary_before_sc,sc_final_source,display_mismatch,order,elapsed_s,cache_hit_ratio
+"616497","1","전부파기환송","파기","원고일부승소","v3","","확정적","","","4","false","v3","stepVSC","true","원고 일부승소 ① 피고는 원고에게 33,811,570원 및 이에 대한 지연손해금을 지급할 의무가 있다. ② 원고의 나머지 청구(소송비용 2,257,430원 부분)는 이유 없다.","489","0.9030997998733973"

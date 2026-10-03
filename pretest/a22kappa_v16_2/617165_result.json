@@ -1,0 +1,18 @@
+{
+  "id": "617165",
+  "actual": {
+    "label": "일부파기환송",
+    "binary": "파기"
+  },
+  "before": {
+    "label": "상고기각",
+    "binary": "유지"
+  },
+  "after": {
+    "label": "상고기각",
+    "binary": "유지"
+  },
+  "flipped": false,
+  "nowCorrect": false,
+  "orderText": "``` 1. 피고 1의 상고를 기각한다. 2. 상고비용은 피고 1이 부담한다. ``` ---"
+}

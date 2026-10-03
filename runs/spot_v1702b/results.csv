@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"621985","1","상고기각","유지","상고기각","유지","true","확정적 결론","","","false","","false","1. 상고를 기각한다. 2. 상고비용은 피고가 부담한다.","415","0.6723764644211526"

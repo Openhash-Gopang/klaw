@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"617151","1","","","원고일부승소","v3","","확정적","","","false","","true","원고 일부승소. 피고는 원고에게 47,355,000원 및 위 금원 중 각 중개보수의 지급시기(각 매매계약 체결일) 다음날부터 다 갚는 날까지 연 6%의 비율로 계산한 지연손해금을 지급하라. 원고의 나머지 청구 부분은 이유 없다.","350","0.7001695751546877"

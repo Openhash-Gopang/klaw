@@ -1,0 +1,2 @@
+﻿id,round,actual_label,actual_binary,pred_label,pred_binary,correct,conclusion_type,truncated_steps,sc_triggers,sc_changed,binary_before_sc,display_mismatch,order,elapsed_s,cache_hit_ratio
+"621985","1","상고기각","유지","확인필요","확인필요","false","확정적","","","false","","true","[원고 일부승소] 피고는 원고에게 위자료 5,000,000원 및 재산적 손해 855,000원 합계 5,855,000원 및 이에 대하여 위법한 통지유예 종료일 다음 날부터 이 사건 판결 확정일까지는 민법이 정한 연 5%의, 그 다음 날부터 다 갚는 날까지는 소송촉진 등에 관한 특례법이 정한 연 12%의 각 비율로 계산한 지연손해금을 지급하라. 원고의 나머지 ","300","0.6740500377468445"

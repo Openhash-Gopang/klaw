@@ -1,0 +1,18 @@
+{
+  "id": "616709",
+  "actual": {
+    "label": "전부파기환송",
+    "binary": "파기"
+  },
+  "before": {
+    "label": "상고기각",
+    "binary": "유지"
+  },
+  "after": {
+    "label": "상고기각",
+    "binary": "유지"
+  },
+  "flipped": false,
+  "nowCorrect": false,
+  "orderText": "``` 원고(상고인)의 상고를 기각한다. 상고비용은 원고(상고인)가 부담한다. ```"
+}
