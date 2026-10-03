@@ -1,0 +1,41 @@
+{
+ "_doc": "라운드 4(v17.2 파이프라인) 결과 + 법리 일치 판정(일치도 평가 기준 v3.0, 육안 대조). build_rounds_manifest.mjs가 읽어 rounds-manifest.json에 합친다. round-meta.json/results.csv의 10/10건은 구버전(v16.2) 자동 채점 결과이며 이 파일이 v17.2 재실행 결과를 사건별로 누적한다. 생성(1_generate)·검수(2_check)·재검토(3_final) 단계를 분리 저장한다.",
+ "method_version": "v17.2 (검수 SP K-Law-Check v1.3 · DeepSeek V4 Flash API + Claude Sonnet 5.5 채팅)",
+ "note": "4라운드 진행 중. DeepSeek 배치3(620411) 생성→검수→재검토 전 단계 완료·채점. 나머지 DeepSeek 4건(614385·616235·613237·618511)과 Claude 5건(617161·621987·623067·615947·618665)은 진행 중이라 이 파일에 아직 없음.",
+ "cases": {
+  "620411": {
+   "latest_label": "원고패소",
+   "legal_match": {
+    "grade": "불일치",
+    "score": "① 0/3 · 확정부분: 나머지 피고 분담금 청구기각 일치, 피고 6 분담금 청구기각 불일치",
+    "note": "실제 대법원(2025다213488)은 나머지 피고들에 대한 위약금 청구 원고 패소 부분을 파기환송했다(일부파기환송): ⑴ 환불규정의 '조합원분담금 총약정금'은 이행기 도래분이 아니라 동·호수 배정 전에는 최저 분담금(1층) 총액으로 해석, ⑵ 위약금은 손해배상액의 예정으로 추정되고 조합원은 귀책사유 부존재를 증명해야 면책, ⑶ 설립인가 3년 경과·사업 지연만으로 귀책 부정 불가(주택법 제14조의2 취지 포함). K-Law는 조항이 정산·환불만 규정해 별도 위약금 청구 근거가 없다는 문언 해석(결정적 근거)에 약관규제법 부당성·신의칙 가정적 판단을 보태 원고 전부 패소로 결론 내려 세 법리 모두 반대였다(①0/3). 확정된 부분은 피고 6(상고기각) 분담금 청구 인용이 확정됐는데 K-Law는 이행기 미도래로 기각해 불일치, 나머지 피고들의 분담금 청구는 불복이유 부재로 원고 패소 확정이라 K-Law 기각과 일치. 방향 이분(파기)은 K-Law 원고패소=유지 계열이라 어긋남(pred v3). 검수(klaw_check_runner.mjs)는 M-1 [출처 없음] 6건·M-1b 자기검증 누락 1건·STEP A-0-S 유연해석 '채택' 선언과 확정 의미 불일치(미탐지, 결론영향 불명)를 지적했으나 주문 무효 소지는 없다고 판정, M-7(P7) 위반 0건. 재검토는 14개 지적 중 7 수용·7 반박, 주문 변경 없음(원고패소 유지, 확신도 6/10). 즉 검수·재검토는 표기 위험을 줄였을 뿐 틀린 결론은 교정하지 못했다. 이 사건에서 오류의 원인은 약관 해석 쟁점(총약정금·귀책 증명책임)에 대한 법리 판단 자체였고, 0-α 직관(피고 유리)이 결론에 방향을 고정한 점이 관찰된다.",
+    "basis": "DeepSeek V4 Flash API(klaw_runner.mjs) · 방법론 v17.2, 익명 개요(overview_independent.txt)만 입력, 웹 검색·메모리 끔, 배치3(620411 단독). klaw_check_runner.mjs 검수(검수 계정 분리) 및 klaw_reconcile_runner.mjs 재검토 완료. 재검토 전·후 결론 동일(원고패소)로 전·후 채점 동일.",
+    "model_judgment": "library/benchmark/rounds/r04/pipeline/620411/model_judgment.md"
+   },
+   "stages": {
+    "virtual": {
+     "final": "library/benchmark/rounds/r04/pipeline/620411/generated_final.txt",
+     "raw": "library/benchmark/rounds/r04/pipeline/620411/generated.txt",
+     "summary": "STEP 0→A→B→C 완주(생성 330초, 6회 호출·프롬프트 57만 토큰·완료 7.2만 토큰, 캐시적중 90%). 조항 문언 구조(정산·환불에 한정)를 결정적 근거로 별도 위약금·잔존 분담금 청구 근거를 부정하고 원고 전부 패소. 종합 확신도 6/10."
+    },
+    "check": {
+     "path": "library/benchmark/rounds/r04/pipeline/620411/check.txt",
+     "verdict": "재검토 권고",
+     "summary": "M-1 [출처 없음] 6건(약관규제법 6~9조·민법 398조 4항·109조 1항 규율 내용, 결정적 근거 아님)·M-1b 자기검증 누락 1건·STEP A-0-S [3단계] 유연해석 '채택' 선언이 확정 의미·본문과 불일치(결론 영향 불명). M-2 주택법 구체 조문 미열거(경미). M-7 위반 0건. 주문 무효 소지 없음."
+    },
+    "reconcile": {
+     "path": "library/benchmark/rounds/r04/pipeline/620411/reconcile.md",
+     "items": 14,
+     "accepted": 7,
+     "rebutted": 7,
+     "conclusion": "유지",
+     "summary": "지적 14건 중 7 수용·7 반박. 미검증 표기 전파·유연해석 경로 보완 반영. 주문 변경 없음(원고패소 유지)."
+    },
+    "final": {
+     "path": "library/benchmark/rounds/r04/pipeline/620411/final.txt",
+     "label": "원고 패소(=피고 승소)"
+    }
+   }
+  }
+ }
+}
