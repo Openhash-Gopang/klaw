@@ -866,9 +866,7 @@ const KLAW_FEE_SCHEDULE_CLIENT_DISPLAY = [
 ];
 // 2026-09-25 — 서버(worker.js)는 2026-12-31까지 K-Law 사건단위 정액과금을 중단하고 토큰 종량제(flash 10배·pro 5배)로만
 // 청구한다(KLAW_BETA_USAGE_BILLING_UNTIL). 그 기간에 위 정액 추정치를 보여주면 실제 청구와 어긋나므로 종량제 안내로 대체한다.
-// 아래 시각은 worker.js의 KLAW_BETA_USAGE_BILLING_UNTIL과 동기화 유지할 것(종료 후에는 정액 안내가 자동 복원된다).
-const KLAW_BETA_USAGE_BILLING_UNTIL_CLIENT = '2026-12-31T23:59:59+09:00';
-function _klawBetaUsageBillingActive() { return Date.now() <= new Date(KLAW_BETA_USAGE_BILLING_UNTIL_CLIENT).getTime(); }
+// 시각 판정은 위쪽(약 300행)의 KLAW_BETA_USAGE_BILLING_UNTIL / _klawBetaUsageBillingActive()를 그대로 쓴다(2026-10-04 중복 선언 제거 — 같은 값이 두 곳에 있어 한쪽만 고치면 어긋날 위험이 있었다). 종료 후에는 정액 안내가 자동 복원된다.
 function _klawEstimateFeeLabel() {
   if (_klawBetaUsageBillingActive()) return '';
   const amt = Number(conversationState.caseState?.claimAmount) || 0;
