@@ -404,6 +404,7 @@ function renderCases(r) {
       <td>${esc(c.id)}</td>
       <td>${legalCell(c)}</td>
       <td>${(!d.easy_explain && !d.plaintiff_theory && !d.defendant_theory && !d.judgment_logic && !mj) ? '<div class="analysis-group"><span class="na-only">준비 중</span></div>' : `<div class="analysis-group">
+        ${d.overview_independent ? `<a href="${esc(viewerUrl(d.overview_independent, '사건 개요 - ' + c.id))}" target="_blank" rel="noopener">사건 개요</a>` : '<span class="na-cell">사건 개요</span>'}
         ${d.easy_explain ? `<a href="${esc(viewerUrl(d.easy_explain, '쉬운 설명 - ' + c.id))}" target="_blank" rel="noopener">쉬운 설명</a>` : '<span class="na-cell">쉬운 설명</span>'}
         ${d.plaintiff_theory ? `<a href="${esc(viewerUrl(d.plaintiff_theory, '원고의 법리 - ' + c.id))}" target="_blank" rel="noopener">원고 논거</a>` : '<span class="na-cell">원고 논거</span>'}
         ${d.defendant_theory ? `<a href="${esc(viewerUrl(d.defendant_theory, '피고의 법리 - ' + c.id))}" target="_blank" rel="noopener">피고 논거</a>` : '<span class="na-cell">피고 논거</span>'}
