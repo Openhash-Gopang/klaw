@@ -257,7 +257,7 @@ a { text-decoration: none; color: inherit; }
 <body>
 <!-- GOV BAR -->
 <div class="gov-bar">
-  <strong>K-Law</strong> 공식 AI 판결 시뮬레이션 시스템 &nbsp;|&nbsp; 법률 정보 제공 목적 &nbsp;·&nbsp; 법률 자문 아님
+  <strong>K-Law</strong> AI 판결 시뮬레이션 (민간 서비스 · 법원·정부기관의 공식 서비스 아님) &nbsp;|&nbsp; 참고용 &nbsp;·&nbsp; 법률 자문 아님
 </div>
 
 <!-- TOP NAV -->
@@ -292,7 +292,7 @@ a { text-decoration: none; color: inherit; }
   <div class="hero-inner">
     <div class="hero-text">
       <div class="hero-tag"><span class="hero-tag-dot"></span> AI 분석 시스템 운영 중</div>
-      <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
+      <h1>사건의 개요를 입력하면,<br><em>참고용 가상 판결문을 작성합니다</em></h1>
       <p>엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
       <div class="hero-btns">
         <a href="desktop.html" class="hero-btn-primary hero-btn-2l">가상 판결 작성기<small>v15.1</small></a>
@@ -313,32 +313,32 @@ a { text-decoration: none; color: inherit; }
     <div class="kpi-card">
       <div class="kpi-card-val gold">90%</div>
       <div class="kpi-card-title">대법원 판결 일치도 (v15.3)</div>
-      <div class="kpi-card-desc">복잡 판례 300건 자체 실증 결과</div>
-      <div class="kpi-card-desc">원심(고등법원) 일치도 45% 대비 2배 수준</div>
+      <div class="kpi-card-desc">복잡 판례 300건 자체 실험 결과(제3자 검증 전)</div>
+      <div class="kpi-card-desc">참고: 원심과 대법원 판결 간 일치도는 약 45%</div>
       <div class="kpi-card-ref">K-Law v15.3 실험 기준</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card-val">10초</div>
       <div class="kpi-card-title">소요 시간</div>
-      <div class="kpi-card-desc">인간 법원 1~3심 3~5년 대비 K-Law 10초 미만</div>
+      <div class="kpi-card-desc">가상 판결문 생성 소요 시간(실제 재판 절차와 비교 대상이 아님)</div>
       <div class="kpi-card-ref">K-Law 전용 LLM</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card-val green">1,000원</div>
       <div class="kpi-card-title">비용</div>
-      <div class="kpi-card-desc">1~3심 소송 비용 수백~수천만원 대비 1,000~10,000원</div>
+      <div class="kpi-card-desc">가상 판결 1건 이용료(실제 소송 비용·결과와 무관)</div>
       <div class="kpi-card-ref">K-Law 기준</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-card-val" style="font-size:22px">2배</div>
-      <div class="kpi-card-title">원심 대비 성능</div>
-      <div class="kpi-card-desc">원심(45%) 대비 약 2배 높은 일치도 달성</div>
+      <div class="kpi-card-val" style="font-size:22px">45%</div>
+      <div class="kpi-card-title">원심의 대법원 일치도</div>
+      <div class="kpi-card-desc">동일 복잡 판례에서 원심 판결이 대법원 결론과 일치한 비율(자체 집계)</div>
       <div class="kpi-card-ref">동일 복잡 판례 기준</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card-val" style="font-size:18px;padding-top:3px">예방 법학</div>
       <div class="kpi-card-title">고팡 시스템</div>
-      <div class="kpi-card-desc">분쟁·갈등·범죄의 90%를 미연에 방지 혹은 차단</div>
+      <div class="kpi-card-desc">분쟁·갈등·범죄를 줄이는 것을 목표로 하는 연구 구상(성과 수치 아님)</div>
       <div class="kpi-card-ref">논문 참조</div>
     </div>
   </div>
@@ -347,28 +347,28 @@ a { text-decoration: none; color: inherit; }
 <!-- 이용 방법 -->
 <div class="wide-section" id="how" style="margin-top:32px">
   <div class="section-title">이용 방법</div>
-  <div class="wide-h2">5단계로 완성되는 AI 판결 예측</div>
+  <div class="wide-h2">5단계로 완성되는 AI 가상 판결</div>
   <div class="wide-sub">사건의 개요 입력 한 번으로 AI가 분석하고 판결 결과까지 자동으로 도출합니다.</div>
   <div class="steps">
     <div class="step-item"><div class="step-num">1</div><div><div class="step-title">사건 개요 입력</div><div class="step-desc">데스크탑 시뮬레이터 또는 모바일 웹앱에서 사건의 핵심 사실관계와 법적 쟁점을 자유롭게 기술합니다</div></div></div>
     <div class="step-item"><div class="step-num">2</div><div><div class="step-title">AI 법리 분석</div><div class="step-desc">DeepSeek · Claude 등 멀티 AI 엔진이 대법원 법리 공리 체계로 사건을 분류하고 판단 근거를 수립</div></div></div>
-    <div class="step-item"><div class="step-num">3</div><div><div class="step-title">판결 예측 도출</div><div class="step-desc">원고 승소 / 피고 승소 / 일부 승소 / 판단 불가 중 하나와 신뢰도(0~100%)를 제시</div></div></div>
+    <div class="step-item"><div class="step-num">3</div><div><div class="step-title">가상 판결 도출</div><div class="step-desc">원고 승소 / 피고 승소 / 일부 승소 / 판단 불가 중 하나와 AI 자체 신뢰도(0~100%, 실제 승소 확률이 아님)를 제시</div></div></div>
     <div class="step-item"><div class="step-num">4</div><div><div class="step-title">핵심 쟁점 제시</div><div class="step-desc">적용 법조문, 판례 근거, 법리 분석, 핵심 쟁점을 구조화된 형태로 제공</div></div></div>
-    <div class="step-item"><div class="step-num">5</div><div><div class="step-title">블록체인 영구 기록</div><div class="step-desc">모든 시뮬레이션 결과가 Openhash Network에 위변조 불가능하게 기록되어 영구 보존</div></div></div>
+    <div class="step-item"><div class="step-num">5</div><div><div class="step-title">블록체인 기록</div><div class="step-desc">시뮬레이션 기록이 Openhash Network에 남도록 설계되어 있으며 위변조 방지를 목표로 합니다</div></div></div>
   </div>
 </div>
 
 <!-- 판결 유형 -->
 <div class="wide-section" id="scenarios" style="margin-top:32px">
   <div class="section-title">판결 유형</div>
-  <div class="wide-h2">어떤 사건도 놓치지 않습니다</div>
-  <div class="wide-sub">AI가 분석하는 6가지 사건 분류별로 최적의 판결 예측 시나리오가 자동 구성됩니다.</div>
+  <div class="wide-h2">6가지 사건 유형을 지원합니다</div>
+  <div class="wide-sub">AI가 분석하는 6가지 사건 분류별로 유형에 맞는 가상 판결 시나리오가 자동 구성됩니다.</div>
   <div class="scenario-grid">
     <div class="scenario-item"><div class="scenario-type">TYPE_01</div><div class="scenario-title">민사 (본안)</div><div class="scenario-desc">계약, 불법행위, 채권·채무, 손해배상 등 민사 일반 사건</div></div>
-    <div class="scenario-item"><div class="scenario-type">TYPE_02</div><div class="scenario-title">형사</div><div class="scenario-desc">사기, 횡령, 배임, 폭행, 성범죄 등 형사사건 판결 예측</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_02</div><div class="scenario-title">형사</div><div class="scenario-desc">사기, 횡령, 배임, 폭행, 성범죄 등 형사사건 가상 판결</div></div>
     <div class="scenario-item"><div class="scenario-type">TYPE_03</div><div class="scenario-title">행정</div><div class="scenario-desc">행정처분, 취소소송, 부당해고 구제신청 등 행정·공법 사건</div></div>
     <div class="scenario-item"><div class="scenario-type">TYPE_04</div><div class="scenario-title">가사</div><div class="scenario-desc">이혼, 양육권, 재산분할, 상속 등 가사 사건</div></div>
-    <div class="scenario-item"><div class="scenario-type">TYPE_05</div><div class="scenario-title">소액사건</div><div class="scenario-desc">3,000만원 이하 소액사건 간이 절차 예측</div></div>
+    <div class="scenario-item"><div class="scenario-type">TYPE_05</div><div class="scenario-title">소액사건</div><div class="scenario-desc">3,000만원 이하 소액사건 간이 절차 가상 판결</div></div>
     <div class="scenario-item"><div class="scenario-type">TYPE_06</div><div class="scenario-title">노동</div><div class="scenario-desc">해고무효, 임금체불, 산업재해 등 노동 관련 사건</div></div>
   </div>
 </div>
@@ -381,37 +381,37 @@ a { text-decoration: none; color: inherit; }
   <div class="engine-steps">
     <div class="engine-step"><div class="engine-num">1</div><span class="engine-label">ANALYZE</span> — 사건 유형, 관련 법조문, 쟁점 심각도, 증거 강도를 판단</div>
     <div class="engine-step"><div class="engine-num">2</div><span class="engine-label">PLAN</span> — 판결 시나리오 선택, 적용 법리 및 판례 DB 검색</div>
-    <div class="engine-step"><div class="engine-num">3</div><span class="engine-label">PREDICT</span> — 승소 여부 및 신뢰도(0~100%) 도출</div>
+    <div class="engine-step"><div class="engine-num">3</div><span class="engine-label">PREDICT</span> — 가상 판결 결과 및 AI 자체 신뢰도(0~100%) 도출</div>
     <div class="engine-step"><div class="engine-num">4</div><span class="engine-label">REVIEW</span> — 핵심 쟁점 및 주의사항 검토</div>
     <div class="engine-step"><div class="engine-num">5</div><span class="engine-label">RECORD</span> — 결과 보고서 자동 작성 및 Openhash 블록체인 기록</div>
   </div>
   <div class="prompt-box"># K-Law System Prompt v15.1
 # DeepSeek / Claude — AI 판결 시뮬레이션
 
-ROLE: 대한민국 법원 판결 예측 AI
+ROLE: 참고용 가상 판결 작성 AI (법률 자문 아님)
 
 CYCLE: ANALYZE → PLAN → PREDICT → REVIEW → RECORD
 
 TYPES:
   TYPE_01 "민사_본안"    → 계약·불법행위·채권채무 판결
-  TYPE_02 "형사"         → 유죄·무죄·집행유예 예측
-  TYPE_03 "행정"         → 인용·기각·각하 예측
+  TYPE_02 "형사"         → 유죄·무죄·집행유예 가상 판결
+  TYPE_03 "행정"         → 인용·기각·각하 가상 판결
   TYPE_04 "가사"         → 이혼·양육·재산분할 판결
   TYPE_05 "소액사건"     → 간이 절차 판결
   TYPE_06 "노동"         → 해고무효·임금체불 판결
 
 RULES:
-  - 모든 예측은 법률 정보 제공 목적, 법률 자문 아님
+  - 모든 결과는 참고용 가상 판결이며 법률 자문 아님
   - 신뢰도 0~100 숫자로만 표기
   - 접수 즉시 이미지 해시 Openhash 기록
-  - 모든 기록은 위변조 불가</div>
+  - 기록의 위변조 방지를 목표로 함</div>
 </div>
 
 <!-- 블록체인 -->
 <div class="wide-section" id="blockchain" style="margin-top:32px">
   <div class="section-title">블록체인 기록</div>
   <div class="wide-h2">수백 년이 지나도 열람할 수 있는 기록</div>
-  <div class="wide-sub">모든 시뮬레이션 접수·분석·결과 단계가 별도 트랜잭션으로 블록체인에 기록되어 위변조가 불가능합니다.</div>
+  <div class="wide-sub">시뮬레이션 접수·분석·결과 단계가 별도 트랜잭션으로 Openhash 블록체인에 기록되도록 설계되어 있으며, 기록의 위변조 방지를 목표로 합니다. 아래는 화면 구성을 보여 주는 예시이며 실제 기록이 아닙니다.</div>
   <div class="tx-list">
     <div class="tx-item">
       <div class="tx-header"><span class="tx-id">TX #1 — 사건 접수</span><span class="badge badge-blue">입력 해시 기록</span></div>
@@ -425,14 +425,14 @@ RULES:
     <div class="tx-item">
       <div class="tx-header"><span class="tx-id">TX #2 — AI 분석 완료</span><span class="badge badge-gold">법리 분석 기록</span></div>
       <div class="tx-rows">
-        <div class="tx-row"><span class="tx-key">예측 결과</span><span class="tx-val">원고 승소</span></div>
+        <div class="tx-row"><span class="tx-key">가상 판결 결과</span><span class="tx-val">원고 승소</span></div>
         <div class="tx-row"><span class="tx-key">신뢰도</span><span class="tx-val">78%</span></div>
         <div class="tx-row"><span class="tx-key">적용 법조문</span><span class="tx-val">민법 제598조</span></div>
       </div>
       <div class="tx-hash">SHA256: 8b2d1ae3f9c4b7d2f8a1e3c9b4d7f2a8e1c3b9d4f7a2e8c1b3d9e4a7f2c8b1d3</div>
     </div>
     <div class="tx-item">
-      <div class="tx-header"><span class="tx-id">TX #3 — 결과 확정</span><span class="badge badge-green">영구 보존</span></div>
+      <div class="tx-header"><span class="tx-id">TX #3 — 기록 완료</span><span class="badge badge-green">기록 예시</span></div>
       <div class="tx-rows">
         <div class="tx-row"><span class="tx-key">처리 시간</span><span class="tx-val">3.2초</span></div>
         <div class="tx-row"><span class="tx-key">블록 높이</span><span class="tx-val">#12,847,221</span></div>
@@ -445,8 +445,9 @@ RULES:
 
 <!-- 실시간 현황 -->
 <div class="wide-section" style="margin-top:32px">
-  <div class="section-title">실시간 현황</div>
+  <div class="section-title">현황 (일부 예시 수치)</div>
   <div class="wide-h2">K-Law 시뮬레이션 현황 대시보드</div>
+<div class="wide-sub">누적 시뮬레이션·분석 시간 등 일부 수치는 화면 구성을 보여 주는 예시이며 실시간 집계가 아닙니다. 실제 집계는 대시보드 메뉴에서 확인하세요.</div>
   <div class="dash-stats" style="margin-top:14px">
     <div class="dash-stat"><div class="dash-stat-val" style="color:var(--primary)">1,284</div><div class="dash-stat-lbl">누적 시뮬레이션</div><div class="dash-stat-sub">↑ 47건 전일 대비</div></div>
     <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">90%</div><div class="dash-stat-lbl">대법원 일치도 (v15.3)</div><div class="dash-stat-sub">복잡 판례 300건 기준</div></div>
@@ -508,18 +509,18 @@ RULES:
         <li>대법원 판례 DB 직접 연동</li>
         <li>다국어 지원 (영·일·중)</li>
         <li>외부 법률정보 시스템 API 연동</li>
-        <li>예측 정확도 리포트 자동화</li>
+        <li>일치도 리포트 자동화</li>
         <li>담당자 모바일 앱</li>
       </ul>
     </div>
     <div class="roadmap-phase">
       <div class="roadmap-head"><div class="roadmap-num">Phase 3</div><div class="roadmap-title">전국·글로벌 확산</div><div class="roadmap-period">2026 Q2 이후</div></div>
       <ul class="roadmap-items">
-        <li>전국 법원 대상 라이선스</li>
-        <li>법무부·대법원 연계</li>
-        <li>AI 판사 보조 시스템</li>
-        <li>예측 분석 모델 고도화</li>
-        <li>해외 법률 시스템 수출</li>
+        <li>전국 법원 대상 라이선스 검토(확정 아님)</li>
+        <li>법원·공공기관과의 협력 검토(확정 아님)</li>
+        <li>AI 판사 보조 시스템 구상(확정 아님)</li>
+        <li>가상 판결 모델 고도화</li>
+        <li>해외 법률 시스템 적용 검토(확정 아님)</li>
       </ul>
     </div>
   </div>
@@ -528,8 +529,8 @@ RULES:
 <!-- 면책 고지 -->
 <div class="footer-disclaimer" style="margin-top:32px">
   <div class="footer-disclaimer-inner">
-    ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않습니다.
-    K-Law v15.3 기준, 대법원 공개 복잡 판례 300건에 대한 판결 일치도는 약 90%이며, 동일 사건에서 원심(고등법원) 판결과 대법원 판결 간 일치도는 약 45%입니다. 과거 v10.0 버전에서는 약 73% 수준이었으며, 지속적으로 개선 중입니다. 본 수치는 자체 실험 결과이며, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
+    ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않으며, 법원·정부기관의 공식 서비스가 아니고 가상 판결문은 법적 효력이 없습니다. 사건 개요에 실명·주민등록번호·연락처 등 개인정보를 입력하지 마십시오.
+    K-Law v15.3 기준, 대법원 공개 복잡 판례 300건에 대한 판결 일치도는 약 90%이며, 동일 사건에서 원심(고등법원) 판결과 대법원 판결 간 일치도는 약 45%입니다. 과거 v10.0 버전에서는 약 73% 수준이었으며, 지속적으로 개선 중입니다. 본 수치는 자체 실험 결과(제3자 검증 전, 재현성 실험 진행 중)이며, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
     법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
   </div>
 </div>
@@ -539,7 +540,7 @@ RULES:
   <div class="site-footer-inner">
     <div>
       <div style="font-size:15px;font-weight:800;color:rgba(255,255,255,.90);margin-bottom:6px">K-Law</div>
-      <div style="font-size:13.5px;line-height:1.7">AI 판결 시뮬레이션 시스템<br>AI + 블록체인으로 더 공정한 법률 서비스를 만듭니다.</div>
+      <div style="font-size:13.5px;line-height:1.7">AI 판결 시뮬레이션 시스템<br>AI + 블록체인 기반 법률 정보 시뮬레이션 시스템입니다.</div>
     </div>
     <div style="display:flex;gap:40px;flex-wrap:wrap">
       <div>
