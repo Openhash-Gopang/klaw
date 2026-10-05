@@ -57,6 +57,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .hero-dark-inner .repro-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#3ecf8e}
 .hero-dark-inner h2{font-size:19px;color:#f1f5f9;margin-bottom:6px;line-height:1.4}
 .hero-dark-inner p{font-size:13px;color:#cbd5e1;margin-bottom:16px;max-width:680px}
+.hero-dark-inner .hero-top{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.hero-dark-inner .hero-top{margin-bottom:20px}
+.hero-dark-inner .hero-main{flex:1 1 520px;min-width:0}
+.hero-dark-inner .hero-main p{margin-bottom:0}
+.hero-dark-inner .verdict-cta{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#052e16;background:#4ade80;border:1px solid #86efac;border-radius:12px;padding:13px 20px;text-decoration:none;white-space:nowrap;animation:verdict-cta-blink 1.4s ease-in-out infinite}
+.hero-dark-inner .verdict-cta:hover,.hero-dark-inner .verdict-cta:focus-visible{background:#bbf7d0;animation-play-state:paused;outline:none}
+@keyframes verdict-cta-blink{
+  0%,100%{background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,0)}
+  50%{background:#86efac;box-shadow:0 0 0 7px rgba(74,222,128,.28)}
+}
+@media (prefers-reduced-motion: reduce){.hero-dark-inner .verdict-cta{animation:none}}
 .hero-dark-inner .repro-pills{display:flex;flex-wrap:wrap;gap:8px}
 .hero-dark-inner .repro-pill{font-size:12px;font-weight:600;color:#e2e8f0;background:#141a2e;border:1px solid #374357;border-radius:9px;padding:8px 12px}
 .hero-dark-inner .repro-pill.repro-pill-blink{animation:repro-blink-border 2.2s ease-in-out infinite}
@@ -89,9 +100,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
   <div class="tabs" id="lib-tabs"><button class="tab-btn active" data-filter="all">전체</button><button class="tab-btn" data-filter="current">현행 방법론</button><button class="tab-btn" data-filter="report">실증 보고서</button><button class="tab-btn" data-filter="paper">연구 논문</button><button class="tab-btn" data-filter="appendix">보고서 부록</button><button class="tab-btn" data-filter="biz">사업·소개</button><button class="tab-btn" data-filter="eval">평가 결과</button><button class="tab-btn" data-filter="archive">이전 버전</button><button class="tab-btn" data-filter="repro">재현성 자료</button></div>
 </header>
 <section class="hero-dark"><div class="hero-dark-inner">
-  <span class="repro-badge">재현성 실험 진행 중</span>
-  <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
-  <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
+  <div class="hero-top">
+    <div class="hero-main">
+      <span class="repro-badge">재현성 실험 진행 중</span>
+      <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
+      <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
+    </div>
+    <a class="verdict-cta" href="verdict-generate.html">⚖️ 대법원 예상 판결문 생성하기</a>
+  </div>
   <div class="repro-pills">
     <span class="repro-pill">📥 판례 수집(Open API)</span>
     <span class="repro-pill">🏷️ 300건 분류·태깅</span>
