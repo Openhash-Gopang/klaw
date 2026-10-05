@@ -91,7 +91,7 @@ tr.row-clickable:hover{background:var(--bg)}
         <tr>
           <th>생성 시각</th>
           <th>제목</th>
-          <th>일치도 예상</th>
+          <th>일치도<br><span style="font-weight:400;font-size:10px">AI 산정·제3자 검증 전</span></th>
           <th>항목별 평가</th>
           <th>공개</th>
         </tr>
@@ -328,7 +328,7 @@ async function viewKlawHistoryDetail(id) {
     body.innerHTML = `
       <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
         ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
-        · 일치도 예상 <b style="color:var(--pri-dk)">${escHtml(_klawStripMatchRate(json.match_rate) || '—')}</b>
+        · 일치도(AI 산정·제3자 검증 전) <b style="color:var(--pri-dk)">${escHtml(_klawStripMatchRate(json.match_rate) || '—')}</b>
         ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
       </div>
       ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
