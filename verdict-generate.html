@@ -57,6 +57,7 @@ button{font-family:var(--font);cursor:pointer}
 
 .notice-bar{flex-shrink:0;background:var(--org-bg);color:#92400e;border-bottom:1px solid #fde68a;font-size:12.5px;line-height:1.5;padding:7px 16px;text-align:center}
 .notice-bar strong{font-weight:700}
+.notice-bar.notice-ver{background:var(--blue-bg);color:#1e40af;border-bottom-color:#bfdbfe}
 .app-body{display:flex;flex:1;overflow:hidden}
 
 .sidebar{
@@ -373,6 +374,7 @@ button{font-family:var(--font);cursor:pointer}
 </header>
 
 <div class="notice-bar" role="note"><strong>⚠️ 법률 자문이 아닌 참고용 시뮬레이션입니다.</strong> AI가 작성한 가상 판결문이며 법적 효력이 없고, 법률 자문·소송 대리·변호사 소개를 하지 않습니다. 실제 사건은 변호사와 상담하세요.</div>
+<div class="notice-bar notice-ver" role="note"><strong>ℹ️ 버전 안내:</strong> 이 시뮬레이터에는 <strong>K-Law 방법론 v17.x</strong>가 적용됩니다. 현재 K-Law <strong>version 20.0</strong>은 <strong>2027년 상반기 공개 예정</strong>입니다.</div>
 
 <div class="app-body">
   <nav class="sidebar">
@@ -730,7 +732,7 @@ button{font-family:var(--font);cursor:pointer}
           <!-- 버전 안내 -->
           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             ℹ️ <b>버전 안내</b><br>
-            2026년 9월 현재, K-Law의 버전은 <b>v20.0(Ensemble)</b>이며, 이 사이트는 <b>v15.1</b>을 적용하였습니다.
+            이 사이트에는 <b>K-Law 방법론 v17.x</b>가 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
             v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
             K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고, 대법원 실제 판결문과 일치도 역시 더 높지만,
             상당한 API 비용(건당 약 3,000원)으로 인해, 본 사이트의 데모에 포함하지 않았습니다.
