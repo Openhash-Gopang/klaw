@@ -79,6 +79,9 @@ a { text-decoration: none; color: inherit; }
 .hero-btn-primary:hover { background: var(--primary); }
 .hero-btn-outline { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.20); color: rgba(255,255,255,.85); border-radius: var(--r); font-size: 15px; font-weight: 600; transition: background .15s; }
 .hero-btn-outline:hover { background: rgba(255,255,255,.14); }
+.hero-btn-2l { flex-direction: column; gap: 2px; padding: 10px 22px; line-height: 1.25; text-align: center; justify-content: center; }
+.hero-btn-2l small { display: block; font-size: 12px; font-weight: 600; opacity: .85; letter-spacing: .2px; }
+.hero-btn-v17 { box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); }
 
 /* KPIS BAND */
 .kpis-band { background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
@@ -292,7 +295,8 @@ a { text-decoration: none; color: inherit; }
       <h1>사건의 개요를 입력하면,<br><em>수년 뒤의 대법원 판결을 예측합니다</em></h1>
       <p>엄밀한 법리(法理) 외에도 판결 도출 과정과 결과를 당사자가 납득할 때까지 상세히 설명합니다.</p>
       <div class="hero-btns">
-        <a href="desktop.html" class="hero-btn-primary">가상 판결</a>
+        <a href="desktop.html" class="hero-btn-primary hero-btn-2l">가상 판결 작성기<small>v15.1</small></a>
+<a href="verdict-generate.html" class="hero-btn-primary hero-btn-2l hero-btn-v17">가상 판결 작성기<small>v17</small></a>
         <a href="benchmark.html" class="hero-btn-outline">판결 성능 검증</a>
         <a href="webapp.html" class="hero-btn-outline">모바일 웹앱</a>
       </div>
