@@ -458,14 +458,6 @@ function _parseInterviewState(raw) {
   return { visible, state };
 }
 
-function calcMatchRate(complexity) {
-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
-  const rate = 99.99 - (c - 1) * (9.99 / 9);
-  if (rate >= 99.9) return rate.toFixed(2) + '%';
-  if (rate >= 99)   return rate.toFixed(1) + '%';
-  return rate.toFixed(0) + '%';
-}
-
 // stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
 // stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
 // ★ 토큰 절약 프로토콜(SP_token_efficiency_v1_0.md) T1 준수: 사건번호·심급처럼
@@ -490,6 +482,11 @@ function buildKlawSimPrompt() {
 ${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
 사건번호·심급 등 이번 사건의 구체적인 정보, 그리고 지금 작성할 STEP은 이어지는 사용자 메시지에서 확인하세요.
 
+[이 시뮬레이터의 예외 지시 — 위 출력형식보다 우선]
+사건별 "대법원 판결 일치도 예상" 수치는 검증되지 않은 값이므로 출력하지 않습니다. 위 출력형식에 있는
+"[K-Law 대법원 판결 일치도 예상: …]" 태그, 일치도 산출 공식·표, 판결 요약에 일치도 예상을 포함하라는 지시,
+"통계적 추정치입니다" 각주는 모두 생략하세요. 그 밖의 형식과 완료 태그는 그대로 준수합니다.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다. K-Law는 변호사가 아니며 소송·법률사무를 대리하지 않고 변호사를 소개·연결하지 않습니다.
 가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
@@ -504,7 +501,7 @@ const STEP_DEFS = [
   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
     prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP B만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
-    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP C만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP C만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
 ];
 
 function caseTypeColor(type) {
@@ -1072,7 +1069,6 @@ async function runJudgementSim() {
         // 사건을 K-Law에 입력해 생성과 채점을 같은 흐름에서 수행함).
         // 여기서는 판결문 본문에 이미 있는 K-Law 자신의 예측치(자기평가,
         // 검증 아님)만 detail에 같이 남긴다.
-        const predictedMatch = (fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/) || [])[1] || null;
         recordOwnerPDV({
           ownerAgency: 'klaw',
           recordType: 'own_output',
@@ -1082,7 +1078,6 @@ async function runJudgementSim() {
             subtype: 'verdict_generated',
             case_no: caseNo,
             klaw_version: klawVersion,
-            predicted_match_rate: predictedMatch, // 자기평가 예측치일 뿐, 검증된 값 아님
             verified: false,
           },
         }).catch(() => {});
@@ -1096,14 +1091,12 @@ function buildVerdictSummaryBubble(fullText, caseNo) {
   const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
   const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
   const totalConf = totalM ? totalM[1] : '—';
   const complexity = complexM ? complexM[1] : null;
   const vType = typeM ? typeM[1].trim() : '—';
   const summary = summM ? summM[1].trim() : '';
-  const matchRate = matchLLM ? matchLLM[1].trim() : (complexity ? calcMatchRate(complexity) : '90~99.99%');
   return `
     <div class="verdict-card">
       <div class="vc-badge">사건번호 ${escHtml(caseNo)} · K-Law ${escHtml(klawVersion)}</div>
@@ -1111,7 +1104,6 @@ function buildVerdictSummaryBubble(fullText, caseNo) {
       <div class="vc-grid">
         <div><span>종합 확신도</span><b>${escHtml(totalConf)}/10</b></div>
         <div><span>사건 복잡도</span><b>${complexity ? escHtml(complexity)+'/10' : '—'}</b></div>
-        <div><span>대법원 일치도 예상</span><b>${escHtml(matchRate)}</b></div>
         <div><span>결론 유형</span><b>${escHtml(vType)}</b></div>
       </div>
     </div>`;

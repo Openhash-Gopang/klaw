@@ -437,7 +437,7 @@ async function loadAllData() {
 const panelTitles = {
   dashboard: '종합 대시보드', simulations: '시뮬레이션 이력',
   users: '사용자 현황', 'klaw-versions': 'K-Law 버전 이력',
-  stats: '사건 유형 통계', accuracy: '일치도 지표', blockchain: '블록체인 기록'
+  stats: '사건 유형 통계', accuracy: '일치도 지표', blockchain: '접수 기록'
 };
 
 function showPanel(id) {
@@ -752,28 +752,12 @@ function renderAccuracy() {
   const maxAvg = Math.max(1, ...bucketAvgs.map(b => b.avg));
 
   return `
-  <div class="section-hd">K-Law 일치도 지표 지표</div>
-  <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-body"><div class="kpi-val gold">99.9%</div><div class="kpi-label">논문 기준 일치도</div><div class="kpi-sub">K-Law 이론적 추정치</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">⚖</div><div class="kpi-body"><div class="kpi-val">${overallAvg !== null ? overallAvg.toFixed(1) + '%' : '—'}</div><div class="kpi-label">대법원 일치도(실측 누적 평균)</div><div class="kpi-sub">${withRate.length}건 기준</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kpi-val green">+28%p</div><div class="kpi-label">인간 원심 대비</div><div class="kpi-sub">2심 대비 일치도 차이(이론적 추정)</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">🔬</div><div class="kpi-body"><div class="kpi-val orange">95.5%</div><div class="kpi-label">전수 상고 환경 추정</div><div class="kpi-sub">이론적 추정(±5%p)</div></div></div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-header">📅 ${useWeekly ? '주별' : '일별'} 일치도 평균 추이 <span style="font-weight:400;color:var(--hint);font-size:11px">최근 ${bucketAvgs.length}개 구간</span></div>
-    <div class="card-body">
-      ${bucketAvgs.length ? bucketAvgs.map(b => `
-      <div class="stat-bar-row">
-        <div class="stat-bar-label">${b.key}</div>
-        <div class="stat-bar-track"><div class="stat-bar-fill" data-width="${Math.round(b.avg / maxAvg * 100)}" style="width:0%;background:var(--primary)"></div></div>
-        <div class="stat-bar-val">${b.avg.toFixed(1)}% <span style="color:var(--hint);font-weight:400">(${b.n}건)</span></div>
-      </div>`).join('') : '<div style="text-align:center;color:var(--hint);padding:24px">일치도 데이터를 가진 사건이 아직 없습니다</div>'}
-    </div>
-  </div>
+  <div class="section-hd">K-Law 일치도 지표</div>
   <div class="card">
-    <div class="card-header">📋 면책 고지</div>
-    <div class="card-body" style="font-size:12px;color:var(--sub);line-height:1.8">
-      ⚠ 99.9% 및 95.5%, +28%p 수치는 K-Law 논문 기반 이론적 추정치입니다. "대법원 일치도(실측 누적 평균)"와 위 추이 차트는 klaw_cases 테이블에 기록된 실제 시뮬레이션 결과를 집계한 것이나, 일치도 자체가 각 LLM이 스스로 보고한 예상치(자기평가)이며 표본이 편중되어 있을 수 있어 전체 사건 분포를 대표하지 않을 수 있습니다. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 변호사의 법률 자문을 대체하지 않습니다.
+    <div class="card-header">📋 안내</div>
+    <div class="card-body" style="font-size:13px;color:var(--sub);line-height:1.9">
+      사건별 "대법원 판결 일치도 예상" 값은 AI가 스스로 보고한 값(자기평가)으로 검증되지 않아 집계·표시하지 않습니다. 논문상 이론적 추정치(99.9%, 95.5% 등)도 실측이 아니므로 표시하지 않습니다.<br>
+      대법원 판결 일치도의 실측 결과(자체 실험, 제3자 검증 전)는 <a href="library.html" style="color:var(--primary)">K-Law 자료실</a>과 <a href="rounds.html" style="color:var(--primary)">라운드별 시험 기록</a>을 참고하세요. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 법률 자문이 아니며 법적 효력이 없습니다.
     </div>
   </div>`;
 }
@@ -784,16 +768,15 @@ function renderBlockchain() {
     id: 'TX-' + (allSessions.length-i).toString().padStart(4,'0'),
     ver: s.klaw_version,
     model: modelLabel[s.llm_model]||s.llm_model,
-    ts: s.used_at,
-    hash: Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join('')+'…'
+    ts: s.used_at
   }));
   return `
-  <div class="section-hd">Openhash 블록체인 기록 <span class="section-hd-right">최근 ${txs.length}건</span></div>
+  <div class="section-hd">시뮬레이션 접수 기록 <span class="section-hd-right">최근 ${txs.length}건</span></div>
   ${txs.length ? txs.map(tx=>`
   <div class="card" style="margin-bottom:10px">
     <div class="card-header" style="justify-content:space-between">
       <span>⛓ ${tx.id} — 판결 시뮬레이션 접수</span>
-      <span class="badge badge-green">기록 보존</span>
+      
     </div>
     <div class="card-body" style="font-size:12px">
       <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px">
@@ -801,7 +784,7 @@ function renderBlockchain() {
         <div><span style="color:var(--hint)">LLM 모델</span> <strong>${esc(tx.model)}</strong></div>
         <div><span style="color:var(--hint)">타임스탬프</span> <strong>${fmtDate(tx.ts)}</strong></div>
       </div>
-      <div style="font-size:10px;color:var(--hint);font-family:monospace;background:var(--bg);padding:6px 10px;border-radius:4px">SHA256: ${tx.hash}</div>
+      <div style="font-size:11px;color:var(--hint)">※ 이 화면의 목록은 접수 내역이며, 블록체인 해시는 표시하지 않습니다.</div>
     </div>
   </div>`).join('') : '<div class="card"><div class="card-body" style="text-align:center;color:var(--hint);padding:32px">기록된 트랜잭션이 없습니다</div></div>'}`;
 }

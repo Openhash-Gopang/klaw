@@ -445,14 +445,13 @@ RULES:
 
 <!-- 실시간 현황 -->
 <div class="wide-section" style="margin-top:32px">
-  <div class="section-title">현황 (일부 예시 수치)</div>
+  <div class="section-title">현황</div>
   <div class="wide-h2">K-Law 시뮬레이션 현황 대시보드</div>
-<div class="wide-sub">누적 시뮬레이션·분석 시간 등 일부 수치는 화면 구성을 보여 주는 예시이며 실시간 집계가 아닙니다. 실제 집계는 대시보드 메뉴에서 확인하세요.</div>
+<div class="wide-sub">아래 일치도 수치는 대법원 공개 판례 300건을 대상으로 한 자체 실험 결과(제3자 검증 전)이며 모든 사건으로 일반화할 수 없습니다. 자세한 내용은 K-Law 자료실을 참고하세요.</div>
   <div class="dash-stats" style="margin-top:14px">
-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--primary)">1,284</div><div class="dash-stat-lbl">누적 시뮬레이션</div><div class="dash-stat-sub">↑ 47건 전일 대비</div></div>
-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">90%</div><div class="dash-stat-lbl">대법원 일치도 (v15.3)</div><div class="dash-stat-sub">복잡 판례 300건 기준</div></div>
-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">2026-05 업데이트</div></div>
-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">3.2초</div><div class="dash-stat-lbl">평균 분석 시간</div><div class="dash-stat-sub">DeepSeek 기준</div></div>
+        <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">73%</div><div class="dash-stat-lbl">대법원 판결 주문 일치도 (v15.1)</div><div class="dash-stat-sub">판례 300건 · 2026-05 자체 실험</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">방법론 최신 버전</div></div>
+    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">45%</div><div class="dash-stat-lbl">원심(2심)↔대법원 일치도</div><div class="dash-stat-sub">같은 300건 · 예비 측정치</div></div>
   </div>
 </div>
 
@@ -530,7 +529,7 @@ RULES:
 <div class="footer-disclaimer" style="margin-top:32px">
   <div class="footer-disclaimer-inner">
     ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않으며, 법원·정부기관의 공식 서비스가 아니고 가상 판결문은 법적 효력이 없습니다. 사건 개요에 실명·주민등록번호·연락처 등 개인정보를 입력하지 마십시오.
-    K-Law v15.3 기준, 대법원 공개 복잡 판례 300건에 대한 판결 일치도는 약 90%이며, 동일 사건에서 원심(고등법원) 판결과 대법원 판결 간 일치도는 약 45%입니다. 과거 v10.0 버전에서는 약 73% 수준이었으며, 지속적으로 개선 중입니다. 본 수치는 자체 실험 결과(제3자 검증 전, 재현성 실험 진행 중)이며, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
+    K-Law v15.1 기준, 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에 대한 판결 주문(유지/파기) 일치도는 73%, 동일 사건에서 원심(2심) 판결과 대법원 판결 간 일치도는 45%입니다(2026년 5월 측정). 본 수치는 선별된 판례에서 측정한 자체 실험 결과(제3자 검증 전)이며 모든 사건으로 일반화할 수 없고, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
     법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
   </div>
 </div>

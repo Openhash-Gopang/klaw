@@ -253,7 +253,6 @@ button{font-family:var(--font);cursor:pointer}
     <span>고팡</span><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">벤치마크</span>
   </div>
   <div class="topbar-right">
-    <span class="badge badge-free">FREE</span>
     <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
     <div class="tsep"></div>
     <span class="topbar-clock" id="clock">--:--:--</span>
@@ -507,7 +506,7 @@ button{font-family:var(--font);cursor:pointer}
             <div class="llm-name">DeepSeek</div>
             <div class="llm-model">deepseek-chat</div>
             <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
-            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
+            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 내장 프록시</div>
           </div>
           <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
             <div class="llm-sel-dot"></div>
@@ -1201,14 +1200,6 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
 
 응답은 반드시 위 형식만 사용하세요.`;
 
-function calcMatchRate(complexity) {
-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
-  const rate = 99.99 - (c - 1) * (9.99 / 9);
-  if (rate >= 99.9) return rate.toFixed(2) + '%';
-  if (rate >= 99)   return rate.toFixed(1) + '%';
-  return rate.toFixed(0) + '%';
-}
-
 function buildKlawSimPrompt(caseNo, level) {
   // ── DeepSeek Context Cache 최적화 ─────────────────────────
   // 고정 prefix (캐시 대상): 역할 선언 + 방법론 전체 + 출력형식 안내
@@ -1239,7 +1230,7 @@ const STEP_DEFS = [
   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
     prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
-    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
 ];
 
 // ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
@@ -1478,13 +1469,13 @@ async function runJudgementSim() {
     verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
     confidence:  confM ? confM[1]+'/10' : null,
     complexity:  complexM ? complexM[1] : null,
-    matchRate:   complexM ? calcMatchRate(complexM[1]) : null,
+    matchRate: null,
   }, conversationState.caseText || '');
 
   // PDV 보고 — 판결 시뮬레이션 완료
   await _sendPdvReport(currentUser, {
     summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
-    goal:    '판결 예측 시뮬레이션'
+    goal:    '가상 판결 시뮬레이션'
   });
 
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
@@ -1539,7 +1530,6 @@ function appendConfidenceBlock(fullText) {
   const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
   const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,500}?)(?:\n\n|\[━|$)/);
 
@@ -1549,7 +1539,6 @@ function appendConfidenceBlock(fullText) {
   const complexity= complexM ? complexM[1] : null;
   const vType     = typeM    ? typeM[1].trim() : '—';
   const summary   = summM    ? summM[1].trim() : '';
-  const matchRate = matchLLM ? matchLLM[1].trim() : complexity ? calcMatchRate(complexity) : '90~99.99%';
   const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
   const cx = parseFloat(complexity);
   const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
@@ -1567,11 +1556,6 @@ function appendConfidenceBlock(fullText) {
       <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
       <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
       <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
-      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
-        <span class="conf-label">대법원 판결 일치도 예상</span>
-        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
-        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
-      </div>
       <div class="conf-item" style="border-right:none">
         <span class="conf-label">결론 유형</span>
         <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
