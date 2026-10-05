@@ -247,7 +247,7 @@ a { text-decoration: none; color: inherit; }
   <div class="sidebar-section">
     <div class="sidebar-section-title">분석 · 보고</div>
     <a class="sidebar-link" onclick="showPanel('stats')"><span class="icon">📈</span> 사건 유형 통계</a>
-    <a class="sidebar-link" onclick="showPanel('accuracy')"><span class="icon">🎯</span> 예측 정확도</a>
+    <a class="sidebar-link" onclick="showPanel('accuracy')"><span class="icon">🎯</span> 일치도 지표</a>
     <a class="sidebar-link" onclick="showPanel('blockchain')"><span class="icon">⛓</span> 블록체인 기록</a>
   </div>
 
@@ -437,7 +437,7 @@ async function loadAllData() {
 const panelTitles = {
   dashboard: '종합 대시보드', simulations: '시뮬레이션 이력',
   users: '사용자 현황', 'klaw-versions': 'K-Law 버전 이력',
-  stats: '사건 유형 통계', accuracy: '예측 정확도', blockchain: '블록체인 기록'
+  stats: '사건 유형 통계', accuracy: '일치도 지표', blockchain: '블록체인 기록'
 };
 
 function showPanel(id) {
@@ -724,7 +724,7 @@ function renderStats() {
   </div>`;
 }
 
-// ── 예측 정확도
+// ── 일치도 지표
 function renderAccuracy() {
   // klaw_cases.match_rate는 LLM이 자기보고한 문자열("94.4%", "90~99.99%" 등) → 숫자로 파싱
   const withRate = allSessions
@@ -752,11 +752,11 @@ function renderAccuracy() {
   const maxAvg = Math.max(1, ...bucketAvgs.map(b => b.avg));
 
   return `
-  <div class="section-hd">K-Law 예측 정확도 지표</div>
+  <div class="section-hd">K-Law 일치도 지표 지표</div>
   <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-body"><div class="kpi-val gold">99.9%</div><div class="kpi-label">논문 기준 정확도</div><div class="kpi-sub">K-Law 이론적 추정치</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-body"><div class="kpi-val gold">99.9%</div><div class="kpi-label">논문 기준 일치도</div><div class="kpi-sub">K-Law 이론적 추정치</div></div></div>
     <div class="kpi-card"><div class="kpi-icon">⚖</div><div class="kpi-body"><div class="kpi-val">${overallAvg !== null ? overallAvg.toFixed(1) + '%' : '—'}</div><div class="kpi-label">대법원 일치도(실측 누적 평균)</div><div class="kpi-sub">${withRate.length}건 기준</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kpi-val green">+28%p</div><div class="kpi-label">인간 원심 대비</div><div class="kpi-sub">2심 대비 정확도 향상</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kpi-val green">+28%p</div><div class="kpi-label">인간 원심 대비</div><div class="kpi-sub">2심 대비 일치도 차이(이론적 추정)</div></div></div>
     <div class="kpi-card"><div class="kpi-icon">🔬</div><div class="kpi-body"><div class="kpi-val orange">95.5%</div><div class="kpi-label">전수 상고 환경 추정</div><div class="kpi-sub">이론적 추정(±5%p)</div></div></div>
   </div>
   <div class="card" style="margin-bottom:16px">
@@ -793,7 +793,7 @@ function renderBlockchain() {
   <div class="card" style="margin-bottom:10px">
     <div class="card-header" style="justify-content:space-between">
       <span>⛓ ${tx.id} — 판결 시뮬레이션 접수</span>
-      <span class="badge badge-green">영구 보존</span>
+      <span class="badge badge-green">기록 보존</span>
     </div>
     <div class="card-body" style="font-size:12px">
       <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px">

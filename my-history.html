@@ -81,7 +81,7 @@ tr.row-clickable:hover{background:var(--bg)}
   <div class="hero">
     <div>
       <h1>판결 이력</h1>
-      <p>본인이 생성한 가상 판결문 목록입니다. 기본적으로 본인만 볼 수 있고, 공개로 전환하면 게시판에도 노출됩니다.</p>
+      <p>본인이 생성한 가상 판결문 목록입니다. 기본적으로 본인만 볼 수 있고, 공개로 전환하면 입력하신 사건 개요와 판결문이 게시판에서 누구에게나 보입니다(실명·연락처 등 개인정보가 없는지 먼저 확인하세요).</p>
     </div>
   </div>
 
@@ -273,6 +273,7 @@ function renderBoard() {
 }
 
 async function toggleVisibility(id, isPublic) {
+  if (isPublic && !confirm('공개하면 사건 개요와 판결문 전문이 게시판에서 누구에게나 보입니다.\n실명·주민등록번호·연락처·주소 등 개인정보가 포함돼 있지 않은지 확인하셨습니까?')) { loadBoard(); return; }
   try {
     const res = await fetch(KLAW_API_BASE + '/klaw/sessions/visibility', {
       method: 'POST',
