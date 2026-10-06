@@ -97,6 +97,19 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 .badge-ok{background:var(--pri-bg);color:var(--pri-dk)}.badge-ng{background:var(--red-bg);color:var(--red)}
 .badge-pv{background:#fffbeb;color:#92400e}.badge-na{background:var(--bg);color:var(--txt4)}
 .ctable .score{display:block;font-size:11px;color:var(--txt4);margin-top:3px}
+.ver-box{margin:2px 0 14px}
+.ver-box h3{font-size:13.5px;margin:0 0 6px}
+.ver-note{font-size:12px;color:var(--txt3);margin-top:6px;line-height:1.6}
+.ver-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--sur)}
+.ver-table th,.ver-table td{border:1px solid var(--bdr);padding:7px 10px;text-align:center;white-space:nowrap}
+.ver-table thead th{background:var(--bg);color:var(--txt3);font-weight:600}
+.ver-table td:first-child{text-align:left;font-weight:700}
+.ver-table tr.vrow{cursor:pointer}
+.ver-table tr.vrow:hover td{background:var(--bg)}
+.ver-table tr.vsel td{background:var(--blue-bg);box-shadow:inset 0 0 0 0 #fff}
+.ver-table tr.vall td{font-weight:700;background:var(--bg)}
+.ver-bar{display:inline-block;height:8px;border-radius:4px;background:var(--pri);vertical-align:middle;margin-right:6px}
+.vchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#1e40af;background:var(--blue-bg);border:1px solid #93c5fd;border-radius:999px;padding:3px 10px;cursor:pointer}
 .res-empty{color:var(--txt4);font-size:13px;padding:26px 10px;text-align:center;background:var(--sur);border:1px dashed var(--bdr2);border-radius:var(--r)}
 .panel{padding:0}
 .panel-h{all:unset;box-sizing:border-box;width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;padding:16px 22px;font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font)}
@@ -113,6 +126,11 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 .warn-in p{font-size:12px;line-height:1.5;color:#78350f;margin:0}
 .warn-in b{color:#7c2d12}
 @media(prefers-reduced-motion:reduce){.panel-b,.panel-h .chev{transition:none}}
+.card.wide{width:min(1160px,calc(100vw - 48px));position:relative;left:50%;transform:translateX(-50%)}
+.ctable th.sk,.ctable td.sk{position:sticky;left:0;z-index:2;background:var(--sur);box-shadow:1px 0 0 var(--bdr)}
+.ctable th.sk{background:var(--bg);z-index:3}
+.ctable tr.me td.sk{background:var(--pri-bg)}
+@media(max-width:900px){.card.wide{width:calc(100vw - 28px)}}
 @media(max-width:560px){.wrap{padding:24px 14px 260px}.card{padding:16px}.panel{padding:0}.panel-h{padding:14px 16px;font-size:15px}.panel-pad{padding:0 16px 16px}.warn-in{max-height:42vh}.keyrow{flex-direction:column}.mini{padding:8px 12px}}
 </style>
 </head>
@@ -172,8 +190,23 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     <div class="status" id="status">입력 상태를 확인하는 화면입니다. 테스트 실행 기능은 준비 중입니다.</div>
   </section>
 
+  <section class="card panel wide open" aria-labelledby="h-res">
+    <button type="button" class="panel-h" id="h-res" aria-expanded="true" aria-controls="h-res-b"><span>2. 테스트 결과</span><span class="chev" aria-hidden="true">▾</span></button>
+    <div class="panel-b" id="h-res-b"><div class="panel-in"><div class="panel-pad">
+    <p class="sub">테스트가 끝난 사건이 <a href="rounds.html">Agon 라운드별 시험 기록</a>과 같은 형식으로 나열됩니다. 날짜와 작성자(익명) 열이 추가되어, 내 테스트만 보거나 사건을 검색할 수 있습니다. 검색창에는 <b>대략적인 사건 개요를 문장으로</b> 입력하십시오. 비슷한 사건이 관련도 순으로 나열됩니다.</p>
+    <div class="res-me">내 작성자 코드: <code id="my-id">-</code> · 이 코드는 이 브라우저가 만든 무작위 익명 코드이며 API Key나 계정 정보와 무관합니다. 다른 기기에서 내 테스트를 보려면 아래 검색창에 이 코드를 입력하십시오(사건 번호·날짜·작성자 코드도 그대로 찾아집니다).</div>
+    <div class="ver-box" id="ver-box"></div>
+    <div class="res-tools">
+      <input type="search" id="res-q" autocomplete="off" placeholder="예: 자동차보험 자기부담금을 상대방 보험사에 청구할 수 있는지 다툰 사건" aria-label="테스트 결과 검색">
+      <label class="chk"><input type="checkbox" id="res-mine"> 내 테스트만 보기</label>
+      <span class="res-me" id="res-count" style="margin:0"></span>
+    </div>
+    <div id="res-body"></div>
+    </div></div></div>
+  </section>
+
   <section class="card panel" aria-labelledby="h-get">
-    <button type="button" class="panel-h" id="h-get" aria-expanded="false" aria-controls="h-get-b"><span>2. 대법원 최신 판례 구하는 방법</span><span class="chev" aria-hidden="true">▾</span></button>
+    <button type="button" class="panel-h" id="h-get" aria-expanded="false" aria-controls="h-get-b"><span>3. 대법원 최신 판례 구하는 방법</span><span class="chev" aria-hidden="true">▾</span></button>
     <div class="panel-b" id="h-get-b"><div class="panel-in"><div class="panel-pad">
     <p class="sub">테스트에는 LLM이 학습하지 않았을 가능성이 높은 <b>최근 선고 판결</b>을 쓰십시오. 아래 사이트의 메뉴 이름과 화면 구성은 바뀔 수 있습니다.</p>
 
@@ -209,7 +242,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
   </section>
 
   <section class="card panel" aria-labelledby="h-how">
-    <button type="button" class="panel-h" id="h-how" aria-expanded="false" aria-controls="h-how-b"><span>3. 테스트 방법</span><span class="chev" aria-hidden="true">▾</span></button>
+    <button type="button" class="panel-h" id="h-how" aria-expanded="false" aria-controls="h-how-b"><span>4. 테스트 방법</span><span class="chev" aria-hidden="true">▾</span></button>
     <div class="panel-b" id="h-how-b"><div class="panel-in"><div class="panel-pad">
     <p>시뮬레이션 당사자가 자주 이용하는 LLM의 API Key 두 개를 준비합니다. 각 LLM의 API Key를 얻는 방법은 해당 LLM에게 질의하십시오. 두 Key를 위 필드에 각각 입력합니다.</p>
     <ol class="flow">
@@ -228,22 +261,9 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     </div></div></div>
   </section>
 
-  <section class="card panel" aria-labelledby="h-res">
-    <button type="button" class="panel-h" id="h-res" aria-expanded="false" aria-controls="h-res-b"><span>5. 테스트 결과</span><span class="chev" aria-hidden="true">▾</span></button>
-    <div class="panel-b" id="h-res-b"><div class="panel-in"><div class="panel-pad">
-    <p class="sub">테스트가 끝난 사건이 <a href="rounds.html">Agon 라운드별 시험 기록</a>과 같은 형식으로 나열됩니다. 날짜와 작성자(익명) 열이 추가되어, 내 테스트만 보거나 사건을 검색할 수 있습니다. 검색창에는 <b>대략적인 사건 개요를 문장으로</b> 입력하십시오. 비슷한 사건이 관련도 순으로 나열됩니다.</p>
-    <div class="res-me">내 작성자 코드: <code id="my-id">-</code> · 이 코드는 이 브라우저가 만든 무작위 익명 코드이며 API Key나 계정 정보와 무관합니다. 다른 기기에서 내 테스트를 보려면 아래 검색창에 이 코드를 입력하십시오(사건 번호·날짜·작성자 코드도 그대로 찾아집니다).</div>
-    <div class="res-tools">
-      <input type="search" id="res-q" autocomplete="off" placeholder="예: 자동차보험 자기부담금을 상대방 보험사에 청구할 수 있는지 다툰 사건" aria-label="테스트 결과 검색">
-      <label class="chk"><input type="checkbox" id="res-mine"> 내 테스트만 보기</label>
-      <span class="res-me" id="res-count" style="margin:0"></span>
-    </div>
-    <div id="res-body"></div>
-    </div></div></div>
-  </section>
 
   <section class="card panel" aria-labelledby="h-safe">
-    <button type="button" class="panel-h" id="h-safe" aria-expanded="false" aria-controls="h-safe-b"><span>6. 안내</span><span class="chev" aria-hidden="true">▾</span></button>
+    <button type="button" class="panel-h" id="h-safe" aria-expanded="false" aria-controls="h-safe-b"><span>5. 안내</span><span class="chev" aria-hidden="true">▾</span></button>
     <div class="panel-b" id="h-safe-b"><div class="panel-in"><div class="panel-pad">
     <ul>
       <li>API Key는 비밀번호와 같습니다. 가능하면 테스트 전용 Key를 새로 만들어 쓰십시오. 아래 하단 경고를 항상 확인하십시오.</li>
@@ -361,14 +381,53 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
       return d[it[0]] ? '<a href="' + esc(viewer(d[it[0]], it[1])) + '" target="_blank" rel="noopener">' + it[1] + '</a>' : '<span class="na-cell">' + it[1] + '</span>';
     }).join('') + '</div>';
   }
+  // Agon 버전별 집계
+  var verSel = '';
+  function verKey(v) { return String(v || '').replace(/[^0-9.]/g, '').split('.').map(function (n) { return parseInt(n || '0', 10); }); }
+  function verCmp(a, b) { var x = verKey(a), y = verKey(b); for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (y[i] || 0) - (x[i] || 0); if (d) return d; } return 0; }
+  function num(sc) { var m = String(sc || '').match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)/); return m ? parseFloat(m[1]) / parseFloat(m[2]) * 10 : null; }
+  function renderVer(pool) {
+    var box = document.getElementById('ver-box');
+    if (!pool.length) { box.innerHTML = ''; return; }
+    var g = {};
+    pool.forEach(function (c) {
+      var v = c.method_version || '버전 미표기';
+      var o = g[v] || (g[v] = { n: 0, ok: 0, pv: 0, ng: 0, sum: 0, ns: 0 });
+      o.n++; if (c.grade === '일치') o.ok++; else if (c.grade === '잠정 일치') o.pv++; else if (c.grade === '불일치') o.ng++;
+      var x = num(c.score); if (x != null) { o.sum += x; o.ns++; }
+    });
+    var tot = { n: 0, ok: 0, pv: 0, ng: 0, sum: 0, ns: 0 };
+    var names = Object.keys(g).sort(verCmp);
+    function cells(o) {
+      var avg = o.ns ? (o.sum / o.ns) : null, rate = (o.ok + o.pv + o.ng) ? Math.round((o.ok + o.pv) / (o.ok + o.pv + o.ng) * 100) : null;
+      return '<td>' + o.n + '</td><td>' + o.ok + '</td><td>' + o.pv + '</td><td>' + o.ng + '</td>'
+        + '<td>' + (avg == null ? '–' : '<span class="ver-bar" style="width:' + Math.round(avg * 6) + 'px"></span><b>' + avg.toFixed(2) + '</b> / 10 <small style="color:var(--txt4)">(' + o.ns + '건)</small>') + '</td>'
+        + '<td>' + (rate == null ? '–' : rate + '%') + '</td>';
+    }
+    var h = '<h3>Agon 버전별 일치도</h3><div class="res-scroll"><table class="ver-table"><thead><tr><th>Agon 버전</th><th>건수</th><th>일치</th><th>잠정 일치</th><th>불일치</th><th>평균 점수</th><th>일치율<br><small>(일치+잠정)</small></th></tr></thead><tbody>';
+    names.forEach(function (v) {
+      var o = g[v]; ['n', 'ok', 'pv', 'ng', 'sum', 'ns'].forEach(function (k) { tot[k] += o[k]; });
+      h += '<tr class="vrow' + (verSel === v ? ' vsel' : '') + '" data-v="' + esc(v) + '" title="클릭하면 이 버전의 사건만 봅니다"><td>' + esc(v) + '</td>' + cells(o) + '</tr>';
+    });
+    if (names.length > 1) h += '<tr class="vall"><td>전체</td>' + cells(tot) + '</tr>';
+    h += '</tbody></table></div><div class="ver-note">평균 점수는 10점 만점으로 환산한 사용자 자체 평가의 단순 평균이며, 제3자 검증 전입니다. 건수가 적은 버전은 평균의 변동이 큽니다. 행을 누르면 그 버전의 사건만 목록에 표시됩니다.'
+      + (verSel ? ' <span class="vchip" id="ver-clear">버전: ' + esc(verSel) + ' ✕</span>' : '') + '</div>';
+    box.innerHTML = h;
+    Array.prototype.forEach.call(box.querySelectorAll('tr.vrow'), function (tr) {
+      tr.addEventListener('click', function () { var v = tr.getAttribute('data-v'); verSel = verSel === v ? '' : v; render(); });
+    });
+    var cl = document.getElementById('ver-clear'); if (cl) cl.addEventListener('click', function () { verSel = ''; render(); });
+  }
   function render() {
     var term = q.value.trim(), only = mine.checked;
-    var list = rows.filter(function (c) { return !only || c.author === myId; });
+    var pool = rows.filter(function (c) { return !only || c.author === myId; });
+    renderVer(pool);
+    var list = pool.filter(function (c) { return !verSel || (c.method_version || '버전 미표기') === verSel; });
     var ranked = false;
     if (term) {
       var qv = vec(term), exact = term.toLowerCase();
       list = list.map(function (c) {
-        var meta = [c.id, c.case_no, c.date, c.author].join(' ').toLowerCase();
+        var meta = [c.id, c.case_no, c.date, c.author, c.method_version].join(' ').toLowerCase();
         var sc = meta.indexOf(exact) >= 0 ? 1 : cosine(qv, c._v);
         return { c: c, sc: sc };
       }).filter(function (x) { return x.sc >= 0.08; })
@@ -376,16 +435,17 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
         .slice(0, 30).map(function (x) { x.c._sc = x.sc; return x.c; });
       ranked = true;
     }
-    cnt.textContent = rows.length ? list.length + ' / ' + rows.length + '건' + (ranked ? ' · 관련도순' : '') : '';
+    cnt.textContent = rows.length ? list.length + ' / ' + pool.length + '건' + (ranked ? ' · 관련도순' : '') : '';
     if (!list.length) {
       body.innerHTML = '<div class="res-empty">' + (rows.length ? '조건에 맞는 테스트 결과가 없습니다.' : '아직 기록된 테스트 결과가 없습니다. 테스트가 끝나면 이곳에 나열됩니다.') + '</div>';
       return;
     }
-    var h = '<div class="res-scroll"><table class="ctable"><thead><tr><th>일시</th><th>작성자</th>' + (ranked ? '<th>관련도</th>' : '') + '<th>사건</th><th>사건 개요 요지</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>가상 판결</th><th>일치도 평가</th></tr></thead><tbody>';
+    var h = '<div class="res-scroll"><table class="ctable"><thead><tr><th class="sk">사건</th>' + (ranked ? '<th>관련도</th>' : '') + '<th>일시</th><th>작성자</th><th>Agon 버전</th><th>사건 개요 요지</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>가상 판결</th><th>일치도 평가</th></tr></thead><tbody>';
     list.forEach(function (c) {
       var d = c.docs || {};
-      h += '<tr' + (c.author === myId ? ' class="me"' : '') + '><td>' + esc(c.date) + '</td><td>' + esc(c.author) + (c.author === myId ? ' (나)' : '') + '</td>'
-        + (ranked ? '<td>' + Math.round(Math.min(c._sc, 1) * 100) + '%</td>' : '') + '<td>' + esc(c.id || c.case_no) + '</td><td class="sum">' + esc(c.summary || '') + '</td><td>' + badge(c.grade, c.score) + '</td><td>' + group(d) + '</td>'
+      h += '<tr' + (c.author === myId ? ' class="me"' : '') + '><td class="sk">' + esc(c.id || c.case_no) + '</td>'
+        + (ranked ? '<td>' + Math.round(Math.min(c._sc, 1) * 100) + '%</td>' : '')
+        + '<td>' + esc(c.date) + '</td><td>' + esc(c.author) + (c.author === myId ? ' (나)' : '') + '</td><td>' + esc(c.method_version || '–') + '</td><td class="sum">' + esc(c.summary || '') + '</td><td>' + badge(c.grade, c.score) + '</td><td>' + group(d) + '</td>'
         + '<td>' + open_(d.supreme, '대법원 - ' + c.id) + '</td><td>' + open_(d.second, '2심 - ' + c.id) + '</td><td>' + open_(d.first, '1심 - ' + c.id) + '</td>'
         + '<td>' + open_(d.verdict, '가상 판결 - ' + c.id) + '</td><td>' + open_(d.evaluation, '일치도 평가 - ' + c.id) + '</td></tr>';
     });
