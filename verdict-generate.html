@@ -373,7 +373,8 @@ button{font-family:var(--font);cursor:pointer}
 </header>
 
 <div class="notice-bar" role="note"><strong>⚠️ 법률 자문이 아닌 참고용 시뮬레이션입니다.</strong> AI가 작성한 가상 판결문이며 법적 효력이 없고, 법률 자문·소송 대리·변호사 소개를 하지 않습니다. 실제 사건은 변호사와 상담하세요.</div>
-<div class="notice-bar notice-ver" role="note"><strong>ℹ️ 버전 안내:</strong> 이 시뮬레이터에는 <strong>K-Law 방법론 v17.x</strong>가 적용됩니다. 현재 K-Law <strong>version 20.0</strong>은 <strong>2027년 상반기 공개 예정</strong>입니다.</div>
+<div class="notice-bar notice-ver" role="note"><strong>ℹ️ 버전 안내:</strong> 이 시뮬레이터에는 <strong>Agon 0.x</strong>(구 K-Law 방법론 v17.x, 시험 단계)가 적용됩니다. 정식 <strong>Agon 1.0</strong>은 <strong>2027년 상반기 공개 예정</strong>입니다.
+<div style="font-size:12px;line-height:1.6;margin-top:4px;text-align:left;max-width:980px;margin-left:auto;margin-right:auto"><strong>Agon과 이전 K-Law(v15.1)의 차이:</strong> 이전 K-Law는 1·2심 판단을 입력받아 대법원 결론을 예측했고, 대법원 판례 300건에서 주문 일치도 73%를 기록했습니다(자체 실측). Agon은 방법론과 채점 기준이 전혀 다릅니다. 원심 결과를 가린 사건 개요에서 <strong>변증법적 공방</strong>(원고 청구 → 피고 방어 → 재반박)을 거쳐 판단하며, 목적은 1~3심과 헌법재판소로 나뉜 기존 사법 체제를 하나의 심판으로 통합한 가상의 <strong>"통합심"</strong>과 그 <strong>"표준 판결문"</strong>을 도출하고, 이를 기준으로 가상 판결문을 채점하는 것입니다. 입력 조건과 채점 기준이 달라 두 버전의 일치도는 직접 비교할 수 없으며, 현재 0.x 단계의 시험은 대법원 민사 판결 기준으로 진행 중인 잠정 결과입니다.</div></div>
 
 <div class="app-body">
   <nav class="sidebar">
@@ -680,7 +681,7 @@ button{font-family:var(--font);cursor:pointer}
               위 모델별 수치는 모델 간 상대적 수준을 가늠하기 위한 <b>〔추정치〕</b>이며, 모델별로 따로 실측한 값이 아닙니다.
               실측으로 공개된 수치는 다음과 같습니다. 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에서 K-Law(v15.1)의 판결 주문(유지/파기) 일치도는
               <b>73%</b>, 같은 사건에서 원심(2심)과 대법원 판결의 일치도는 <b>45%</b>였습니다 <b>〔실측 · 2026년 5월 기준〕</b>.
-              현재 적용 중인 방법론 v17.x는 개발 세트 100건을 10라운드로 나눠 검증하는 중이며, 그 결과는 잠정치입니다.
+              현재 적용 중인 방법론 Agon 0.x(구 v17.x)는 개발 세트 100건을 10라운드로 나눠 검증하는 중이며, 그 결과는 잠정치입니다.
               모든 수치는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 자세한 내용은
               <a href="library.html" style="color:var(--pri-dk);font-weight:600">K-Law 자료실</a>과
               <a href="rounds.html" style="color:var(--pri-dk);font-weight:600">라운드별 시험 기록</a>을 참고하세요.
@@ -735,8 +736,8 @@ button{font-family:var(--font);cursor:pointer}
           <!-- 버전 안내 -->
           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             ℹ️ <b>버전 안내</b><br>
-            이 사이트에는 <b>K-Law 방법론 v17.x</b>가 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
-            v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
+            이 사이트에는 <b>Agon 0.x</b>(구 K-Law 방법론 v17.x)가 적용됩니다. <b>Agon 1.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
+            Agon 1.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
             K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고 대법원 실제 판결문과의 일치도도 더 높을 것으로 기대되나,
             상당한 API 비용으로 인해 본 사이트의 데모에 포함하지 않았습니다.
           </div>
