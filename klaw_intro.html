@@ -96,6 +96,21 @@ a { text-decoration: none; color: inherit; }
 .kpi-card-desc { font-size: 14px; color: var(--hint); line-height: 1.5; }
 .kpi-card-ref { font-size: 12.5px; color: var(--primary); font-weight: 600; margin-top: 5px; }
 
+/* 취지 */
+.purpose { word-break: keep-all; max-width: 1160px; margin: 0 auto; padding: 0 24px; margin-top: 32px; }
+.purpose-lead { font-size: 15.5px; line-height: 1.8; color: var(--text); max-width: 880px; margin-bottom: 18px; }
+.purpose-lead b { color: var(--primary); }
+.purpose-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.purpose-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary); border-radius: var(--r); padding: 18px 18px 16px; box-shadow: var(--shadow-1); }
+.purpose-card.key { border-top-color: #B7791F; background: #FFFCF5; }
+.purpose-no { font-size: 12px; font-weight: 800; color: var(--primary); letter-spacing: .4px; margin-bottom: 4px; }
+.purpose-card.key .purpose-no { color: #92400E; }
+.purpose-h { font-size: 16px; font-weight: 800; margin-bottom: 8px; letter-spacing: -.3px; }
+.purpose-p { font-size: 14px; line-height: 1.7; color: var(--sub); }
+.purpose-p b { color: var(--text); }
+.purpose-note { margin-top: 14px; padding: 11px 14px; font-size: 13px; line-height: 1.65; color: var(--sub); background: var(--primary-bg); border: 1px solid var(--primary-bd); border-radius: var(--r); }
+@media (max-width: 860px) { .purpose-grid { grid-template-columns: 1fr; } }
+
 /* WIDE SECTION */
 .wide-section { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 .wide-h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; letter-spacing: -.3px; }
@@ -343,6 +358,30 @@ a { text-decoration: none; color: inherit; }
       <div class="kpi-card-ref">논문 참조</div>
     </div>
   </div>
+</div>
+
+<!-- 취지 -->
+<div class="purpose" id="purpose">
+  <div class="section-title">K-Law의 취지</div>
+  <p class="purpose-lead">K-Law는 개별 사건이 대법원까지 진행된다고 가정할 때, <b>미래의 판결문이 어떠할지 예측해 보는 시뮬레이션</b>을 제공합니다. 그러나 K-Law의 원래 목적은 따로 있습니다.</p>
+  <div class="purpose-grid">
+    <div class="purpose-card">
+      <div class="purpose-no">① 지금 제공하는 것</div>
+      <div class="purpose-h">대법원 판결 시뮬레이션</div>
+      <div class="purpose-p">사건 개요를 입력하면 참고용 가상 판결문을 작성하고, 결론에 이른 과정을 당사자가 납득할 수 있도록 설명합니다.</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-no">② 원래 목적</div>
+      <div class="purpose-h">일선 공무원의 일상 업무 보조</div>
+      <div class="purpose-p">일선 공무원이 <b>법과 규정에 따라 반복적으로 수행하는 일상 업무</b>를 보조하는 것이 K-Law의 개발 목적입니다.</div>
+    </div>
+    <div class="purpose-card key">
+      <div class="purpose-no">③ 시뮬레이션의 의미</div>
+      <div class="purpose-h">필요조건에 가까운 시금석</div>
+      <div class="purpose-p">K-Law가 상당한 수준의 신뢰도로 대법원 판결문을 예측할 수 있다면, <b>행정부 각급 기관의 업무를 보조하기에 모자람이 없을 것</b>이라는 시금석입니다.</div>
+    </div>
+  </div>
+  <div class="purpose-note">현재의 수치는 판례 300건에 대한 자체 실험 결과이며 제3자 검증 전입니다. K-Law는 참고용 서비스로, 법원·정부기관의 공식 서비스나 법률 자문이 아닙니다.</div>
 </div>
 
 <!-- 이용 방법 -->
