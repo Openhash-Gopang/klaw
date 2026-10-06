@@ -61,6 +61,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .hero-dark-inner .hero-top{margin-bottom:20px}
 .hero-dark-inner .hero-main{flex:1 1 520px;min-width:0}
 .hero-dark-inner .hero-main p{margin-bottom:0}
+.hero-dark-inner .verdict-ctas{flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.hero-dark-inner .verdict-ctas .verdict-cta{justify-content:center}
 .hero-dark-inner .verdict-cta{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#052e16;background:#4ade80;border:1px solid #86efac;border-radius:12px;padding:13px 20px;text-decoration:none;white-space:nowrap;animation:verdict-cta-blink 1.4s ease-in-out infinite}
 .hero-dark-inner .verdict-cta:hover,.hero-dark-inner .verdict-cta:focus-visible{background:#bbf7d0;animation-play-state:paused;outline:none}
 @keyframes verdict-cta-blink{
@@ -106,13 +108,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
       <h2>대법원 판례 300건으로 검증하는 K-Law 판결 일치도</h2>
       <p>사건 개요만으로 가상 판결을 작성해 실제 대법원 결론(유지/파기)과 비교하는 벤치마크입니다. 판례 수집부터 방법론 갱신까지 전 과정을 스크립트·해시와 함께 공개해, 학계 등 제3자가 동일한 표본과 절차로 직접 재현할 수 있도록 했습니다.</p>
     </div>
-    <a class="verdict-cta" href="verdict-generate.html">⚖️ 참고용 가상 판결문 생성하기</a>
+    <div class="verdict-ctas">
+      <a class="verdict-cta" href="rounds.html">🔁 Agon 방법론</a>
+      <a class="verdict-cta" href="verdict-generate.html">⚖️ Agon 가상 판결문 생성하기</a>
+    </div>
   </div>
   <div class="repro-pills">
     <span class="repro-pill">📥 판례 수집(Open API)</span>
     <span class="repro-pill">🏷️ 300건 분류·태깅</span>
     <span class="repro-pill">🎯 개발 세트 100건 선정</span>
-    <a class="repro-pill repro-pill-blink" style="text-decoration:none" href="rounds.html">🔁 10라운드 × 10건 시험(라운드별 기록 보기)</a>
     <span class="repro-pill">🛠️ 라운드별 방법론 갱신</span>
     <span class="repro-pill">📄 논문 얼개·초안</span>
   </div>
