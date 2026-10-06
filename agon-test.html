@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agon 테스트 하기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
+  --txt:#111827; --txt2:#374151; --txt3:#6b7280; --txt4:#9ca3af;
+  --pri:#3ecf8e; --pri-dk:#2baa74; --pri-bg:#f0fdf9; --pri-bd:#bbf7d0;
+  --blue:#1d4ed8; --blue-bg:#eff6ff; --blue-bd:#bfdbfe;
+  --org-bg:#fffbeb; --org-bd:#fde68a; --red:#dc2626; --red-bg:#fef2f2;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; --r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:1.75}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px 100px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:20px}
+.back-link:hover{color:var(--txt)}
+h1{font-size:22px;color:var(--txt);margin-bottom:6px}
+.lead{font-size:13.5px;color:var(--txt3);margin-bottom:16px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.pills a{display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;color:#1e40af;background:var(--sur);border:1px solid #93c5fd;border-radius:999px;padding:5px 12px;text-decoration:none}
+.pills a:hover{background:var(--blue-bg)}
+.notice{background:var(--org-bg);border:1px solid var(--org-bd);border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#78350f;margin-bottom:20px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:20px 22px;margin-bottom:18px}
+.card h2{font-size:16px;color:var(--txt);margin-bottom:4px}
+.card .sub{font-size:12.5px;color:var(--txt3);margin-bottom:14px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px}
+.field .role{display:block;font-size:12px;color:var(--txt3);margin-bottom:6px}
+.field input[type=password],.field input[type=text]{width:100%;font-family:var(--mono);font-size:13px;padding:10px 12px;border:1px solid var(--bdr2);border-radius:8px;background:#fff;color:var(--txt)}
+.field input:focus{outline:2px solid var(--pri);outline-offset:1px;border-color:var(--pri)}
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1;min-width:0}
+.mini{flex:0 0 auto;font-family:var(--font);font-size:12px;font-weight:600;padding:0 12px;border:1px solid var(--bdr2);border-radius:8px;background:var(--sur);color:var(--txt2);cursor:pointer}
+.mini:hover{background:var(--bg)}
+.attach{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.attach-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:13.5px;font-weight:700;color:#fff;background:var(--blue);border:none;border-radius:8px;padding:10px 16px;cursor:pointer}
+.attach-btn:hover{background:#1e3a8a}
+.field label.attach-btn{display:inline-flex;margin-bottom:0;color:#fff;font-size:13.5px}
+.attach input[type=file]{display:none}
+.fileinfo{font-size:12.5px;color:var(--txt2)}
+.fileinfo b{color:var(--txt)}
+.clear{font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:var(--font)}
+.hint{font-size:12px;color:var(--txt3);margin-top:6px}
+.warn{display:none;margin-top:8px;font-size:12.5px;color:#991b1b;background:var(--red-bg);border:1px solid #fecaca;border-radius:8px;padding:8px 12px}
+.warn.show{display:block}
+.check{list-style:none;display:grid;gap:6px;margin-top:2px}
+.check li{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--txt3)}
+.check li .ic{flex:0 0 18px;height:18px;border-radius:50%;border:1.5px solid var(--bdr2);color:transparent;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:3px}
+.check li.ok{color:var(--txt)}
+.check li.ok .ic{background:var(--pri);border-color:var(--pri);color:#fff}
+.check li.bad{color:#991b1b}
+.check li.bad .ic{background:var(--red);border-color:var(--red);color:#fff}
+.status{margin-top:14px;font-size:12.5px;color:var(--txt3);background:var(--bg);border:1px dashed var(--bdr2);border-radius:8px;padding:9px 12px}
+.flow{list-style:none;counter-reset:s;display:grid;gap:10px;margin:12px 0 4px}
+.flow li{counter-increment:s;position:relative;padding:12px 14px 12px 48px;border:1px solid var(--bdr);border-radius:9px;background:var(--bg);font-size:13.5px}
+.flow li::before{content:counter(s);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.flow b{color:var(--txt)}
+.flow .who{display:inline-block;font-size:11.5px;font-weight:700;color:#1e40af;background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:999px;padding:0 8px;margin-right:6px}
+.flow .who.k2{color:#065f46;background:var(--pri-bg);border-color:var(--pri-bd)}
+.rules{display:grid;gap:10px;margin-top:10px}
+.rule{border-left:4px solid var(--red);background:var(--red-bg);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13.5px}
+.rule b{color:#991b1b}
+.rule.good{border-left-color:var(--pri-dk);background:var(--pri-bg)}
+.rule.good b{color:#065f46}
+.card p{font-size:13.5px;margin-bottom:8px}
+.card ul{margin:4px 0 8px 18px;font-size:13.5px}
+.card li{margin-bottom:3px}
+@media(max-width:560px){.wrap{padding:24px 14px 80px}.card{padding:16px}.keyrow{flex-direction:column}.mini{padding:8px 12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
+  <h1>Agon 테스트 하기</h1>
+  <p class="lead">대법원 최신 판례 한 건으로 Agon 방법론의 가상 판결문을 직접 생성하고, 표준 판결문과의 일치도를 평가해 보는 테스트입니다. 서로 다른 두 개의 API Key로 작업을 분리합니다.</p>
+  <div class="pills">
+    <a href="rounds.html">Agon 테스트 진행 상황</a>
+    <a href="verdict-generate.html">Agon 가상 판결문 생성하기</a>
+    <a href="library.html">K-Law 자료실</a>
+  </div>
+  <div class="notice">⚠️ 참고용 연구 테스트입니다. 법률 자문이 아니며, 결과는 자체 실험 결과로 제3자 검증을 거치지 않았습니다.</div>
+
+  <section class="card" aria-labelledby="h-input">
+    <h2 id="h-input">1. 테스트 입력</h2>
+    <p class="sub">API Key 2개와 대법원 최신 판례를 준비해 주세요. 입력값은 이 화면 안에서만 확인되며, 현재 이 페이지는 입력값을 어디에도 전송하거나 저장하지 않습니다.</p>
+
+    <div class="field">
+      <label for="key1">첫 번째 API Key</label>
+      <span class="role">사건 개요·쉬운 설명·원고 주장·피고 주장·표준 판결문 작성, 그리고 일치도 평가</span>
+      <div class="keyrow">
+        <input type="password" id="key1" autocomplete="off" spellcheck="false" placeholder="첫 번째 LLM의 API Key (예: sk-…)">
+        <button type="button" class="mini" data-toggle="key1">보기</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="key2">두 번째 API Key</label>
+      <span class="role">Agon 가상 판결문 생성 (익명화된 사건 개요만 전달받습니다)</span>
+      <div class="keyrow">
+        <input type="password" id="key2" autocomplete="off" spellcheck="false" placeholder="두 번째 LLM의 API Key (첫 번째와 다른 Key)">
+        <button type="button" class="mini" data-toggle="key2">보기</button>
+      </div>
+      <div class="warn" id="same-warn" role="alert">두 Key가 같습니다. 사건 개요 작성과 가상 판결문 생성에 같은 Key를 쓰면 Agon의 성능을 테스트할 수 없습니다. 서로 다른 Key를 입력해 주세요.</div>
+    </div>
+
+    <div class="field">
+      <label>대법원 최신 판례</label>
+      <span class="role">테스트할 판결문 파일 1건 (PDF·텍스트·Word·한글 문서)</span>
+      <div class="attach">
+        <label class="attach-btn" for="case-file">📎 대법원 최신 판례 첨부</label>
+        <input type="file" id="case-file" accept=".pdf,.txt,.md,.doc,.docx,.hwp,.hwpx">
+        <span class="fileinfo" id="file-info">첨부된 파일이 없습니다.</span>
+        <button type="button" class="clear" id="file-clear" hidden>첨부 취소</button>
+      </div>
+      <p class="hint">첫 번째 Key로 사용하는 LLM이 아직 학습하지 않았을 가능성이 높은, 대법원이 최근 공개한 판례를 권장합니다.</p>
+    </div>
+
+    <ul class="check" id="check" aria-live="polite">
+      <li id="c1"><span class="ic">✓</span><span>첫 번째 API Key 입력</span></li>
+      <li id="c2"><span class="ic">✓</span><span>두 번째 API Key 입력</span></li>
+      <li id="c3"><span class="ic">✓</span><span>두 Key가 서로 다름</span></li>
+      <li id="c4"><span class="ic">✓</span><span>대법원 판례 첨부</span></li>
+    </ul>
+    <div class="status" id="status">입력 상태를 확인하는 화면입니다. 테스트 실행 기능은 준비 중입니다.</div>
+  </section>
+
+  <section class="card" aria-labelledby="h-how">
+    <h2 id="h-how">2. 테스트 방법</h2>
+    <p>시뮬레이션 당사자가 자주 이용하는 LLM의 API Key 두 개를 준비합니다. 각 LLM의 API Key를 얻는 방법은 해당 LLM에게 질의하십시오. 두 Key를 위 필드에 각각 입력합니다.</p>
+    <ol class="flow">
+      <li><span class="who">첫 번째 Key</span><b>사건 자료 작성.</b> 첨부한 판례를 바탕으로 완전히 익명화된 사건의 개요, 쉬운 설명, 원고 주장, 피고 주장, 표준 판결문(1~3심 통합 판결문)을 작성합니다.</li>
+      <li><span class="who k2">두 번째 Key</span><b>가상 판결문 생성.</b> 익명화된 사건의 개요만 두 번째 Key로 전달되어 Agon 가상 판결문을 생성합니다. 표준 판결문은 전달되지 않습니다.</li>
+      <li><span class="who">첫 번째 Key</span><b>일치도 평가.</b> 생성된 가상 판결문이 첫 번째 Key로 전달되어, 표준 판결문과의 일치도를 평가합니다.</li>
+    </ol>
+
+    <h3 style="font-size:14px;color:var(--txt);margin:18px 0 4px">두 개의 Key를 쓰는 이유와 지켜야 할 규칙</h3>
+    <p>두 Key를 쓰는 이유는 두 작업이 서로의 작업을 알 수 없게 하는 것입니다.</p>
+    <div class="rules">
+      <div class="rule good"><b>바람직한 구성.</b> 첫 번째와 두 번째 Key는 서로 다른 LLM의 Key를 쓰는 것이 바람직합니다. 하나의 LLM이라면 서로 다른 두 개의 Key를 준비합니다.</div>
+      <div class="rule"><b>하나의 Key로 사건 개요와 판결문을 함께 작성하지 마십시오.</b> 사건 개요와 판결문 작성을 하나의 Key로 동시에 진행하면, LLM이 이미 판결 결과를 알고 있으므로 Agon의 성능을 테스트할 수 없습니다.</div>
+      <div class="rule"><b>사건 개요 작성에 쓴 Key는 그 사건의 가상 판결문 생성에 쓸 수 없습니다.</b> 특정 LLM의 특정 API Key가 특정 사건의 개요 작성에 이용되었다면, 그 Key는 그 사건의 가상 판결문 생성에 이용할 수 없습니다. 이미 정답을 알고 있기 때문입니다. 같은 사건을 다시 테스트할 때 첫 번째와 두 번째 Key를 서로 맞바꿔 쓰는 것도 같은 이유로 안 됩니다.</div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-safe">
+    <h2 id="h-safe">3. 안내</h2>
+    <ul>
+      <li>API Key는 비밀번호와 같습니다. 가능하면 테스트 전용 Key를 새로 만들어 쓰고, 테스트가 끝나면 해당 LLM 서비스에서 삭제하거나 재발급하십시오.</li>
+      <li>API 사용 비용은 Key를 발급한 계정에 청구됩니다. 판례 한 건의 테스트에는 세 번 이상의 LLM 호출이 필요합니다.</li>
+      <li>일치도 평가 기준과 Agon 방법론의 차이는 <a href="verdict-generate.html">Agon 가상 판결문 생성하기</a> 상단의 비교표에서, 지금까지의 시험 결과는 <a href="rounds.html">Agon 테스트 진행 상황</a>에서 볼 수 있습니다.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var key1 = $('key1'), key2 = $('key2'), file = $('case-file');
+  var warn = $('same-warn'), info = $('file-info'), clr = $('file-clear');
+
+  function setItem(id, state) { // state: true / false / 'bad'
+    var li = $(id);
+    li.className = state === true ? 'ok' : (state === 'bad' ? 'bad' : '');
+    li.querySelector('.ic').textContent = state === 'bad' ? '!' : '✓';
+  }
+  function refresh() {
+    var a = key1.value.trim(), b = key2.value.trim();
+    var same = !!a && !!b && a === b;
+    setItem('c1', !!a);
+    setItem('c2', !!b);
+    setItem('c3', same ? 'bad' : (!!a && !!b));
+    setItem('c4', !!(file.files && file.files[0]));
+    warn.classList.toggle('show', same);
+    var ready = !!a && !!b && !same && !!(file.files && file.files[0]);
+    $('status').textContent = ready
+      ? '입력이 모두 준비되었습니다. 테스트 실행 기능은 준비 중이라 아직 시작할 수 없습니다.'
+      : '입력 상태를 확인하는 화면입니다. 테스트 실행 기능은 준비 중입니다.';
+  }
+  function fmt(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+
+  key1.addEventListener('input', refresh);
+  key2.addEventListener('input', refresh);
+  file.addEventListener('change', function () {
+    var f = file.files && file.files[0];
+    if (f) { info.innerHTML = '<b>' + f.name.replace(/[&<>"']/g, '') + '</b> (' + fmt(f.size) + ')'; clr.hidden = false; }
+    else { info.textContent = '첨부된 파일이 없습니다.'; clr.hidden = true; }
+    refresh();
+  });
+  clr.addEventListener('click', function () { file.value = ''; file.dispatchEvent(new Event('change')); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-toggle]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var inp = $(btn.getAttribute('data-toggle'));
+      var show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.textContent = show ? '숨기기' : '보기';
+    });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

@@ -63,9 +63,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .hero-dark-inner .hero-main p{margin-bottom:0}
 .hero-dark-inner .verdict-ctas{flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:10px}
 .hero-dark-inner .verdict-ctas .verdict-cta{justify-content:center}
-.hero-dark-inner .verdict-ctas .verdict-cta.verdict-cta-soon{font-family:inherit;cursor:not-allowed;color:#cbd5e1;background:#1f2937;border:1px solid #475569;animation:none}
-.hero-dark-inner .verdict-ctas .verdict-cta.verdict-cta-soon:hover,.hero-dark-inner .verdict-ctas .verdict-cta.verdict-cta-soon:focus-visible{background:#1f2937;outline:none}
-.hero-dark-inner .verdict-ctas .verdict-cta.verdict-cta-soon small{font-size:11px;font-weight:700;color:#0f172a;background:#fbbf24;border-radius:999px;padding:1px 8px}
 .hero-dark-inner .verdict-cta{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#052e16;background:#4ade80;border:1px solid #86efac;border-radius:12px;padding:13px 20px;text-decoration:none;white-space:nowrap;animation:verdict-cta-blink 1.4s ease-in-out infinite}
 .hero-dark-inner .verdict-cta:hover,.hero-dark-inner .verdict-cta:focus-visible{background:#bbf7d0;animation-play-state:paused;outline:none}
 @keyframes verdict-cta-blink{
@@ -114,7 +111,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
     <div class="verdict-ctas">
       <a class="verdict-cta" href="verdict-generate.html">⚖️ Agon 가상 판결문 생성하기</a>
       <a class="verdict-cta" href="rounds.html">🔁 Agon 테스트 진행 상황</a>
-      <button type="button" class="verdict-cta verdict-cta-soon" aria-disabled="true" title="준비 중입니다">🧪 Agon 테스트 하기 <small>준비 중</small></button>
+      <a class="verdict-cta" href="agon-test.html">🧪 Agon 테스트 하기</a>
     </div>
   </div>
   <div class="repro-pills">
