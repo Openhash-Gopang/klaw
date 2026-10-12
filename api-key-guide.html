@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<meta name="description" content="Gemini, Groq, DeepSeek, Claude, ChatGPT의 API Key 발급 방법과 비용을 정리했습니다.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>무료 API Key 획득 방법 — K-Law</title>
+<style>
+/* 레이아웃: 상단 안내 → "어떤 버튼을 누를까" 표 → 첫 화면 버튼 5개를 같은 순서·같은 모양의 칩으로 소개하는 섹션 */
+:root {
+  --bg:#f6f8fa; --sur:#ffffff; --bdr:#e2e8ee; --bdr2:#cbd5dd;
+  --txt:#0f1b2a; --txt2:#35465a; --txt3:#64748b;
+  --navy:#0b2a5b; --navy2:#12408a; --chip-tx:#ffffff;
+  --pri:#2baa74; --pri-bg:#ecfaf3; --warn-bg:#fff8e6; --warn-bd:#f3dc9a; --warn-tx:#6b4a05;
+  --link:#1d4ed8; --code-bg:#eef2f6;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c1219; --sur:#131c26; --bdr:#243140; --bdr2:#324255;
+  --txt:#eaf0f6; --txt2:#c3cfdb; --txt3:#8c9bad;
+  --navy:#16346b; --navy2:#2a5bb0; --chip-tx:#ffffff;
+  --pri:#4fd9a0; --pri-bg:#10261e; --warn-bg:#2a2410; --warn-bd:#54461a; --warn-tx:#f3dc9a;
+  --link:#8fb4ff; --code-bg:#1b2632; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0c1219; --sur:#131c26; --bdr:#243140; --bdr2:#324255;
+  --txt:#eaf0f6; --txt2:#c3cfdb; --txt3:#8c9bad;
+  --navy:#16346b; --navy2:#2a5bb0; --chip-tx:#ffffff;
+  --pri:#4fd9a0; --pri-bg:#10261e; --warn-bg:#2a2410; --warn-bd:#54461a; --warn-tx:#f3dc9a;
+  --link:#8fb4ff; --code-bg:#1b2632; color-scheme:dark; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:1.75;font-size:15px}
+a{color:var(--link)}
+.topbar{display:flex;align-items:center;gap:14px;background:#0b0f19;padding:12px 16px;flex-wrap:wrap}
+.topbar a{color:#fff;text-decoration:none;font-weight:700;font-size:14px}
+.topbar .back{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#fff;color:#0b0f19;font-size:16px}
+.wrap{max-width:900px;margin:0 auto;padding:32px 16px 96px;display:flex;flex-direction:column;gap:28px}
+h1{font-size:26px;color:var(--txt);line-height:1.3;text-wrap:balance}
+.lead{margin-top:8px;color:var(--txt3);font-size:14.5px;max-width:62ch}
+.draft{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx);vertical-align:middle}
+.notice{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx);border-radius:var(--r);padding:12px 16px;font-size:13.5px;line-height:1.7}
+h2{font-size:18px;color:var(--txt);text-wrap:balance}
+.sec-desc{font-size:13.5px;color:var(--txt3);margin-top:4px}
+.tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+th,td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--bdr)}
+th{font-size:12px;color:var(--txt3);font-weight:700;letter-spacing:.3px;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--txt);font-weight:600}
+a.chip,.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 16px;border-radius:var(--r);background:var(--navy);color:var(--chip-tx);text-decoration:none;font-weight:700;font-size:14px;line-height:1.25;text-align:center;border:1px solid transparent}
+.chip small{font-size:11px;font-weight:600;opacity:.85}
+.chip.outline{background:transparent;border-color:var(--bdr2);color:var(--txt)}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap}
+a.chip:hover{background:var(--navy2)}
+a.chip.outline:hover{background:var(--code-bg)}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.card-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.card-head .what{flex:1 1 260px;min-width:0;font-size:14.5px;color:var(--txt);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.fact{background:var(--bg);border-radius:8px;padding:12px 14px}
+.fact b{display:block;font-size:12px;color:var(--txt3);letter-spacing:.3px;margin-bottom:2px}
+.fact p{font-size:13.5px;color:var(--txt2)}
+h3{font-size:14px;color:var(--txt)}
+ol,ul{padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.note{font-size:13px;color:var(--txt3);border-top:1px solid var(--bdr);padding-top:12px}
+.note ul{font-size:13px}
+code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em}
+.tip{background:var(--pri-bg);border:1px solid var(--bdr2);border-left:4px solid var(--pri);border-radius:var(--r);padding:12px 16px;font-size:14px;line-height:1.75;color:var(--txt)}
+.tip b{color:var(--txt)}
+.todo{color:var(--warn-tx);background:var(--warn-bg);padding:0 5px;border-radius:4px;font-size:.92em}
+@media (max-width:520px){h1{font-size:22px}.card{padding:16px}}
+.pv{display:flex;flex-direction:column;gap:12px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 9px;border-radius:99px;border:1px solid var(--bdr2);color:var(--txt3);vertical-align:middle;margin-left:6px}
+.badge.free{background:var(--pri-bg);color:var(--pri);border-color:var(--pri)}
+.badge.paid{background:var(--warn-bg);color:var(--warn-tx);border-color:var(--warn-bd)}
+.steps{list-style:decimal}
+.src{font-size:12.5px;color:var(--txt3)}
+.src li{list-style:disc}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="manual.html" aria-label="사용자 매뉴얼로">←</a>
+  <a href="manual.html">K-Law 사용자 매뉴얼</a>
+</header>
+
+<main class="wrap">
+  <div>
+    <h1>무료 API Key 획득 방법</h1>
+    <p class="lead">K-Law는 자체 AI 키를 제공하지 않습니다. 기본 AI(DeepSeek)를 쓰지 않고 Claude, Gemini, ChatGPT, Groq 등을 쓰려면 직접 API Key를 발급받아 입력해야 합니다. 이 페이지는 제공자별 발급 방법과 비용을 정리한 것입니다.</p>
+  </div>
+
+  <div class="notice">
+    <b>먼저 알아 두세요.</b> 아래 내용은 2026년 10월 13일에 각 제공자의 공식 문서에서 확인한 것입니다. 요금과 무료 한도는 제공자가 수시로 바꾸므로, 발급 직전에 각 제공자의 발급·요금 페이지에서 다시 확인하세요. <b>실제로 무료 이용이 확인된 곳은 Google Gemini와 Groq 두 곳</b>입니다. Claude, ChatGPT, DeepSeek은 무료 이용을 안내하는 공식 문서를 확인하지 못했습니다. 이 세 곳은 결제 수단 등록이나 선불 충전을 준비해 두는 편이 안전합니다.
+  </div>
+
+  <section>
+    <h2>한눈에 보기</h2>
+    <div class="tablewrap">
+      <table>
+        <tr><th>제공자</th><th>무료 이용</th><th>비용 방식</th><th>발급 페이지</th></tr>
+        <tr><td>Google Gemini</td><td>있음 (일부 모델)</td><td>무료 등급은 결제 없이 사용. 한도 초과 시 유료 등급 필요</td><td><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></td></tr>
+        <tr><td>Groq</td><td>있음 (무료 요금제)</td><td>모델별 분당·일일 한도가 있음. 상위 요금제는 유료</td><td><a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a></td></tr>
+        <tr><td>DeepSeek</td><td>안내 없음</td><td>선불 충전 후 토큰 사용량만큼 차감</td><td><a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a></td></tr>
+        <tr><td>Claude (Anthropic)</td><td>안내 없음</td><td>사용량 기반 결제. 신규 조직은 낮은 한도로 시작</td><td><a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com/settings/keys</a></td></tr>
+        <tr><td>ChatGPT (OpenAI API)</td><td>안내 없음</td><td>선불 크레딧 구매(최소 5달러)</td><td><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a></td></tr>
+      </table>
+    </div>
+    <p class="sec-desc" style="margin-top:10px">ChatGPT 앱이나 Claude 앱의 월 구독과 API는 별개입니다. 구독을 하고 있어도 API Key는 위 페이지에서 따로 발급받고 결제해야 합니다.</p>
+  </section>
+
+  <article class="card" id="gemini">
+    <h2>Google Gemini<span class="badge free">무료 가능</span></h2>
+    <ol class="steps">
+      <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>에 접속해 Google 계정으로 로그인합니다.</li>
+      <li>처음이면 약관에 동의합니다. 기본 프로젝트와 키가 자동으로 만들어질 수 있습니다.</li>
+      <li><b>Create API key</b>를 누릅니다.</li>
+      <li>만들어진 키를 복사해 K-Law의 API Key 입력란에 붙여 넣고, AI 모델에서 Gemini를 선택합니다.</li>
+    </ol>
+    <div class="note"><ul>
+      <li>무료 등급에서는 일부 상위 모델이 제외됩니다. K-Law에서 오류가 나면 모델을 바꿔 보세요.</li>
+      <li><b>무료 등급에 입력한 내용은 Google의 제품 개선에 사용됩니다</b>(공식 가격표의 "Used to improve our products: Yes"). 유료 등급은 사용하지 않는다고 적혀 있습니다. 무료 키로 사건을 입력할 때는 개인정보를 반드시 가리세요.</li>
+      <li>공식 안내는 키를 비밀번호처럼 다루라고 합니다. 남에게 보이지 않게 하세요.</li>
+    </ul></div>
+  </article>
+
+  <article class="card" id="groq">
+    <h2>Groq<span class="badge free">무료 가능</span></h2>
+    <ol class="steps">
+      <li><a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>에 접속해 가입하고 로그인합니다.</li>
+      <li><b>Create API Key</b>를 누르고 이름을 붙입니다.</li>
+      <li>키는 만들어진 직후 화면에서 복사해 두세요. 나중에 다시 볼 수 없을 수 있습니다.</li>
+      <li>K-Law의 API Key 입력란에 붙여 넣고, AI 모델에서 Groq를 선택합니다.</li>
+    </ol>
+    <div class="note"><ul>
+      <li>무료 요금제에는 모델별로 분당·일일 요청 수와 토큰 한도가 있습니다. 긴 판결문을 만드는 도중 "한도 초과" 오류가 날 수 있습니다. 그러면 잠시 뒤에 다시 시도하세요.</li>
+      <li>정확한 한도는 로그인 후 계정 설정의 Limits 페이지에서 확인할 수 있습니다.</li>
+    </ul></div>
+  </article>
+
+  <article class="card" id="deepseek">
+    <h2>DeepSeek<span class="badge paid">무료 확인 안 됨</span></h2>
+    <ol class="steps">
+      <li><a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a>에 가입하고 로그인합니다.</li>
+      <li>잔액을 충전합니다. 공식 문서는 실제 사용량에 맞춰 충전하라고 안내합니다.</li>
+      <li><a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">API keys 페이지</a>에서 새 키를 만들고 복사합니다.</li>
+      <li>K-Law의 API Key 입력란에 붙여 넣고, AI 모델에서 DeepSeek을 선택합니다.</li>
+    </ol>
+    <div class="note"><ul>
+      <li>요금은 입력·출력 토큰 수에 따라 매겨집니다. 공식 가격표 기준으로 Flash 모델의 출력은 100만 토큰당 0.6~1.2달러입니다(한가한 시간대가 절반 가격).</li>
+      <li>신규 계정에 지급되는 크레딧이 있을 수 있지만 공식 문서에서 그 조건을 확인하지 못했습니다. 지급 여부를 기대하지 마세요.</li>
+      <li>K-Law의 기본 AI는 DeepSeek이며, 키 없이 hondi.net 전화번호 인증으로도 쓸 수 있습니다(사용한 만큼 GDC 차감). 직접 키가 필요한 경우는 주로 두 번째 키를 마련할 때입니다.</li>
+    </ul></div>
+  </article>
+
+  <article class="card" id="claude">
+    <h2>Claude (Anthropic)<span class="badge paid">무료 확인 안 됨</span></h2>
+    <ol class="steps">
+      <li><a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a>(Anthropic Console)에 가입하고 로그인합니다.</li>
+      <li><a href="https://platform.claude.com/settings/billing" target="_blank" rel="noopener">Billing 페이지</a>에서 결제를 설정합니다.</li>
+      <li><a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">Account Settings의 API keys</a>에서 새 키를 만듭니다. 키 유형과 만료일을 정할 수 있습니다.</li>
+      <li>K-Law의 API Key 입력란에 붙여 넣고, AI 모델에서 Claude를 선택합니다.</li>
+    </ol>
+    <div class="note"><ul>
+      <li>무료 이용을 안내하는 공식 문서는 확인하지 못했습니다. 신규 조직은 낮은 한도(Evaluation 등급)로 시작하고, 사용 내역이 쌓이면 한도가 자동으로 올라갑니다.</li>
+      <li>Billing 페이지에서 월 사용 한도를 확인하세요. 사용 내역과 한도는 그곳에서 볼 수 있습니다.</li>
+    </ul></div>
+  </article>
+
+  <article class="card" id="openai">
+    <h2>ChatGPT (OpenAI API)<span class="badge paid">무료 확인 안 됨</span></h2>
+    <ol class="steps">
+      <li><a href="https://platform.openai.com/" target="_blank" rel="noopener">platform.openai.com</a>에 가입하고 로그인합니다.</li>
+      <li><a href="https://platform.openai.com/account/billing" target="_blank" rel="noopener">Billing 페이지</a>에서 크레딧을 구매합니다. 최소 구매액은 5달러입니다.</li>
+      <li><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">API keys 페이지</a>에서 새 시크릿 키를 만들고 복사합니다.</li>
+      <li>K-Law의 API Key 입력란에 붙여 넣고, AI 모델에서 ChatGPT를 선택합니다.</li>
+    </ol>
+    <div class="note"><ul>
+      <li>계정에 무료 크레딧이 있으면 구매한 크레딧보다 먼저 사용됩니다. 다만 무료 크레딧이 지급되는 조건은 공식 문서에서 확인하지 못했습니다.</li>
+    </ul></div>
+  </article>
+
+  <section>
+    <h2>성능 테스트용 키 두 개 마련하기</h2>
+    <p class="sec-desc">성능 테스트 버튼 두 개는 서로 다른 API Key가 최소 두 개 필요합니다. 키 A는 사건 개요·쉬운 설명·일치도 평가에, 키 B는 가상 판결문 생성에 씁니다. 같은 키로 사건 개요와 판결문을 모두 만들면 AI가 이미 정답을 알고 판결문을 쓰게 되어 시험 결과가 오염됩니다.</p>
+    <div class="tip" style="margin-top:12px">
+      무료로 두 개를 마련하려면 <a href="#gemini">Gemini</a>와 <a href="#groq">Groq</a>에서 각각 한 개씩 발급받는 방법이 있습니다. 두 곳 모두 무료 이용이 확인된 제공자입니다.
+    </div>
+  </section>
+
+  <section>
+    <h2>키를 안전하게 쓰는 법</h2>
+    <ul style="margin-top:12px">
+      <li>K-Law는 API Key를 서버에 저장하지 않고 이 브라우저에만 보관합니다. 그래도 <b>1회용 키를 만들어 쓰고, 다 쓴 뒤에는 발급 페이지에서 키를 삭제(폐기)</b>하세요.</li>
+      <li>공용 PC에서는 사용 후 방문 기록과 사이트 데이터를 지우세요.</li>
+      <li>키가 남에게 노출됐다면 즉시 삭제하고 새로 발급받으세요.</li>
+      <li>유료 제공자는 월 사용 한도를 걸어 두세요.</li>
+      <li>입력한 사건 내용은 선택한 AI 제공자에게 전송됩니다. 실명·주민등록번호·연락처·주소·계좌번호 등은 가명이나 익명으로 바꿔 입력하세요.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>확인한 공식 자료</h2>
+    <ul class="src" style="margin-top:10px">
+      <li><a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener">Gemini API 요금</a> · <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener">Gemini API 키 안내</a></li>
+      <li><a href="https://console.groq.com/docs/rate-limits" target="_blank" rel="noopener">Groq 사용 한도</a></li>
+      <li><a href="https://api-docs.deepseek.com/quick_start/pricing" target="_blank" rel="noopener">DeepSeek API 요금</a></li>
+      <li><a href="https://platform.claude.com/docs/en/api/overview" target="_blank" rel="noopener">Claude API 개요</a> · <a href="https://platform.claude.com/docs/en/api/rate-limits" target="_blank" rel="noopener">Claude API 사용 한도</a></li>
+      <li><a href="https://help.openai.com/en/articles/8264644-how-can-i-set-up-prepaid-billing" target="_blank" rel="noopener">OpenAI 선불 결제 안내</a></li>
+    </ul>
+    <div class="chip-row" style="margin-top:16px">
+      <a class="chip outline" href="manual.html">사용자 매뉴얼로 돌아가기</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
