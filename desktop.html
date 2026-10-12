@@ -360,6 +360,13 @@ button{font-family:var(--font);cursor:pointer}
 .cm-sec{border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur);margin-top:8px}
 .cm-sec > summary{cursor:pointer;padding:9px 12px;font-size:12.5px;font-weight:600;color:var(--txt)}
 .cm-sec .step-body{padding:0 14px 14px}
+/* 단일 AI 모델 — LLM 선택 (2026-10-13) */
+.sg-pills{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+.sg-pill{border:1px solid var(--bdr);background:var(--sur);color:var(--txt2);border-radius:999px;padding:7px 16px;font:600 13px var(--font);cursor:pointer;transition:border-color .12s,background .12s}
+.sg-pill:hover{border-color:var(--bdr2)}
+.sg-pill.on{border-color:var(--pri);background:var(--pri-bg);color:var(--pri-dk)}
+.sg-label{font-size:12px;font-weight:600;color:var(--txt2);margin:2px 0 6px}
+#single-intro #hdr-model-row{margin-top:0 !important}
 </style>
 </head>
 <body>
@@ -490,32 +497,6 @@ button{font-family:var(--font);cursor:pointer}
         <div>
           <div class="page-title">K-Law 판결 시뮬레이터</div>
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
-          <!-- ── 모델 선택 드롭다운 ── -->
-          <div id="hdr-model-row" style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <!-- LLM 선택 -->
-            <select id="hdr-llm-select" onchange="onHdrLLMChange()"
-              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--font);background:var(--sur);
-                color:var(--txt);outline:none;cursor:pointer">
-              <option value="deepseek">DeepSeek</option>
-              <option value="claude">Claude</option>
-              <option value="gemini">Gemini</option>
-              <option value="groq">Groq</option>
-            </select>
-            <!-- 모델 세부 선택 -->
-            <select id="hdr-model-select" onchange="onHdrModelChange()"
-              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--font);background:var(--sur);
-                color:var(--txt);outline:none;cursor:pointer;min-width:200px">
-              <option value="deepseek-v4-pro" selected>deepseek-v4-pro (기본)</option>
-            </select>
-            <!-- API Key (Claude/Gemini 선택 시) -->
-            <input id="hdr-api-key" type="password" placeholder="API Key 입력"
-              style="display:none;padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
-                outline:none;width:200px"
-              oninput="conversationState.apiKey=this.value">
-          </div>
         </div>
         <div class="page-actions">
           <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v16_2.md" download>
@@ -544,6 +525,47 @@ button{font-family:var(--font);cursor:pointer}
     </div>
 
     <div class="content">
+
+      <!-- 단일 AI 모델 설명·LLM 선택 (2026-10-13 신설) -->
+      <div class="panel" id="single-intro">
+        <div class="panel-hd"><div class="panel-title">AI 모델 선택 (단일)</div></div>
+        <div style="padding:14px 16px">
+          <div class="cm-note"><b>단일 AI 모델</b>은 DeepSeek, Claude, Gemini 등 <b>하나의 LLM 모델</b>을 골라 가상 판결문을 생성합니다. 복합 AI 모델에 비해 <b>비용이 저렴</b>합니다. API Key가 필요하면 <a href="api-key-guide.html" target="_blank" rel="noopener">무료 API Key 획득 방법</a>을 참고하세요.</div>
+          <div class="sg-label">LLM 선택</div>
+          <div class="sg-pills" id="sg-pills">
+            <button type="button" class="sg-pill" data-llm="deepseek" onclick="sgPick('deepseek')">DeepSeek</button>
+            <button type="button" class="sg-pill" data-llm="claude" onclick="sgPick('claude')">Claude</button>
+            <button type="button" class="sg-pill" data-llm="gemini" onclick="sgPick('gemini')">Gemini</button>
+            <button type="button" class="sg-pill" data-llm="groq" onclick="sgPick('groq')">Groq (Llama)</button>
+          </div>
+          <!-- ── 모델 선택 드롭다운 ── -->
+          <div id="hdr-model-row" style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <!-- LLM 선택 -->
+            <select id="hdr-llm-select" hidden onchange="onHdrLLMChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer">
+              <option value="deepseek">DeepSeek</option>
+              <option value="claude">Claude</option>
+              <option value="gemini">Gemini</option>
+              <option value="groq">Groq</option>
+            </select>
+            <!-- 모델 세부 선택 -->
+            <select id="hdr-model-select" onchange="onHdrModelChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer;min-width:200px">
+              <option value="deepseek-v4-pro" selected>deepseek-v4-pro (기본)</option>
+            </select>
+            <!-- API Key (Claude/Gemini 선택 시) -->
+            <input id="hdr-api-key" type="password" placeholder="API Key 입력"
+              style="display:none;padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
+                outline:none;width:200px"
+              oninput="conversationState.apiKey=this.value">
+          </div>
+        </div>
+      </div>
 
       <div class="panel">
         <div class="panel-hd">
@@ -2554,6 +2576,21 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
   </div>
+<script id="sg-script">
+function sgSync() {
+  const sel = document.getElementById('hdr-llm-select'); if (!sel) return;
+  document.querySelectorAll('#sg-pills .sg-pill').forEach(b => b.classList.toggle('on', b.dataset.llm === sel.value));
+}
+function sgPick(llm) {
+  const sel = document.getElementById('hdr-llm-select'); if (!sel) return;
+  sel.value = llm; onHdrLLMChange();
+}
+(function () {
+  const orig = onHdrLLMChange;
+  onHdrLLMChange = function () { orig.apply(this, arguments); sgSync(); };
+  sgSync();
+})();
+</script>
 <script id="cm-script">
 // ══ 복합 AI 모델 (2026-10-13 신설 — 주피터 지시) ══════════════════════
 // 같은 사건 개요를 둘 이상의 AI가 각각 판결문으로 쓰고(모델별 STEP 0~C), 별도 평가 모델이
@@ -2591,8 +2628,6 @@ function cmSwitchTab(which) {
   if (content) content.classList.toggle('cm-mode', isCm);
   const tabs = { single: cmEl('tab-single'), composite: cmEl('tab-composite') };
   Object.keys(tabs).forEach(k => { if (tabs[k]) tabs[k].classList.toggle('active', k === which); });
-  const row = cmEl('hdr-model-row');
-  if (row) row.style.display = isCm ? 'none' : '';
   const sub = document.querySelector('.page-subtitle');
   if (sub) {
     if (!_cmSubtitle) _cmSubtitle = sub.textContent;
