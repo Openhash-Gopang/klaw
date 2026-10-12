@@ -367,6 +367,14 @@ button{font-family:var(--font);cursor:pointer}
 .sg-pill.on{border-color:var(--pri);background:var(--pri-bg);color:var(--pri-dk)}
 .sg-label{font-size:12px;font-weight:600;color:var(--txt2);margin:2px 0 6px}
 #single-intro #hdr-model-row{margin-top:0 !important}
+/* 나비 AI 탭 (2026-10-13) — 단일 AI 모델과 같은 구성에서 LLM 선택 메뉴만 뺀다 */
+.tab-soon{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;vertical-align:middle}
+#navi-intro{display:none}
+.content.nv-mode > #navi-intro{display:block}
+.content.nv-mode > #single-intro,.content.nv-mode > #composite-panel{display:none !important}
+.content.nv-mode #run-btn{opacity:.55}
+.content.nv-mode #run-btn::after{content:' (준비 중)'}
+.nv-badge{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;text-transform:none;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -520,11 +528,21 @@ button{font-family:var(--font);cursor:pointer}
       <div class="page-tabs">
         <button class="page-tab active" id="tab-single" onclick="cmSwitchTab('single')">단일 AI 모델</button>
         <button class="page-tab" id="tab-composite" onclick="cmSwitchTab('composite')">복합 AI 모델</button>
+        <button class="page-tab" id="tab-navi" onclick="cmSwitchTab('navi')">나비 AI<span class="tab-soon">준비 중</span></button>
         <button class="page-tab" id="history-tab-btn" onclick="location.href='my-history.html'">이력</button>
       </div>
     </div>
 
     <div class="content">
+
+      <!-- 나비 AI (2026-10-13 신설) -->
+      <div class="panel" id="navi-intro">
+        <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span></div></div>
+        <div style="padding:14px 16px">
+          <div class="cm-note"><b>Navi AI</b>는 <b>A.X 4.0</b>을 <b>대법원 가상 판결문 시뮬레이션에 특화</b>해 Fine-tuning한 모델입니다. LLM 선택 메뉴 없이 Navi AI가 판결문을 작성하며, 사건 개요를 입력하는 방식은 단일 AI 모델과 같습니다.</div>
+          <div class="cm-note warn" style="margin-bottom:0"><b>준비 중입니다.</b> 아직 이용할 수 없어 아래의 분석 시작은 동작하지 않습니다.</div>
+        </div>
+      </div>
 
       <!-- 단일 AI 모델 설명·LLM 선택 (2026-10-13 신설) -->
       <div class="panel" id="single-intro">
@@ -2950,6 +2968,30 @@ function cmDownload() {
 }
 
 document.addEventListener('DOMContentLoaded', () => { cmUpdateCount(); });
+</script>
+<script id="nv-script">
+(function () {
+  const sw = cmSwitchTab;
+  cmSwitchTab = function (which) {
+    const navi = which === 'navi';
+    sw(navi ? 'single' : which);
+    const content = document.querySelector('.content');
+    if (content) content.classList.toggle('nv-mode', navi);
+    const ts = document.getElementById('tab-single'), tn = document.getElementById('tab-navi');
+    if (navi) { if (ts) ts.classList.remove('active'); if (tn) tn.classList.add('active'); }
+    else if (tn) tn.classList.remove('active');
+    if (navi) {
+      const sub = document.querySelector('.page-subtitle');
+      if (sub) sub.textContent = 'A.X 4.0을 대법원 가상 판결문 시뮬레이션에 특화한 Navi AI가 가상 판결문을 작성합니다. (준비 중)';
+    }
+  };
+  const run = runSimulation;
+  runSimulation = function () {
+    const c = document.querySelector('.content');
+    if (c && c.classList.contains('nv-mode')) { alert('Navi AI는 준비 중입니다. 아직 이용할 수 없습니다.'); return; }
+    return run.apply(this, arguments);
+  };
+})();
 </script>
 </body>
 </html>
