@@ -535,6 +535,30 @@ button{font-family:var(--font);cursor:pointer}
 
     <div class="content">
 
+      <!-- K-Law와 Agon 비교 (2026-10-13 신설) -->
+      <div class="panel" id="method-compare">
+        <div class="panel-hd"><div class="panel-title">K-Law와 Agon의 차이</div></div>
+        <div style="padding:14px 16px">
+          <div class="cm-note" style="margin-bottom:10px">이 페이지는 <b>K-Law (v15.1)</b> 방법론을 시험하는 곳입니다. 새 방법론 <b>Agon</b>은 K-Law와 입력 데이터, 판단 방법, 채점 기준이 다른 별개의 방법론이며, 두 방법론의 일치도는 직접 비교할 수 없습니다. Agon은 <a href="verdict-generate.html">Agon 성능 테스트 페이지</a>에서 시험할 수 있습니다.</div>
+          <details>
+            <summary style="cursor:pointer;font-size:12.5px;font-weight:600;color:var(--txt2);margin-bottom:8px">K-Law와 Agon 비교표 보기 (목적 · 입력 데이터 · 판단 방법 · 채점 방식)</summary>
+            <div class="cm-tablewrap"><table class="cm-table">
+        <tr><th>항목</th><th>K-Law (v15.x)</th><th>Agon (0.x, 구 v17.x)</th></tr>
+        <tr><td>목적</td><td>1·2심 판단을 입력받아 대법원의 결론을 예측</td><td>1~3심과 헌법재판소로 나뉜 사법 체제를 하나로 통합한 가상의 "통합심"과 그 "표준 판결문"을 도출하고, 이를 기준으로 가상 판결문을 채점</td></tr>
+        <tr><td>모델 입력</td><td>사건요지(A4 1쪽, 한글 약 5,000자). 1라운드 기준선 시험(v15.1)은 원심 판단 요지가 포함된 검토용 개요</td><td>독립 개요: 당사자, 사건의 경위, 청구와 주장만. 1·2·3심 결론, 심급, 상소인, 법원명, 사건번호는 제외하고 식별정보를 제거(심급은 상고심으로 고정)</td></tr>
+        <tr><td>원심 결과</td><td>입력에 포함될 수 있음(기준선 시험)</td><td>완전 비공개</td></tr>
+        <tr><td>판단 절차</td><td>STEP 0 → A → B → C. 피고의 최강 논거를 1회 구성한 뒤 판단</td><td><b>변증법적 공방</b>(원고 청구 → 피고 방어 → 재반박 → 중단 판정) → 자기 검증 → 별도 세션 검수 → 재검토</td></tr>
+        <tr><td>채점 기준</td><td>일치도 평가 기준 v1.6: 10점 = 결론 방향 4 + 핵심 법리 3 + 세부 논증 3</td><td>일치도 평가 기준 v3.0: 10점 = 법리 일치 7(법리 해석·적용 3 + 승소 당사자·영역 2 + 승소 수준 2) + 세부 논증 3</td></tr>
+        <tr><td>주문 라벨</td><td>최종 주문의 방향(인용, 기각, 파기, 환송 등) 일치를 4점으로 채점</td><td>절차적 주문 라벨 비교를 폐지하고 법리와 원고·피고 승패를 비교. 파기환송은 방향성 법리만 비교</td></tr>
+        <tr><td>비교 기준</td><td>실제 대법원 판결문</td><td>실제 대법원 판결문. 시범으로 1·2·3심을 종합한 "모범 판결문" 명제표를 채점 기준으로 시험 중</td></tr>
+        <tr><td>규모와 결과</td><td>대법원 판례 300건. 주문(유지/파기) 일치 73%, 평균 7.44/10(자체 실측)</td><td>개발 세트 100건을 10건씩 10라운드로 시험 중. 일치, 잠정 일치, 불일치로 판정한 잠정 결과</td></tr>
+        <tr><td>AI 엔진</td><td>해외 LLM(v15.1). v15.2 이상은 Navi</td><td>해외 LLM(최신 버전). 이후 버전은 Navi</td></tr>
+      </table></div>
+            <div class="cm-note" style="margin:10px 0 0">모든 수치는 자체 실험 결과이며 제3자 검증 전입니다. 출처: 일치도 평가 기준 v1.6·v3.0, 사건 개요 작성 규칙, K-Law 검증 보고서 v2.0.</div>
+          </details>
+        </div>
+      </div>
+
       <!-- 나비 AI (2026-10-13 신설) -->
       <div class="panel" id="navi-intro">
         <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span></div></div>
