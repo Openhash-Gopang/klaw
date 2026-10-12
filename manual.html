@@ -69,6 +69,17 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
 .tip{background:var(--pri-bg);border:1px solid var(--bdr2);border-left:4px solid var(--pri);border-radius:var(--r);padding:12px 16px;font-size:14px;line-height:1.75;color:var(--txt)}
 .tip b{color:var(--txt)}
 .todo{color:var(--warn-tx);background:var(--warn-bg);padding:0 5px;border-radius:4px;font-size:.92em}
+/* 첫 화면 버튼 설명: 수평 탭 (JS가 꺼져 있으면 세 카드가 모두 보임) */
+.tabs{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.tablist{display:flex;gap:8px;flex-wrap:wrap}
+.tab{flex:1 1 120px;max-width:240px;min-width:0;font-family:inherit;cursor:pointer;background:transparent;border:1px solid var(--bdr2);color:var(--txt)}
+.tab:hover{background:var(--code-bg)}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--chip-tx)}
+.tab[aria-selected="true"]:hover{background:var(--navy2)}
+.tab:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.tabpanel[hidden]{display:none}
+.card-head a.open{flex:0 0 auto;flex-direction:row;padding:6px 12px;font-size:13px}
+@media (max-width:520px){.tablist{flex-wrap:nowrap;gap:6px}.tab{flex:1 1 0;padding:8px 4px;font-size:13px}.tab small{font-size:10px}}
 @media (max-width:520px){h1{font-size:22px}.card{padding:16px}}
 </style>
 </head>
@@ -158,10 +169,16 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     </div>
   </section>
 
-  <article class="card" id="b-virtual">
+  <section class="tabs" id="guide-tabs">
+    <div class="tablist" role="tablist" aria-label="첫 화면 버튼 설명">
+      <button type="button" class="chip tab" role="tab" id="tab-b-virtual" aria-controls="b-virtual" aria-selected="true">가상 판결<small>작성 · 공개</small></button>
+      <button type="button" class="chip tab" role="tab" id="tab-b-v151" aria-controls="b-v151" aria-selected="false" tabindex="-1">성능 테스트<small>K-Law v15.1</small></button>
+      <button type="button" class="chip tab" role="tab" id="tab-b-agon" aria-controls="b-agon" aria-selected="false" tabindex="-1">성능 테스트<small>Agon 1.0</small></button>
+    </div>
+  <article class="card tabpanel" id="b-virtual" role="tabpanel" aria-labelledby="tab-b-virtual" tabindex="0">
     <div class="card-head">
-      <a class="chip" href="virtual-verdict.html">가상 판결<small>작성 · 공개</small></a>
       <p class="what">내 사건을 입력하면 AI가 참고용 가상 판결문과 쉬운 설명을 써 줍니다.</p>
+      <a class="chip outline open" href="virtual-verdict.html">이 화면 열기 →</a>
     </div>
     <div class="facts">
       <div class="fact"><b>용도와 목적</b><p>소송 중이거나 소송 전인 내 사건에 대해, 법원이 어떻게 판단할 수 있을지 미리 읽어 보는 곳입니다. 실제 판결이 없으므로 일치도는 평가하지 않습니다.</p></div>
@@ -185,10 +202,10 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     </div>
   </article>
 
-  <article class="card" id="b-v151">
+  <article class="card tabpanel" id="b-v151" role="tabpanel" aria-labelledby="tab-b-v151" tabindex="0">
     <div class="card-head">
-      <a class="chip" href="desktop.html">성능 테스트<small>K-Law v15.1</small></a>
       <p class="what">최신 대법원 판례로 K-Law의 가상 판결문을 만들고, 실제 판결문과 비교해 일치도를 평가합니다.</p>
+      <a class="chip outline open" href="desktop.html">이 화면 열기 →</a>
     </div>
     <div class="facts">
       <div class="fact"><b>용도와 목적</b><p>K-Law 방법론이 실제 판결과 얼마나 같은 결론과 법리에 이르는지 누구나 직접 시험해 볼 수 있게 한 곳입니다. 내 사건용이 아닙니다.</p></div>
@@ -241,10 +258,10 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     </div>
   </article>
 
-  <article class="card" id="b-agon">
+  <article class="card tabpanel" id="b-agon" role="tabpanel" aria-labelledby="tab-b-agon" tabindex="0">
     <div class="card-head">
-      <a class="chip" href="verdict-generate.html">성능 테스트<small>Agon 1.0</small></a>
       <p class="what">새 방법론 Agon이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험합니다.</p>
+      <a class="chip outline open" href="verdict-generate.html">이 화면 열기 →</a>
     </div>
     <div class="facts">
       <div class="fact"><b>용도와 목적</b><p>Agon은 1심, 2심, 3심과 헌법재판소로 나뉜 판단을 하나로 합친 가상의 "통합심"과 그 "표준 판결문"을 만드는 것이 목표인 방법론입니다. 이 페이지는 그 성능을 시험하는 곳입니다.</p></div>
@@ -268,6 +285,8 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
       </ul>
     </div>
   </article>
+
+  </section>
 
   <article class="card" id="b-rounds">
     <div class="card-head">
@@ -331,5 +350,59 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     </div>
   </section>
 </main>
+<script>
+(function(){
+  var wrap = document.getElementById('guide-tabs');
+  if (!wrap) return;
+  var tabs = Array.prototype.slice.call(wrap.querySelectorAll('[role="tab"]'));
+  function panelOf(t){ return document.getElementById(t.getAttribute('aria-controls')); }
+  function select(t, focus){
+    tabs.forEach(function(x){
+      var on = (x === t);
+      x.setAttribute('aria-selected', on ? 'true' : 'false');
+      x.tabIndex = on ? 0 : -1;
+      panelOf(x).hidden = !on;
+    });
+    if (focus) t.focus();
+  }
+  function tabForId(id){
+    return tabs.filter(function(x){ return x.getAttribute('aria-controls') === id; })[0];
+  }
+  function show(id, scroll){
+    var t = tabForId(id);
+    if (!t) return false;
+    select(t);
+    if (scroll) wrap.scrollIntoView({block:'start'});
+    return true;
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener('click', function(){
+      select(t);
+      try { history.replaceState(null, '', '#' + t.getAttribute('aria-controls')); } catch (e) {}
+    });
+    t.addEventListener('keydown', function(e){
+      var n = null;
+      if (e.key === 'ArrowRight') n = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') n = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') n = tabs[0];
+      else if (e.key === 'End') n = tabs[tabs.length - 1];
+      if (n) { e.preventDefault(); select(n, true); }
+    });
+  });
+  /* "어떤 버튼을 누르면 되나요" 표의 링크(#b-virtual 등)를 누르면 해당 탭을 연다 */
+  Array.prototype.forEach.call(document.querySelectorAll('a[href^="#b-"]'), function(a){
+    a.addEventListener('click', function(e){
+      var id = a.getAttribute('href').slice(1);
+      if (tabForId(id)) {
+        e.preventDefault();
+        show(id, true);
+        try { history.replaceState(null, '', '#' + id); } catch (err) {}
+      }
+    });
+  });
+  window.addEventListener('hashchange', function(){ show(location.hash.slice(1), true); });
+  if (!show(location.hash.slice(1), true)) select(tabs[0]);
+})();
+</script>
 </body>
 </html>
