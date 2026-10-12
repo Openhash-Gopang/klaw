@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<meta name="description" content="K-Law 첫 화면의 다섯 버튼이 각각 무엇을 하는 곳인지, 왜 만들었는지, 어떻게 쓰는지 설명합니다.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>K-Law 사용자 매뉴얼</title>
+<style>
+/* 레이아웃: 상단 안내 → "어떤 버튼을 누를까" 표 → 첫 화면 버튼 5개를 같은 순서·같은 모양의 칩으로 소개하는 섹션 */
+:root {
+  --bg:#f6f8fa; --sur:#ffffff; --bdr:#e2e8ee; --bdr2:#cbd5dd;
+  --txt:#0f1b2a; --txt2:#35465a; --txt3:#64748b;
+  --navy:#0b2a5b; --navy2:#12408a; --chip-tx:#ffffff;
+  --pri:#2baa74; --pri-bg:#ecfaf3; --warn-bg:#fff8e6; --warn-bd:#f3dc9a; --warn-tx:#6b4a05;
+  --link:#1d4ed8; --code-bg:#eef2f6;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c1219; --sur:#131c26; --bdr:#243140; --bdr2:#324255;
+  --txt:#eaf0f6; --txt2:#c3cfdb; --txt3:#8c9bad;
+  --navy:#16346b; --navy2:#2a5bb0; --chip-tx:#ffffff;
+  --pri:#4fd9a0; --pri-bg:#10261e; --warn-bg:#2a2410; --warn-bd:#54461a; --warn-tx:#f3dc9a;
+  --link:#8fb4ff; --code-bg:#1b2632; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0c1219; --sur:#131c26; --bdr:#243140; --bdr2:#324255;
+  --txt:#eaf0f6; --txt2:#c3cfdb; --txt3:#8c9bad;
+  --navy:#16346b; --navy2:#2a5bb0; --chip-tx:#ffffff;
+  --pri:#4fd9a0; --pri-bg:#10261e; --warn-bg:#2a2410; --warn-bd:#54461a; --warn-tx:#f3dc9a;
+  --link:#8fb4ff; --code-bg:#1b2632; color-scheme:dark; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:1.75;font-size:15px}
+a{color:var(--link)}
+.topbar{display:flex;align-items:center;gap:14px;background:#0b0f19;padding:12px 16px;flex-wrap:wrap}
+.topbar a{color:#fff;text-decoration:none;font-weight:700;font-size:14px}
+.topbar .back{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#fff;color:#0b0f19;font-size:16px}
+.wrap{max-width:900px;margin:0 auto;padding:32px 16px 96px;display:flex;flex-direction:column;gap:28px}
+h1{font-size:26px;color:var(--txt);line-height:1.3;text-wrap:balance}
+.lead{margin-top:8px;color:var(--txt3);font-size:14.5px;max-width:62ch}
+.draft{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx);vertical-align:middle}
+.notice{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx);border-radius:var(--r);padding:12px 16px;font-size:13.5px;line-height:1.7}
+h2{font-size:18px;color:var(--txt);text-wrap:balance}
+.sec-desc{font-size:13.5px;color:var(--txt3);margin-top:4px}
+.tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+th,td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--bdr)}
+th{font-size:12px;color:var(--txt3);font-weight:700;letter-spacing:.3px;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--txt);font-weight:600}
+a.chip,.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 16px;border-radius:var(--r);background:var(--navy);color:var(--chip-tx);text-decoration:none;font-weight:700;font-size:14px;line-height:1.25;text-align:center;border:1px solid transparent}
+.chip small{font-size:11px;font-weight:600;opacity:.85}
+.chip.outline{background:transparent;border-color:var(--bdr2);color:var(--txt)}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap}
+a.chip:hover{background:var(--navy2)}
+a.chip.outline:hover{background:var(--code-bg)}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.card-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.card-head .what{flex:1 1 260px;min-width:0;font-size:14.5px;color:var(--txt);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.fact{background:var(--bg);border-radius:8px;padding:12px 14px}
+.fact b{display:block;font-size:12px;color:var(--txt3);letter-spacing:.3px;margin-bottom:2px}
+.fact p{font-size:13.5px;color:var(--txt2)}
+h3{font-size:14px;color:var(--txt)}
+ol,ul{padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.note{font-size:13px;color:var(--txt3);border-top:1px solid var(--bdr);padding-top:12px}
+.note ul{font-size:13px}
+code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em}
+.todo{color:var(--warn-tx);background:var(--warn-bg);padding:0 5px;border-radius:4px;font-size:.92em}
+@media (max-width:520px){h1{font-size:22px}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="klaw_intro.html" aria-label="K-Law 첫 화면으로">←</a>
+  <a href="klaw_intro.html">K-Law</a>
+</header>
+
+<main class="wrap">
+  <div>
+    <h1>K-Law 사용자 매뉴얼<span class="draft">초안</span></h1>
+    <p class="lead">K-Law 첫 화면에는 버튼이 다섯 개 있습니다. 이 매뉴얼은 버튼마다 무엇을 하는 곳인지, 왜 만들었는지, 어떻게 쓰는지 설명합니다.</p>
+  </div>
+
+  <div class="notice">
+    <b>먼저 알아 두세요.</b> K-Law가 만드는 판결문은 AI가 쓴 <b>참고용 가상 판결문</b>입니다. 실제 법원의 판단과 다를 수 있고, 법적 효력이 없으며, 법률 자문이 아닙니다. 소송을 진행하거나 준비 중이라면 변호사와 상담하세요. 이름, 주민등록번호, 연락처, 주소, 계좌번호는 입력하지 말고 가명이나 익명으로 바꿔 쓰세요. 성능 수치는 모두 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다.
+  </div>
+
+  <section>
+    <h2>어떤 버튼을 누르면 되나요</h2>
+    <p class="sec-desc">하려는 일에 맞는 줄을 찾아 버튼 이름을 확인하세요.</p>
+    <div class="tablewrap">
+      <table>
+        <tr><th>하려는 일</th><th>누를 버튼</th></tr>
+        <tr><td>내 사건(소송 중이거나 소송 전)의 가상 판결문을 받아 보고 싶다</td><td><a href="#b-virtual">가상 판결</a></td></tr>
+        <tr><td>K-Law가 실제 대법원 판결과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-v151">성능 테스트 · K-Law v15.1</a></td></tr>
+        <tr><td>새 방법론 Agon이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-agon">성능 테스트 · Agon 1.0</a></td></tr>
+        <tr><td>Agon 방법론이 어떤 시험을 거쳐 어떻게 바뀌어 왔는지 보고 싶다</td><td><a href="#b-rounds">Agon 갱신 이력</a></td></tr>
+        <tr><td>스마트폰에서 AI와 대화하면서 가상 판결문을 만들고 싶다</td><td><a href="#b-mobile">모바일 웹앱</a></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>AI 엔진과 버전</h2>
+    <div class="tablewrap">
+      <table>
+        <tr><th>버전</th><th>AI 엔진</th></tr>
+        <tr><td>K-Law v15.1 (이 사이트에 적용)</td><td>ChatGPT, DeepSeek, Gemini 등 해외 LLM</td></tr>
+        <tr><td>K-Law v15.2 이상</td><td>A.X 4.0을 파인튜닝한 Navi(나비) LLM. 상세는 추후 공개 예정입니다.</td></tr>
+        <tr><td>Agon 최신 버전 (이 사이트에 적용)</td><td>ChatGPT, DeepSeek, Gemini 등 해외 LLM</td></tr>
+        <tr><td>Agon 이후 버전</td><td>A.X 4.0을 파인튜닝한 Navi(나비) LLM. 상세는 추후 공개 예정입니다.</td></tr>
+      </table>
+    </div>
+    <div class="notice" style="margin-top:12px">
+      이 사이트에서 직접 고르는 AI는 모두 해외 LLM입니다. Navi LLM을 쓰는 K-Law v15.2 이상과 Agon 이후 버전은 아직 공개되지 않았고, 아래 API Key 안내는 해외 LLM을 쓰기 위한 것입니다.
+    </div>
+  </section>
+
+  <section>
+    <h2>로그인, 비용, API Key</h2>
+    <p class="sec-desc">첫 번째부터 세 번째 버튼의 입력 화면은 같은 방식으로 AI를 고릅니다.</p>
+    <ul style="margin-top:12px">
+      <li><b>기본 AI(DeepSeek)</b>는 API Key 없이 hondi.net 전화번호 인증으로 쓸 수 있습니다. K-Law 공유 계정을 거치며 사용한 만큼 GDC가 차감됩니다.</li>
+      <li><b>Claude, Gemini, ChatGPT, Groq</b> 등을 쓰려면 직접 발급받은 API Key를 입력해야 합니다. 발급 방법은 그 AI에게 물어보세요. 화면의 "무료 발급 방법"에도 안내가 있습니다.</li>
+      <li>API Key는 K-Law 서버에 저장되지 않고 이 브라우저에만 보관됩니다. <b>1회용 키를 만들어 쓰고, 다 쓴 뒤에는 반드시 폐기</b>하세요. 공용 PC에서는 사용 후 방문 기록을 지우세요.</li>
+      <li>입력한 사건 내용은 선택한 AI 제공자에게 전송되어, 해당 AI의 성능 개선에 활용됩니다.</li>
+      <li><b>성능 테스트 버튼 두 개</b>는 서로 다른 API Key가 최소 두 개 필요합니다. 이유와 쓰는 법은 각 버튼 설명을 보세요.</li>
+    </ul>
+  </section>
+
+  <article class="card" id="b-virtual">
+    <div class="card-head">
+      <a class="chip" href="virtual-verdict.html">가상 판결<small>작성 · 공개</small></a>
+      <p class="what">내 사건을 입력하면 AI가 참고용 가상 판결문과 쉬운 설명을 써 줍니다.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>용도와 목적</b><p>소송 중이거나 소송 전인 내 사건에 대해, 법원이 어떻게 판단할 수 있을지 미리 읽어 보는 곳입니다. 실제 판결이 없으므로 일치도는 평가하지 않습니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>분쟁의 쟁점을 정리하고 싶을 때, 변호사를 만나기 전에 사건을 이해하고 싶을 때, 판결문을 쉬운 말로 풀어 읽고 싶을 때.</p></div>
+      <div class="fact"><b>적용 방법론</b><p>K-Law v15.1 (해외 LLM)</p></div>
+    </div>
+    <h3>사용법</h3>
+    <ol>
+      <li>AI 모델을 고릅니다. 기본(DeepSeek)은 로그인만 하면 되고, 다른 AI는 API Key를 입력합니다.</li>
+      <li><b>"사건의 개요"</b>에 사실관계를 적습니다. 당사자의 관계, 분쟁이 생긴 경과(날짜와 금액), 양측 주장, 가진 증거, 가장 다투고 싶은 쟁점을 빠짐없이 적을수록 좋습니다. 소송 중이면 현재 진행 상황도 적습니다.</li>
+      <li>계약서나 문서가 있으면 <b>"파일 첨부"</b>로 넣을 수 있습니다(txt, md, csv, docx, pdf). 파일의 글자가 입력란에 추가되므로 내용을 확인하고 고치세요. 개인정보는 가린 뒤 첨부합니다.</li>
+      <li><b>"분석 시작"</b>을 누르면 AI가 쟁점을 정리하고, 필요하면 추가 질문을 합니다. 답하면 가상 판결문이 단계별로 작성되고, 이어서 법률 용어를 쓰지 않은 쉬운 설명이 만들어집니다.</li>
+      <li>아래 <b>"가상 판결 작성 결과"</b>에 건마다 일련번호, 날짜, 작성자, 사건 개요, 가상 판결문, 쉬운 설명이 순서대로 쌓입니다. 맨 아래에서 <b>공개 여부</b>를 고릅니다.</li>
+    </ol>
+    <div class="note">
+      <ul>
+        <li>공개 여부의 기본값은 <b>비공개</b>입니다. 공개하면 공개 게시판에 올라가므로 개인정보가 없는지 다시 확인하세요.</li>
+        <li>결과는 로그인한 경우에만 저장됩니다. 로그인하지 않으면 화면에는 보이지만 목록에 남지 않습니다.</li>
+        <li>사건 개요는 상세할수록 결과가 좋아집니다. 중요한 사실이 빠지면 판결문의 품질이 크게 떨어집니다.</li>
+      </ul>
+    </div>
+  </article>
+
+  <article class="card" id="b-v151">
+    <div class="card-head">
+      <a class="chip" href="desktop.html">성능 테스트<small>K-Law v15.1</small></a>
+      <p class="what">최신 대법원 판례로 K-Law의 가상 판결문을 만들고, 실제 판결문과 비교해 일치도를 평가합니다.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>용도와 목적</b><p>K-Law 방법론이 실제 판결과 얼마나 같은 결론과 법리에 이르는지 누구나 직접 시험해 볼 수 있게 한 곳입니다. 내 사건용이 아닙니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>K-Law의 성능이 궁금할 때, 연구나 검증을 위해 판례 한 건으로 재현해 보고 싶을 때.</p></div>
+      <div class="fact"><b>적용 방법론</b><p>K-Law v15.1 (해외 LLM)</p></div>
+    </div>
+    <div class="notice">
+      <b>준비물: API Key 2개 이상.</b> 하나는 <b>사건 개요 작성, 쉬운 설명, 일치도 평가</b>(키 A)에, 다른 하나는 <b>가상 판결문 생성</b>(키 B)에 씁니다. 가능하면 서로 다른 AI 제공자의 키를 쓰세요. 하나의 키로 사건 개요 작성과 가상 판결문 작성을 모두 하면, AI가 이미 정답을 알고 판결문을 쓰게 되어 데이터가 오염됩니다.
+    </div>
+    <h3>사용법</h3>
+    <ol>
+      <li>대법원 종합법률정보에서 <b>되도록 최신 판례</b>를 한 건 고릅니다. AI가 이미 학습한 판례는 시험의 의미가 떨어집니다.</li>
+      <li><b>키 A의 AI</b>로 그 판례에서 사실관계만 뽑아 사건 개요를 만듭니다. 법원의 판단, 결론, 주문은 빼야 합니다.</li>
+      <li>뽑은 사실관계를 <b>"사건의 개요"</b>에 붙여 넣습니다. AI 모델을 <b>키 B의 AI</b>로 바꾸고 키 B를 입력한 뒤 <b>"분석 시작"</b>을 눌러 가상 판결문을 만듭니다.</li>
+      <li>판결문이 끝나면 AI 모델을 다시 <b>키 A의 AI</b>로 바꾸고, <b>"일치도 평가"</b> 칸에 실제 대법원 판결문 전문을 붙여 넣은 뒤 <b>"일치도 평가 시작"</b>을 누릅니다. 평가 보고서가 만들어집니다.</li>
+    </ol>
+    <div class="note">
+      <ul>
+        <li>여기서 나오는 수치는 선별한 판례에서 잰 자체 실험 결과이며, 모든 사건에 그대로 적용되지 않습니다. 자세한 결과와 논문은 <a href="library.html">K-Law 자료실</a>에 있습니다.</li>
+        <li>일치도 평가 기준은 자료실의 "일치도 평가 기준" 문서에서 볼 수 있습니다.</li>
+      </ul>
+    </div>
+  </article>
+
+  <article class="card" id="b-agon">
+    <div class="card-head">
+      <a class="chip" href="verdict-generate.html">성능 테스트<small>Agon 1.0</small></a>
+      <p class="what">새 방법론 Agon이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험합니다.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>용도와 목적</b><p>Agon은 1심, 2심, 3심과 헌법재판소로 나뉜 판단을 하나로 합친 가상의 "통합심"과 그 "표준 판결문"을 만드는 것이 목표인 방법론입니다. 이 페이지는 그 성능을 시험하는 곳입니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>이전 K-Law(v15.1)와 Agon이 어떻게 다른지 직접 비교하고 싶을 때.</p></div>
+      <div class="fact"><b>적용 방법론</b><p>Agon 0.x (시험 단계, 해외 LLM). 정식 Agon 1.0은 2027년 상반기 공개 예정입니다.</p></div>
+    </div>
+    <div class="notice">
+      <b>준비물: API Key 2개 이상.</b> 하나는 <b>사건 개요 작성, 쉬운 설명, 일치도 평가</b>(키 A)에, 다른 하나는 <b>가상 판결문 생성</b>(키 B)에 씁니다. 가능하면 서로 다른 AI 제공자의 키를 쓰세요. 하나의 키로 사건 개요 작성과 가상 판결문 작성을 모두 하면, AI가 이미 정답을 알고 판결문을 쓰게 되어 데이터가 오염됩니다.
+    </div>
+    <h3>사용법</h3>
+    <ol>
+      <li>입력 화면은 앞의 "성능 테스트 · K-Law v15.1"과 같은 순서입니다. 최신 대법원 판례를 고르고, <b>키 A의 AI</b>로 사실관계만 뽑아 <b>"사건의 개요"</b>를 만듭니다.</li>
+      <li>Agon의 사건 개요는 원심 결과를 가린 <b>독립 개요</b>입니다. 당사자, 경위, 청구와 주장만 넣고 1·2·3심의 결론, 법원명, 사건번호는 뺍니다.</li>
+      <li>개요를 <b>"사건의 개요"</b>에 넣고 AI 모델을 <b>키 B의 AI</b>로 바꿔 키 B를 입력한 뒤 <b>"분석 시작"</b>을 누릅니다. 원고 청구, 피고 방어, 재반박을 거치는 변증법적 공방과 자기 검증을 거쳐 가상 판결문이 만들어집니다.</li>
+      <li>AI 모델을 다시 <b>키 A의 AI</b>로 바꾸고 <b>"일치도 평가"</b>에서 실제 판결문과 비교합니다. 평가 기준은 Agon용(법리와 승소 당사자 중심)을 씁니다.</li>
+    </ol>
+    <div class="note">
+      <ul>
+        <li>화면 위쪽의 "K-Law와 Agon 비교표 보기"에서 입력 데이터, 판단 방법, 채점 방식의 차이를 볼 수 있습니다. 두 방법론의 일치도는 직접 비교할 수 없습니다.</li>
+        <li>지금 단계의 결과는 잠정치이며 제3자 검증 전입니다.</li>
+      </ul>
+    </div>
+  </article>
+
+  <article class="card" id="b-rounds">
+    <div class="card-head">
+      <a class="chip outline" href="rounds.html">Agon 갱신 이력</a>
+      <p class="what">Agon을 시험하고 고쳐 온 과정을 라운드별로 기록한 페이지입니다. 읽는 곳이며 입력할 것은 없습니다.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>용도와 목적</b><p>방법론을 어떤 사건으로 시험했고 무엇이 틀렸으며 무엇을 고쳤는지 투명하게 보여 주는 곳입니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>Agon을 믿어도 되는지 판단하고 싶을 때, 시험 방법과 한계를 확인하고 싶을 때, 연구에 인용하려고 할 때.</p></div>
+      <div class="fact"><b>갱신 주기</b><p>방법론은 매주 갱신하며 기본적으로 1주일에 0.1씩 버전이 오릅니다. 버전별 기록은 <a href="library/benchmark/methodology-history.html">방법론 갱신 과정 · 버전 이력</a>에 있습니다.</p></div>
+    </div>
+    <h3>사용법</h3>
+    <ol>
+      <li>맨 위의 두 탭에서 <b>Agon</b>(현재 시험)과 <b>이전 K-Law v15 판결 성능 검증</b>(300건 기록)을 고릅니다.</li>
+      <li>Agon 탭에서 라운드를 고르면 그 라운드가 쓴 방법론, 사건별 실제 판결문, 사건 개요, Agon의 가상 판결문, 법리 일치 여부, 단계별 결과, 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</li>
+      <li>"실험 환경", "날짜별 진행 기록", "방법론 갱신 기록", "검수 SP", "일치도 성적표 다운로드(CSV)"는 눌러서 펼치는 항목입니다.</li>
+      <li>직접 돌려 본 테스트 결과는 페이지 위쪽의 "Agon 테스트 결과 목록"에서 볼 수 있습니다. 테스트를 직접 실행하는 기능은 준비 중입니다.</li>
+    </ol>
+    <div class="note">
+      <ul>
+        <li>아직 진행하지 않은 라운드는 표시만 있고 내용이 없습니다. 수치는 진행 중인 잠정치입니다.</li>
+        <li>Agon은 원심 결과를 보지 못하므로 사실인정과 원심 판단의 근거가 없다는 구조적 한계가 있습니다. 같은 페이지의 설명을 함께 읽으세요.</li>
+      </ul>
+    </div>
+  </article>
+
+  <article class="card" id="b-mobile">
+    <div class="card-head">
+      <a class="chip outline" href="webapp.html">모바일 웹앱</a>
+      <p class="what">스마트폰 화면에 맞춘 대화형 화면입니다. AI와 이야기하며 사건을 정리하면 가상 판결문을 만듭니다.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>용도와 목적</b><p>양식을 채우는 대신 질문에 답하는 방식으로 사건 개요를 만들 수 있게 한 곳입니다. 컴퓨터가 없어도 쓸 수 있습니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>이동 중에 휴대폰으로 사건을 정리할 때, 긴 개요를 직접 쓰기 어려울 때.</p></div>
+      <div class="fact"><b>알아 둘 점</b><p>"AI 모델 설정"은 아직 화면 시안입니다. 선택은 기기에 저장되지만 실제 판결 생성은 K-Law 공유 계정(DeepSeek)이 처리합니다.</p></div>
+    </div>
+    <h3>사용법</h3>
+    <ol>
+      <li>처음 열면 AI가 인사하며 어떤 일이 있었는지 묻습니다. 사건을 편하게 이야기하듯 입력합니다. 문서가 있으면 첨부할 수 있습니다.</li>
+      <li>AI가 부족한 사실을 하나씩 되묻습니다. 아는 만큼 답합니다.</li>
+      <li>사건 파악에 필요한 정보가 모이면 AI가 "이 내용으로 가상 판결문을 생성할까요?"라고 묻고, 예상 요금을 보여 줍니다. 더 말할 내용이 있으면 버튼을 누르지 말고 계속 입력하세요.</li>
+      <li><b>"네, 이 내용으로 생성해 주세요"</b>를 누르면 가상 판결문이 만들어지고, 결과를 새 탭에서 열어 볼 수 있습니다.</li>
+    </ol>
+    <div class="note">
+      <ul>
+        <li>하루에 만들 수 있는 판결문 수에 한도가 있고, 남은 횟수가 버튼에 표시됩니다.</li>
+        <li>베타 기간(2026년 12월 31일까지)에는 정액이 아니라 사용한 만큼 요금이 청구됩니다.</li>
+        <li>음성 입력 버튼이 있습니다. 기기와 브라우저에 따라 마이크 권한이 필요하며, 지원되지 않으면 안내 문구가 나옵니다.</li>
+      </ul>
+    </div>
+  </article>
+
+  <section>
+    <h2>더 자세한 안내</h2>
+    <p class="sec-desc">이 매뉴얼에서 다루지 않은 내용은 아래에서 볼 수 있습니다.</p>
+    <div class="chip-row" style="margin-top:12px">
+      <a class="chip outline" href="user-manual.html">판결 시뮬레이터 상세 매뉴얼</a>
+      <a class="chip outline" href="library.html">K-Law 자료실</a>
+      <a class="chip outline" href="library/benchmark/methodology-history.html">방법론 버전 이력</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
