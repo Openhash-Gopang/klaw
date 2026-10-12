@@ -599,7 +599,7 @@ button{font-family:var(--font);cursor:pointer}
           <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
             ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
           </div>
-          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6">🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등 개인정보와 비밀 정보는 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택하신 AI 제공자(DeepSeek·Claude·Gemini·Groq 등)로 전송되며, 혼디에 로그인한 경우 결과와 함께 내 이력에 저장됩니다(기본 비공개 · 공개 전환은 이력 페이지에서 직접 선택).</div>
+          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6" id="case-privacy-note">🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등 개인정보와 비밀 정보는 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택하신 AI 제공자(DeepSeek·Claude·Gemini·Groq 등)로 전송되며, 혼디에 로그인한 경우 결과와 함께 내 이력에 저장됩니다(기본 비공개 · 공개 전환은 이력 페이지에서 직접 선택).</div>
 <textarea class="case-textarea" id="case-input"
             placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
           <div class="input-toolbar" id="input-toolbar">
@@ -2990,6 +2990,21 @@ document.addEventListener('DOMContentLoaded', () => { cmUpdateCount(); });
     const c = document.querySelector('.content');
     if (c && c.classList.contains('nv-mode')) { alert('Navi AI는 준비 중입니다. 아직 이용할 수 없습니다.'); return; }
     return run.apply(this, arguments);
+  };
+})();
+</script>
+<script id="nv-note-script">
+(function () {
+  const NAVI_NOTE = '나비 AI는 오픈소스 프로젝트이며, 커뮤니티에 의해 공개적이고 엄격하게 관리되므로, 해외 LLM이나 일부 국내 Private LLM처럼, 사용자 정보를 사적 이익(Private Interest)에 의해 활용되지 않습니다.';
+  let orig = null;
+  const sw = cmSwitchTab;
+  cmSwitchTab = function (which) {
+    sw.apply(this, arguments);
+    const note = document.getElementById('case-privacy-note');
+    if (!note) return;
+    if (orig === null) orig = note.innerHTML;
+    if (which === 'navi') note.textContent = NAVI_NOTE;
+    else note.innerHTML = orig;
   };
 })();
 </script>
