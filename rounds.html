@@ -4,7 +4,7 @@
 <link rel="icon" href="data:,">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agon 라운드별 시험 기록</title>
+<title>Agon 갱신 이력</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
 :root {
@@ -19,6 +19,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
 .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 100px}
 .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt3);text-decoration:none;margin-bottom:20px}
 .back-link:hover{color:var(--txt)}
+.ptabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 20px;border-bottom:1px solid var(--bdr)}
+.ptab-btn{padding:10px 16px;border:none;background:none;font-family:var(--font);font-size:14px;font-weight:700;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.ptab-btn:hover{color:var(--txt)}
+.ptab-btn.active{color:var(--pri-dk);border-bottom-color:var(--pri)}
+.wrap.wide{max-width:none}
+.v15note{font-size:12.5px;color:var(--txt3);margin:0 0 10px}
+.v15frame{display:block;width:100%;height:calc(100vh - 190px);min-height:640px;border:1px solid var(--bdr);border-radius:var(--r);background:#fff}
 .hero h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 .hero p{font-size:13.5px;color:var(--txt3);margin-bottom:18px;max-width:680px}
 .notice{background:var(--org-bg);border:1px solid #fde68a;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#78350f;margin-bottom:20px}
@@ -144,8 +151,13 @@ span.btn-disabled{color:var(--txt4);cursor:default}
 <body>
 <div class="wrap">
   <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
+  <div class="ptabs" role="tablist" aria-label="Agon 갱신 이력">
+    <button class="ptab-btn active" id="ptab-agon" type="button" role="tab" aria-selected="true" aria-controls="pane-agon">Agon 라운드별 시험 기록</button>
+    <button class="ptab-btn" id="ptab-v15" type="button" role="tab" aria-selected="false" aria-controls="pane-v15">이전 K-Law v15 판결 성능 검증</button>
+  </div>
+  <div id="pane-agon">
   <div class="hero">
-    <h1>Agon 라운드별 시험 기록</h1>
+    <h1>Agon 갱신 이력</h1>
     <p>개발 세트 100건을 10라운드(각 10건)로 나눠 진행하는 방법론 갱신 시험의 라운드별 세부 기록입니다. 각 탭에서 그 라운드가 쓴 방법론, 사건별 실제 판결문(대법원·2심·1심)·사건 개요·Agon 가상 판결문·법리 일치 여부, 가상 판결 → 검수 → 재검토 → 최종 단계별 결과, 그리고 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</p>
     <p style="font-size:12.5px;color:var(--txt4);margin-top:6px">※ 표기 안내: 이 페이지는 Agon의 시험 기록입니다. 이전의 "K-Law 방법론 v17.x"는 Agon 체계로 바뀌었습니다(v17.0 = Agon 0.1 시작 버전, v17.0.k = Agon 0.1.k, v17.N = Agon 0.(N+1)). 문서 파일명(klaw_v17_*.md)은 그대로입니다. 이전 K-Law v15.1·v15.2·v16.1은 비교 기준선으로만 표시합니다.</p>
     <p style="font-size:12.5px;margin-top:4px">이전 K-Law(v15.x) 관련: <a style="color:var(--pri-dk);font-weight:600;text-decoration:none" href="desktop.html">K-Law v15.1 시뮬레이터</a> · <a style="color:var(--pri-dk);font-weight:600;text-decoration:none" href="klaw_intro.html">K-Law 소개</a> · <a style="color:var(--pri-dk);font-weight:600;text-decoration:none" href="https://hondi.net/pages/klaw-simulation-record.html" target="_blank" rel="noopener">K-Law v15 테스트 기록(300건)</a> · <a style="color:var(--pri-dk);font-weight:600;text-decoration:none" href="benchmark.html">K-Law 벤치마크</a></p>
@@ -313,7 +325,37 @@ span.btn-disabled{color:var(--txt4);cursor:default}
   </div>
   <div class="rtabs" id="rtabs"></div>
   <div id="rpanels"></div>
+  </div>
+  <div id="pane-v15" hidden>
+    <p class="v15note">이전 K-Law(v15.x) 기반 판결 성능 검증(벤치마크)입니다. Agon 라운드 기록과는 방법론·사건 집합이 다르며, 자체 실험 결과로 제3자 검증을 거치지 않았습니다.</p>
+    <iframe class="v15frame" id="v15frame" title="이전 K-Law v15 판결 성능 검증" data-src="benchmark-v15.html?embed=1"></iframe>
+  </div>
 </div>
+<script>
+(function () {
+  var wrap = document.querySelector(".wrap");
+  var tabs = { agon: document.getElementById("ptab-agon"), v15: document.getElementById("ptab-v15") };
+  var panes = { agon: document.getElementById("pane-agon"), v15: document.getElementById("pane-v15") };
+  function show(name, push) {
+    Object.keys(tabs).forEach(function (k) {
+      var on = k === name;
+      tabs[k].classList.toggle("active", on);
+      tabs[k].setAttribute("aria-selected", on ? "true" : "false");
+      panes[k].hidden = !on;
+    });
+    wrap.classList.toggle("wide", name === "v15");
+    if (name === "v15") {
+      var f = document.getElementById("v15frame");
+      if (!f.getAttribute("src")) f.setAttribute("src", f.getAttribute("data-src"));
+    }
+    if (push) { try { history.replaceState(null, "", name === "v15" ? "#v15" : location.pathname + location.search); } catch (e) {} }
+  }
+  tabs.agon.addEventListener("click", function () { show("agon", true); });
+  tabs.v15.addEventListener("click", function () { show("v15", true); });
+  window.addEventListener("hashchange", function () { show(location.hash === "#v15" ? "v15" : "agon", false); });
+  if (location.hash === "#v15") show("v15", false);
+})();
+</script>
 <script>
 const LABEL_OF = { keep: '유지', reverse: '파기' };
 // Agon 표기 대응: 데이터(JSON)의 이전 표기를 화면에서 Agon 체계로 바꿔 보여 준다.
