@@ -142,6 +142,14 @@ button{font-family:var(--font);cursor:pointer}
 .input-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .2s ease;pointer-events:none}
 .input-toolbar.visible{max-height:60px;opacity:1;pointer-events:auto}
 .toolbar-left{display:flex;align-items:center;gap:6px}
+.vv-attach-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.vv-attach-btn{cursor:pointer;user-select:none}
+.vv-attach-btn:hover{border-color:var(--bdr2);background:var(--bg)}
+.vv-attach-btn:focus-within{outline:2px solid var(--pri);outline-offset:2px}
+.vv-attach-hint{font-size:11.5px;color:var(--txt3);line-height:1.6;flex:1 1 260px;min-width:0}
+.vv-attach-msg{width:100%;font-size:12px;line-height:1.6}
+.vv-attach-msg.err{color:var(--red)}
+.vv-attach-msg.ok{color:var(--pri-dk)}
 .icon-btn{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:center;color:var(--txt3);transition:border-color .12s,background .12s}
 .icon-btn:hover{border-color:var(--bdr2);background:var(--bg);color:var(--txt2)}
 .icon-btn.recording{border-color:var(--red);background:var(--red-bg);color:var(--red);animation:pulse 1s infinite}
@@ -475,6 +483,7 @@ button{font-family:var(--font);cursor:pointer}
         <div>
           <div class="page-title">K-Law 가상 판결</div>
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
+          <div class="page-subtitle" id="vv-key-note" style="color:var(--txt2);line-height:1.7;max-width:760px">여러분이 선호하는 AI 모델(Claude, Gemini, ChatGPT 등)을 선택하고, API Key를 입력하십시오. 그 방법은 해당 AI에게 물어보세요. 본 사이트는 API Key를 서버에 저장하지 않지만(이 브라우저에만 보관), <b>1회용 API Key를 생성하여 입력하고, 사용 후에는 반드시 폐기하십시오.</b></div>
           <!-- ── 모델 선택 드롭다운 ── -->
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
             <!-- LLM 선택 -->
@@ -503,7 +512,7 @@ button{font-family:var(--font);cursor:pointer}
           </div>
         </div>
         <div class="page-actions">
-          <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v16_2.md" download>
+          <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v17_2.md" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             방법론 원문
           </a>
@@ -537,21 +546,26 @@ button{font-family:var(--font);cursor:pointer}
         </div>
         <div class="panel-bd">
           <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
-            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
+            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.<br><span id="vv-own-case">이곳은 <b>소송 중이거나 소송 전인 내 사건</b>에 대해 가상 판결문을 미리 작성해 보는 곳입니다. 아직 실제 판결이 없으므로 <b>일치도는 평가하지 않습니다.</b></span>
           </div>
           <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6">🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등 개인정보와 비밀 정보는 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택하신 AI 제공자(DeepSeek·Claude·Gemini·Groq 등)로 전송되며, 혼디에 로그인한 경우 결과와 함께 내 이력에 저장됩니다(기본 비공개 · 공개 전환은 이력 페이지에서 직접 선택).</div>
 <textarea class="case-textarea" id="case-input"
             placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
+          <div class="vv-attach-row" id="vv-attach-row">
+            <label class="btn vv-attach-btn" for="file-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              파일 첨부
+            </label>
+            <input type="file" id="file-input" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" accept=".txt,.md,.csv,.docx,.pdf" multiple onchange="handleFileAttach(this)">
+            <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+            <div class="vv-attach-hint">txt · md · csv · docx · pdf 파일의 글자를 읽어 위 입력란에 추가합니다. 파일 자체는 올라가지 않으며, 추가된 내용은 직접 고칠 수 있습니다. 개인정보는 가린 뒤 첨부하세요.</div>
+            <div class="vv-attach-msg" id="vv-attach-msg" role="status" aria-live="polite"></div>
+          </div>
           <div class="input-toolbar" id="input-toolbar">
             <div class="toolbar-left">
-              <label class="file-label" title="파일 첨부">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
-              </label>
               <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
-              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
             </div>
             <button class="btn btn-primary" id="run-btn" onclick="runSimulation()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -572,34 +586,30 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd howto-hd" onclick="toggleSimProcPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            시뮬레이션 절차와 방법
+            가상 판결 작성 방법
           </div>
           <svg class="howto-chevron" id="simproc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="panel-bd howto-panel-bd" id="simproc-panel-bd">
           <ol style="margin:0;padding-left:20px;font-size:13px;color:var(--txt2);line-height:1.9">
             <li style="margin-bottom:10px">
-              국내외 대법원 판례 공개 페이지에서 <b>되도록 최신 판례</b>를 하나 선택합니다.<br>
-              <a href="https://portal.scourt.go.kr/pgp/index.on?m=PGP1011M01&l=N&c=900" target="_blank" rel="noopener"
-                style="color:var(--blue);text-decoration:underline;font-size:12px">대한민국 종합법률정보 — 판례 →</a>
-              <a href="https://portal.scourt.go.kr/pgp/main.on?w2xPath=PGP1011M04&jisCntntsSrno=2026000041688&c=900&srchwd=*&rnum=1&pgDvs=1#Body" target="_blank" rel="noopener"
-                style="color:var(--txt3);text-decoration:underline;font-size:12px;margin-left:8px">예시</a>
+              위 <b>"사건의 개요"</b> 입력란에 내 사건의 사실관계를 적습니다.
+              당사자 사이의 관계, 분쟁이 생긴 경과(날짜·금액 포함), 양측의 주장, 가지고 있는 증거, 가장 다투고 싶은 쟁점을 빠짐없이 적을수록 좋습니다.<br>
+              <span style="font-size:12px;color:var(--txt3)">소송 중이면 현재 심급과 진행 상황을, 소송 전이면 하려는 청구나 예상되는 상대방의 주장을 함께 적어 주세요.</span>
             </li>
             <li style="margin-bottom:10px">
-              실제 가상 판결문 작성에 쓸 LLM(이 페이지의 디폴트는 DeepSeek)과는 <b>다른 LLM</b>을 이용해,
-              해당 판례에서 <b>"판결 결과를 암시하는 내용은 모두 제외하고, 순수하게 사건의 사실관계만"</b> 추출합니다.
-              (당사자, 계약·거래 경과, 처분 경위, 양측 주장 등 — 법원의 판단·결론·주문은 제외)
-              <a href="example-case-summary.html" target="_blank" rel="noopener"
-                style="color:var(--txt3);text-decoration:underline;font-size:12px;margin-left:4px">예시</a><br>
-              <span style="font-size:12px;color:var(--txt3)">서로 다른 LLM을 쓰는 이유: 같은 모델이 그 판례를 이미 학습했다면, 사실관계를 추출하는 과정에서 결론이 은연중에 반영되어 검증의 의미가 퇴색될 수 있습니다.</span>
+              실명·주민등록번호·연락처·주소·계좌번호는 가명이나 익명(원고 갑, 피고 을 등)으로 바꿔 적습니다.
+              계약서나 문자 내용은 입력란 아래 <b>"파일 첨부"</b> 버튼으로 넣을 수 있습니다(txt, md, csv, docx, pdf).
             </li>
             <li style="margin-bottom:10px">
-              대법원 판결문 오른쪽 하단에 <b>원심(고등법원) 판결문 링크</b>가 있습니다. 링크를 따라가 전문을 복사하여
-              사건 요약 인출의 입력으로 추가하면, 더욱 자세한 사건 개요를 인출할 수 있으며, 더하여
-              원심(1, 2심)과 대법원 판결 간의 차이를 알 수 있습니다.
+              <b>"분석 시작"</b>을 누르면 K-Law가 쟁점을 정리하고, 필요하면 추가로 확인할 사항을 묻습니다. 답변을 입력하면 가상 판결문이 단계별로 작성됩니다.
+            </li>
+            <li style="margin-bottom:10px">
+              판결문이 끝나면 법률 용어를 쓰지 않은 <b>쉬운 설명</b>이 이어서 작성됩니다.
             </li>
             <li>
-              추출된 사건의 개요를 이 페이지의 <b>"사건의 개요"</b> 입력란에 붙여넣고 <b>"분석 시작"</b>을 누릅니다.
+              결과는 이 페이지 아래 <b>"가상 판결 작성 결과"</b>에 건마다 일련번호, 날짜, 작성자, 사건 개요, 가상 판결문, 쉬운 설명 순으로 쌓입니다.
+              맨 아래에서 공개 여부를 고를 수 있으며, 기본값은 <b>비공개</b>입니다. 로그인한 경우에만 저장됩니다.
             </li>
           </ol>
         </div>
@@ -627,41 +637,13 @@ button{font-family:var(--font);cursor:pointer}
             </p>
           </div>
 
-          <!-- 모델별 일치도 표 -->
+          <!-- 모델 선택과 비용 -->
           <div>
-            <div style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
-              모델별 대법원 판결 일치도 〔추정치〕 (K-Law v15.1 자체 테스트 기준)
-            </div>
-            <table style="width:100%;border-collapse:collapse;font-size:13px">
-              <thead>
-                <tr style="border-bottom:1px solid var(--bdr)">
-                  <th style="text-align:left;padding:8px 10px;color:var(--txt3);font-weight:600;font-size:11px;text-transform:uppercase">모델</th>
-                  <th style="text-align:right;padding:8px 10px;color:var(--txt3);font-weight:600;font-size:11px;text-transform:uppercase">일치도 (추정)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom:1px solid var(--bdr)">
-                  <td style="padding:8px 10px;color:var(--txt2)">DeepSeek V4 Flash · Claude Haiku</td>
-                  <td style="padding:8px 10px;text-align:right;color:var(--txt2);font-family:var(--mono)">약 65%</td>
-                </tr>
-                <tr style="border-bottom:1px solid var(--bdr)">
-                  <td style="padding:8px 10px;color:var(--txt2)">DeepSeek V4 Pro · Claude Sonnet 4.6</td>
-                  <td style="padding:8px 10px;text-align:right;color:var(--txt2);font-family:var(--mono)">약 75%</td>
-                </tr>
-                <tr style="border-bottom:1px solid var(--bdr)">
-                  <td style="padding:8px 10px;color:var(--txt2)">Claude Opus</td>
-                  <td style="padding:8px 10px;text-align:right;color:var(--txt2);font-family:var(--mono)">약 82%</td>
-                </tr>
-              </tbody>
-            </table>
-            <div style="margin-top:10px;font-size:12px;color:var(--txt3);line-height:1.75">
-              위 모델별 수치는 모델 간 상대적 수준을 가늠하기 위한 <b>〔추정치〕</b>이며, 모델별로 따로 실측한 값이 아닙니다.
-              실측으로 공개된 수치는 다음과 같습니다. 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에서 K-Law(v15.1)의 판결 주문(유지/파기) 일치도는
-              <b>73%</b>, 같은 사건에서 원심(2심)과 대법원 판결의 일치도는 <b>45%</b>였습니다 <b>〔실측 · 2026년 5월 기준〕</b>.
-              현재 적용 중인 방법론 v17.x는 개발 세트 100건을 10라운드로 나눠 검증하는 중이며, 그 결과는 잠정치입니다.
-              모든 수치는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 자세한 내용은
+            <div style="font-size:12px;color:var(--txt3);line-height:1.75">
+              이 페이지는 내 사건에 대한 가상 판결문을 작성하는 곳이며, 대법원 판결과의 일치도는 평가하지 않습니다.
+              K-Law의 성능 시험 결과는
               <a href="library.html" style="color:var(--pri-dk);font-weight:600">K-Law 자료실</a>과
-              <a href="rounds.html" style="color:var(--pri-dk);font-weight:600">라운드별 시험 기록</a>을 참고하세요.
+              <a href="rounds.html" style="color:var(--pri-dk);font-weight:600">Agon 갱신 이력</a>에서 확인할 수 있습니다.
             </div>
             <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
               <div style="font-size:12px;color:var(--pri-dk);font-weight:600">💰 비용 대비 효용은 DeepSeek이 압도적입니다.</div>
@@ -678,23 +660,15 @@ button{font-family:var(--font);cursor:pointer}
             서로 다른 모델이 독립적으로 판단한 뒤 의견이 갈리는 지점을 다시 토론시키는 방식으로, 단일 모델의 편차를 줄이는 것을 목표로 합니다.
           </div>
 
-          <!-- 일반화 한계 고지 (2026-10-06: 모집단 기준 99.9% 추정치 삭제 — 이론적 상한이며 검증되지 않음) -->
-          <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
-            📊 위 일치도는 대법원까지 도달한 쟁점 사건(선별된 표본)에서 측정한 것으로, 모든 사건으로 일반화할 수 없습니다.
-            전체 사건을 기준으로 한 이론적 추정치는 실측이 아니고 제3자 검증을 거치지 않았으므로 이 페이지에서 제시하지 않습니다.
-          </div>
-
           <!-- 면책/한계 고지 -->
           <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
-            ⚠️ 같은 사건에 대해 <b>K-Law Ensemble의 가상 판결문과 대법원의 실제 판결문이 모순되거나 반대되는 경우</b>,
-            어느 쪽의 법리가 헌법과 법률에 더 부합하는지는 <b>K-Law가 판단할 수 없습니다.</b>
-            본 시뮬레이션은 참고용 가상 판결이며, 실제 법적 효력이나 구속력을 갖지 않고 법률 자문이 아닙니다.
+            ⚠️ 가상 판결문은 AI가 작성한 <b>참고 자료</b>이며 실제 법원의 판단과 다를 수 있습니다.
+            실제 법적 효력이나 구속력이 없고 법률 자문이 아닙니다. 소송을 진행 중이거나 준비 중이라면 변호사와 상담하시기 바랍니다.
           </div>
 
           <!-- 웹 검색 차단 안내 -->
           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
-            🔒 판결 시뮬레이터는 LLM의 <b>웹 검색 기능을 의도적으로 차단</b>하였습니다.
-            웹 검색을 허용하면 일치도가 상승하겠지만, 실제 사건 정보를 획득할 수 있게 되어 <b>순수한 법리 추론 능력을 검증하려는 목적이 훼손될 수 있습니다.</b>
+            🔒 가상 판결은 LLM의 <b>웹 검색 기능을 사용하지 않고</b>, 입력하신 사실관계와 K-Law 방법론만으로 작성합니다.
           </div>
 
           <!-- 입력 완전성 주의 -->
@@ -715,8 +689,7 @@ button{font-family:var(--font);cursor:pointer}
             ℹ️ <b>버전 안내</b><br>
             이 사이트에는 <b>K-Law 방법론 v17.x</b>가 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
             v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
-            K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고 대법원 실제 판결문과의 일치도도 더 높을 것으로 기대되나,
-            상당한 API 비용으로 인해 본 사이트의 데모에 포함하지 않았습니다.
+            상당한 API 비용으로 인해 본 사이트에는 포함하지 않았습니다.
           </div>
 
         </div>
@@ -1332,12 +1305,75 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ══ 파일 첨부 ════════════════════════════════════════════
-function handleFileAttach(input) {
-  const file = input.files[0];
-  if (!file) return;
-  attachedFiles.push(file);
-  renderFileChips();
+const VV_ATTACH_MAX_BYTES = 10 * 1024 * 1024;
+const VV_ATTACH_MAX_CHARS = 50000;
+const _vvLibs = {};
+function _vvLoadScript(url) {
+  if (!_vvLibs[url]) _vvLibs[url] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url; s.onload = resolve; s.onerror = () => { delete _vvLibs[url]; reject(new Error('라이브러리를 불러오지 못했습니다. 네트워크를 확인하세요.')); };
+    document.head.appendChild(s);
+  });
+  return _vvLibs[url];
+}
+function _vvAttachMsg(text, kind) {
+  const el = document.getElementById('vv-attach-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'vv-attach-msg' + (kind ? ' ' + kind : '');
+}
+async function _vvReadFileText(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (ext === 'txt' || ext === 'md' || ext === 'csv') return await file.text();
+  if (ext === 'docx') {
+    await _vvLoadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js');
+    const r = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return r.value || '';
+  }
+  if (ext === 'pdf') {
+    await _vvLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    const lib = window.pdfjsLib;
+    lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    let out = '';
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n);
+      const tc = await page.getTextContent();
+      out += tc.items.map(i => i.str).join(' ') + '\n';
+      if (out.length > VV_ATTACH_MAX_CHARS * 2) break;
+    }
+    return out;
+  }
+  if (ext === 'hwp' || ext === 'hwpx' || ext === 'doc') throw new Error('hwp·doc 파일은 읽을 수 없습니다. docx 또는 pdf로 저장하거나 내용을 직접 붙여넣어 주세요.');
+  throw new Error('지원하지 않는 형식입니다. txt, md, csv, docx, pdf 파일을 첨부하세요.');
+}
+async function handleFileAttach(input) {
+  const files = Array.from(input.files || []);
   input.value = '';
+  if (!files.length) return;
+  const ta = document.getElementById('case-input');
+  const notes = [];
+  for (const file of files) {
+    try {
+      if (file.size > VV_ATTACH_MAX_BYTES) throw new Error('파일이 너무 큽니다(10MB 이하).');
+      _vvAttachMsg(file.name + ' 읽는 중…', '');
+      let text = (await _vvReadFileText(file)).replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      if (!text) throw new Error('글자를 읽지 못했습니다. 스캔한 이미지 파일일 수 있습니다. 내용을 직접 붙여넣어 주세요.');
+      let cutNote = '';
+      if (text.length > VV_ATTACH_MAX_CHARS) { text = text.slice(0, VV_ATTACH_MAX_CHARS); cutNote = ' (앞부분 ' + VV_ATTACH_MAX_CHARS.toLocaleString('ko-KR') + '자만 넣었습니다)'; }
+      const block = '[첨부 파일: ' + file.name + ']\n' + text;
+      ta.value = ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n\n' + block : block;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      attachedFiles.push({ name: file.name, block });
+      notes.push(file.name + ' 추가됨' + cutNote);
+    } catch (e) {
+      _vvAttachMsg(file.name + ': ' + (e && e.message ? e.message : '읽지 못했습니다.'), 'err');
+      renderFileChips();
+      return;
+    }
+  }
+  renderFileChips();
+  _vvAttachMsg(notes.join(' · ') + '. 입력란에서 내용을 확인하세요.', 'ok');
 }
 function renderFileChips() {
   const wrap = document.getElementById('file-chips');
@@ -1345,7 +1381,14 @@ function renderFileChips() {
 `<span class="file-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>${f.name.slice(0,18)}${f.name.length>18?"…":""}<span class="chip-remove" onclick="removeFile(${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>`
   ).join('');
 }
-function removeFile(idx) { attachedFiles.splice(idx, 1); renderFileChips(); }
+function removeFile(idx) {
+  const f = attachedFiles[idx];
+  const ta = document.getElementById('case-input');
+  if (f && f.block && ta && ta.value.indexOf(f.block) >= 0) {
+    ta.value = ta.value.replace(f.block, '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  attachedFiles.splice(idx, 1); renderFileChips(); _vvAttachMsg('', '');
+}
 
 // ══ 음성 입력 ════════════════════════════════════════════
 async function toggleVoice() {
