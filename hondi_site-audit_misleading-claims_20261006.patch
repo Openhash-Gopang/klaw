@@ -1,0 +1,452 @@
+From 29eb30ae9072a7fa2b3e012a0abf166493ba4a1e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 5 Oct 2026 23:04:11 +0000
+Subject: [PATCH] =?UTF-8?q?fix(hondi):=20=EC=98=A4=ED=95=B4=20=EC=86=8C?=
+ =?UTF-8?q?=EC=A7=80=20=ED=91=9C=ED=98=84=20=EC=A0=95=EB=A6=AC=20=E2=80=94?=
+ =?UTF-8?q?=20K-Law=20=EC=88=98=EC=B9=98(74%/7.44=EC=A0=90=E2=86=9273%=20?=
+ =?UTF-8?q?=EC=A3=BC=EB=AC=B8=20=EC=9D=BC=EC=B9=98=C2=B7=EC=9E=90=EC=B2=B4?=
+ =?UTF-8?q?=20=EC=8B=A4=ED=97=98)=C2=B7=EC=8A=B9=EC=86=8C=ED=99=95?=
+ =?UTF-8?q?=EB=A5=A0=20=EC=98=88=EC=8B=9C=C2=B7=EC=8B=9C=EA=B0=84/?=
+ =?UTF-8?q?=EB=B9=84=EC=9A=A9=20=EB=B9=84=EA=B5=90=20=EC=82=AD=EC=A0=9C,?=
+ =?UTF-8?q?=20=EA=B3=BC=EC=9E=A5=C2=B7=EB=B3=B4=EC=9E=A5=EC=84=B1=20?=
+ =?UTF-8?q?=ED=91=9C=ED=98=84(=EC=95=95=EB=8F=84=EC=A0=81=C2=B7=EC=99=84?=
+ =?UTF-8?q?=EB=B2=BD=20=EC=A4=80=EC=88=98=C2=B7100%=20=EB=B3=B4=EC=9E=A5?=
+ =?UTF-8?q?=C2=B7=EC=B5=9C=EC=B4=88=20=EB=93=B1)=20=EC=88=98=EC=A0=95,=20?=
+ =?UTF-8?q?=EC=97=90=EB=84=88=EC=A7=80=C2=B7=EC=84=B1=EB=8A=A5=20=EC=88=98?=
+ =?UTF-8?q?=EC=B9=98=EC=97=90=20=EC=9E=90=EC=B2=B4=20=EC=B8=A1=EC=A0=95=20?=
+ =?UTF-8?q?=ED=95=9C=EC=A0=95=20=EB=AC=B8=EA=B5=AC=20=EC=B6=94=EA=B0=80?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ desktop.html                      | 12 ++++++------
+ highlights/ai-cost-half.html      |  6 +++---
+ highlights/all-examples.html      |  2 +-
+ hondi_flyer.html                  |  2 +-
+ integrated-system.html            |  2 +-
+ pages/about-hondi.html            |  8 ++++----
+ pages/agents.html                 |  2 +-
+ pages/ai-assistant.html           |  8 ++++----
+ pages/k-government.html           |  2 +-
+ pages/k-services.html             |  2 +-
+ pages/klaw-simulation-record.html |  2 +-
+ pages/klaw.html                   | 14 +++++++-------
+ pages/openhash.html               | 16 ++++++++--------
+ pages/project-support.html        |  2 +-
+ personas/law.html                 |  2 +-
+ user-manual.html                  |  2 +-
+ 16 files changed, 42 insertions(+), 42 deletions(-)
+
+diff --git a/desktop.html b/desktop.html
+index 509d6c99..3df029f9 100644
+--- a/desktop.html
++++ b/desktop.html
+@@ -1313,7 +1313,7 @@ document.addEventListener('keydown', function (e) {
+     { l1: '쓰면 쓸수록 똑똑해지는', l2: '나만의 AI 비서, 혼디', href: '#core-philosophy' },
+     // 2026-09-14 추가 — '혼디란?' 소개 자료 20편(about-hondi.html 카드) 문구를
+     // 히어로 로테이션용으로 재구성. href는 about-hondi.html의 실제 링크와 동일하게 맞춤.
+-    { l1: '판결 예측 일치도 74% vs 45%,', l2: '혼디는 챗GPT와 다릅니다.', href: './reports/hondi-vs-chatgpt.html' },
++    { l1: '가상 판결 일치도 73% vs 45%(자체 실험),', l2: '혼디는 챗GPT와 다릅니다.', href: './reports/hondi-vs-chatgpt.html' },
+     { l1: '카톡보다 100배 나은 혼디,', l2: '현장 베타 테스트를 시작합니다.', href: './reports/hondi-vs-chatgpt.html' },
+     { l1: '메신저, AI, 그리고 블록체인', l2: '이 셋을 하나로 합쳤습니다.', href: './reports/hondi-vs-kakao-ai-blockchain.html' },
+     { l1: '박사 수백 명을 쓸 수는 없지만,', l2: '나만의 AI 비서, 혼디가 있습니다.', href: './reports/hondi-mine-ai-secretary.html' },
+@@ -2038,7 +2038,7 @@ document.addEventListener('keydown', function (e) {
+     <span class="hondi-scenario-tag">법원 AI</span>
+     <div class="hondi-dialogue">
+       <p><strong>주피터</strong> "혼디야, 지난달 이웃과 있었던 담장 경계 분쟁 말인데, 소송을 제기하면 대법원까지 갔을 때 어떤 판결이 나올지 법리 분석해서 예상 판결문을 작성해 줘."</p>
+-      <p class="last"><strong>혼디</strong> 확인하겠습니다. 경계확정소송 관련 대법원 확정판결 342건과 대조한 결과, 99% 신뢰도로 초안을 작성했습니다. 법리상 원고 승소 가능성은 96%로 예상되며, 초등학생도 이해할 수 있도록 쉬운 문장으로 예상 판결문을 준비했습니다.</p>
++      <p class="last"><strong>혼디</strong> 확인하겠습니다. 경계확정소송 관련 대법원 확정판결을 참고해 초안을 작성했습니다(참고용 · 법적 효력 없음). 승소 가능성은 예측하지 않으며, 초등학생도 이해할 수 있도록 쉬운 문장으로 참고용 가상 판결문을 준비했습니다.</p>
+     </div>
+ 
+     <span class="hondi-scenario-tag">병원 AI</span>
+@@ -2082,7 +2082,7 @@ document.addEventListener('keydown', function (e) {
+     <span class="section-tag">비용 비교</span>
+     <h2 class="section-title">시간과 <strong>비용 비교</strong></h2>
+     <div class="section-body">
+-      <p>혼디의 목표는 업무 처리 시간과 행정 비용을 기존 대비 <strong>최대 99%까지</strong> 단축하는 것입니다(2027년 목표 기준). 아래는 혼디가 널리 보급된 경우, 그 처리 기간·비용을 비교한 것입니다.</p>
++      <p>혼디의 목표는 업무 처리 시간과 행정 비용을 기존 대비 <strong>최대 99%까지</strong> 단축하는 것입니다(2027년 목표 기준 · 자체 추정이며 제3자 검증 전). 아래는 혼디가 널리 보급된 경우, 그 처리 기간·비용을 비교한 것입니다.</p>
+     </div>
+     <div class="cmp-table-wrap">
+       <table class="cmp-table">
+@@ -2188,7 +2188,7 @@ document.addEventListener('keydown', function (e) {
+       </div>
+       <div class="step-card">
+         <h3 class="has-doc-link">혼디 vs 카카오톡·일반 AI·블록체인</h3>
+-        <p>MoTE(소형 특화 모델 조합)로 전력 사용량 최대 96% 절감, Openhash로 에너지 소비 최대 99.8% 절감(FPGA 18.2W vs GPU 160.3W).</p>
++        <p>MoTE(소형 특화 모델 조합)로 전력 사용량 최대 96% 절감, Openhash로 에너지 소비 최대 99.8% 절감(FPGA 18.2W vs GPU 160.3W). 자체 측정·추정 수치이며 제3자 검증 전이고, 비교 조건에 따라 달라집니다.</p>
+         <a class="doc-link" href="./reports/hondi-vs-kakao-ai-blockchain.html" target="_blank" rel="noopener">더 자세히<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+       </div>
+       <div class="step-card">
+@@ -2289,8 +2289,8 @@ document.addEventListener('keydown', function (e) {
+     <span class="section-tag">함께 완성하기</span>
+     <h2 class="section-title has-doc-link">혼디 완성에 <strong>동참해 주세요</strong></h2>
+     <div class="section-body">
+-      <p>혼디는 한국 개발자들(총괄 도영민)의 지원과 참여 결과이며, 2026년 9월 현재 완성도 90% 수준입니다. 혼디는 LLM이라 불리는 AI 엔진(챗GPT 같은) 위에서 작동하며, 현재 해외 LLM들을 이용하는 구조적 한계로 혼디의 설계 성능을 50%밖에 발휘할 수 없습니다. 혼디가 온전히 작동하려면, 코드가 공개된(오픈소스라 불림) LLM을 국내 AI 클러스터에 설치한 뒤, 혼디 목적에 맞게 튜닝해야 합니다(Fine-tuning이라 불림).</p>
+-      <p><a href="./reports/hondi-server-cost-analysis.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-color:var(--brand);text-underline-offset:2px">국내 AI 서버 구축 비용</a>은 10억원 안팎으로, 1년 구독자 1만 명이면 혼디 성능을 100% 발휘할 환경을 마련할 수 있습니다.</p>
++      <p>혼디는 한국 개발자들(총괄 도영민)의 지원과 참여 결과이며, 2026년 9월 현재 개발자 자체 평가로 완성도 90% 수준입니다(제3자 검증 전). 혼디는 LLM이라 불리는 AI 엔진(챗GPT 같은) 위에서 작동하며, 현재 해외 LLM들을 이용하는 구조적 한계로 혼디의 설계 성능을 충분히 발휘하지 못하고 있습니다. 혼디가 온전히 작동하려면, 코드가 공개된(오픈소스라 불림) LLM을 국내 AI 클러스터에 설치한 뒤, 혼디 목적에 맞게 튜닝해야 합니다(Fine-tuning이라 불림).</p>
++      <p><a href="./reports/hondi-server-cost-analysis.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-color:var(--brand);text-underline-offset:2px">국내 AI 서버 구축 비용</a>은 10억원 안팎으로, 1년 구독자 1만 명 규모의 구독으로 서버 구축 비용을 마련하는 것을 목표로 하며, 목표 달성 여부와 이후 성능은 보장되지 않습니다.</p>
+       <p>1천원 이상의 GDC(혼디 디지털 화폐) 충전, 월 1만원 정기 구독 또는 1년 구독(10만원 선납)으로 혼디의 완성에 동참해 주십시오. 1년 구독자에게 혼디 개발 상황을 수시로 알려드리며, 기업 설립 및 공개(Hondi Inc.) 시점에 우선적으로 고지합니다.</p>
+       <p>대시보드 페이지의 혼디 계좌에 입금 후, <a href="#" onclick="_openUserDashboard();return false;" style="color:inherit;text-decoration:underline;text-decoration-color:var(--brand);text-underline-offset:2px">내 대시보드</a>에서 충전 잔액 갱신 또는 구독 방법과 기간 갱신을 확인하세요.</p>
+     </div>
+diff --git a/highlights/ai-cost-half.html b/highlights/ai-cost-half.html
+index f0b0fd8c..f371dc80 100644
+--- a/highlights/ai-cost-half.html
++++ b/highlights/ai-cost-half.html
+@@ -200,7 +200,7 @@ window.PAGE_HERO = {
+     <span class="section-tag">이 문구가 던지는 주장</span>
+     <h2 class="section-title">필요한 곳만 <strong>불을 켭니다</strong></h2>
+     <div class="section-body">
+-      <p>일반 대화형 AI는 질문 하나에도 거대한 모델 전체를 가동합니다. 혼디가 개발한 <b>MoTE(Mixture of Tiny Experts)</b>는 특정 기능에 특화된 수백 개의 소형 모델 중 필요한 것만 골라 호출합니다. 아파트 단지에서 특정 호수를 찾아갈 때, 일반 거대 AI는 단지 전체의 불을 다 켜지만 MoTE는 해당 호수만 불을 켜는 것과 같습니다. 같은 답을 찾는 데 드는 전력 차이가 여기서 발생하며, 그 결과 전력 사용량을 최대 96%까지 절감합니다.</p>
++      <p>일반 대화형 AI는 질문 하나에도 거대한 모델 전체를 가동합니다. 혼디가 개발한 <b>MoTE(Mixture of Tiny Experts)</b>는 특정 기능에 특화된 수백 개의 소형 모델 중 필요한 것만 골라 호출합니다. 아파트 단지에서 특정 호수를 찾아갈 때, 일반 거대 AI는 단지 전체의 불을 다 켜지만 MoTE는 해당 호수만 불을 켜는 것과 같습니다. 같은 답을 찾는 데 드는 전력 차이가 여기서 발생하며, 그 결과 전력 사용량을 최대 96%까지 절감(자체 측정·추정, 제3자 검증 전)합니다.</p>
+     </div>
+   </div>
+ </section>
+@@ -213,9 +213,9 @@ window.PAGE_HERO = {
+       <table class="cmp-table">
+         <thead><tr><th>구분</th><th>기존 방식</th><th class="cmp-hondi">혼디 방식</th></tr></thead>
+         <tbody>
+-          <tr><td class="cmp-axis">AI 모델 구조</td><td>거대 모델 하나가 모든 질문 처리</td><td class="cmp-hondi">MoTE — 필요한 소형 전문 모델만 호출, 전력 최대 96% 절감</td></tr>
++          <tr><td class="cmp-axis">AI 모델 구조</td><td>거대 모델 하나가 모든 질문 처리</td><td class="cmp-hondi">MoTE — 필요한 소형 전문 모델만 호출, 전력 최대 96% 절감(자체 측정·추정, 제3자 검증 전)</td></tr>
+           <tr><td class="cmp-axis">기록 검증(vs 블록체인)</td><td>전 세계 모든 참여 컴퓨터가 거래 하나하나 전부 검증</td><td class="cmp-hondi">Openhash — 5개 계층(L1~L5) 중 하나가 확률적으로 뽑혀 검증</td></tr>
+-          <tr><td class="cmp-axis">에너지 실측</td><td>GPU 160.3W</td><td class="cmp-hondi">FPGA 18.2W — 블록체인 대비 최대 99.8% 절감</td></tr>
++          <tr><td class="cmp-axis">에너지 실측</td><td>GPU 160.3W</td><td class="cmp-hondi">FPGA 18.2W — 블록체인 대비 최대 99.8% 절감(자체 측정·추정, 제3자 검증 전)</td></tr>
+         </tbody>
+       </table>
+     </div>
+diff --git a/highlights/all-examples.html b/highlights/all-examples.html
+index 1278ecad..06ff1eda 100644
+--- a/highlights/all-examples.html
++++ b/highlights/all-examples.html
+@@ -310,7 +310,7 @@ window.PAGE_HERO = {
+     <span class="hondi-scenario-tag">사법 · K-Law</span>
+     <div class="hondi-dialogue">
+       <p><strong>주피터</strong> "그나저나 이웃집 담장 경계 분쟁, 계속 미뤄왔는데 이제 좀 정리하자. 소송 가면 어떻게 될지 예상 판결문 뽑아줘."</p>
+-      <p><strong>혼디</strong> 확인하겠습니다. 경계확정소송 대법원 확정판결 342건과 대조한 결과, 99% 신뢰도로 초안을 완성했습니다. 원고 승소 가능성은 96%로 예상됩니다.</p>
++      <p><strong>혼디</strong> 확인하겠습니다. 경계확정소송 관련 대법원 확정판결을 참고해 참고용 가상 판결문 초안을 완성했습니다. 이 초안은 법적 효력이 없으며 승소 가능성을 예측하지 않습니다.</p>
+       <p><strong>주피터</strong> "오, 붙어볼 만하네."</p>
+       <p class="last"><strong>혼디</strong> 참고로 여기서 양쪽이 이 결론에 합의하면 그대로 화해계약으로 법적 구속력이 생겨요 — 법원까지 안 가도 됩니다.</p>
+     </div>
+diff --git a/hondi_flyer.html b/hondi_flyer.html
+index a681651e..4c81cab3 100644
+--- a/hondi_flyer.html
++++ b/hondi_flyer.html
+@@ -195,7 +195,7 @@
+     <p class="note">각 영역 안에서도 기관·업무별로 세분화된 전문 AI가 응답합니다(예시와 전체 연동 기관 목록은 연동기관 탭 참고).</p>
+     <p class="note">모든 사용자에게 AI 상담 기능을 갖춘 웹사이트 자동 생성, 상권 분석, 경영 분석, 위생 관리, 세무, 법무, 고객 관리, 고객 피드백 대응, 재무 계획까지 지원합니다. 전체 기능·요금·참여 방법은 hondi.net에서 확인하십시오.</p>
+ 
+-    <h2>혼디의 압도적 기능</h2>
++    <h2>혼디의 주요 기능</h2>
+     <p class="lede">아래 6개 그룹부터 순차적으로 필드 테스트가 개방됩니다.</p>
+ 
+     <h3>이런 분들이 이미 혼디를 기다리고 있습니다</h3>
+diff --git a/integrated-system.html b/integrated-system.html
+index 0ff0842f..d0e8ffb4 100644
+--- a/integrated-system.html
++++ b/integrated-system.html
+@@ -266,7 +266,7 @@ window.PAGE_HERO = {
+     <p class="cmp-summary">혼디의 K-Law는 사실관계와 헌법·법률·판례를 근거로 가상의
+     진행안(파산선고·면책 여부 초안)을 작성하고, <strong>사람 판사가 검증해 최종
+     결정</strong>을 내립니다. 대법원 공개 판례 대상 자체 측정 기준, K-Law 가상
+-    판결문의 실제 판결 일치도는 약 74%(10점 만점 평균 7.44점, 최초 평가 기준)입니다(참고용 수치이며 법적 효력 없음).</p>
++    판결문의 실제 판결 일치도는 73%(판결 주문 기준, 2026년 5월 측정·자체 실험·제3자 검증 전)입니다(참고용 수치이며 법적 효력 없음).</p>
+   </div>
+ </section>
+ 
+diff --git a/pages/about-hondi.html b/pages/about-hondi.html
+index 4d0a2ba8..be48d9b1 100644
+--- a/pages/about-hondi.html
++++ b/pages/about-hondi.html
+@@ -187,7 +187,7 @@
+         <span class="about-chip">사법 서비스</span>
+       </div>
+       <h3>혼디의 K-Law는 무엇이고, 무엇이 다른가요?</h3>
+-      <div class="about-hook">Blind Test 일치도 74%(10점 만점 평균 7.44점) — 대법원 판례 300여 건으로 자체 평가</div>
++      <div class="about-hook">대법원 판례 300건 기준 판결 주문 일치도 73% — 자체 실험(제3자 검증 전)</div>
+       <p class="desc">법률 실무 현장을 위한 안내 — 혼디넷의 레고블록 구조, K-Law의 판결 예측 방법론과 Blind Test 결과, 타 거대 LLM과의 적중률 비교를 설명합니다.</p>
+       <div class="about-card-foot">
+         <span class="about-src">K-Law 소개 · PDF</span>
+@@ -225,7 +225,7 @@
+         <span class="about-chip">기술 비교</span>
+       </div>
+       <h3>혼디는 챗GPT와 무엇이 어떻게 다를까요?</h3>
+-      <div class="about-hook">자체 테스트 판결 예측 일치도 74% vs 45%</div>
++      <div class="about-hook">자체 실험 가상 판결 일치도 73% vs 원심 45% (제3자 검증 전)</div>
+       <p class="desc">자체 LLM이 없는 이유, 법률 전용 AI가 아닌 이유, 300여 전문가 AI·정부 AI·나만의 AI 비서까지 — 챗GPT와 구별되는 혼디의 정체성과 성능을 8가지 항목으로 설명합니다.</p>
+       <div class="about-card-foot">
+         <span class="about-src">성능·정체성 비교 · PDF</span>
+@@ -302,7 +302,7 @@
+       </div>
+       <h3>혼디 기능들의 현장 베타테스트를 시작합니다</h3>
+       <div class="about-hook">카톡처럼 쓰는데, 손안에 수백 명의 전문가</div>
+-      <p class="desc">의사·변호사·교수 AI 페르소나, 대법원 예상 판결문, 도청·시청 업무 처리, 카드 수수료 없는 결제, MoTE로 전기 90% 절감까지 — 혼디 전체를 한 장에 정리한 종합 안내문입니다.</p>
++      <p class="desc">의사·변호사·교수 AI 페르소나, 대법원 예상 판결문, 도청·시청 업무 처리, 카드 수수료 없는 결제, MoTE 전력 절감(자체 추정)까지 — 혼디 전체를 한 장에 정리한 종합 안내문입니다.</p>
+       <div class="about-card-foot">
+         <span class="about-src">종합 안내 · PDF</span>
+         <a class="about-link" href="./reports/hondi-usage-scenarios.html" target="_blank">보기 →</a>
+@@ -453,7 +453,7 @@
+         <span class="about-chip">종합 요약</span>
+       </div>
+       <h3>9/1 테스트 시작. 전자동 AI 정부를 지금 경험해 보세요</h3>
+-      <div class="about-hook">완성도 90%, 10만 사용자로 설계 성능 100% 발휘</div>
++      <div class="about-hook">개발 중 — 서버 자원이 확충되면 설계 성능에 가까워질 것으로 기대(자체 평가)</div>
+       <p class="desc">gov-tree 라우팅 구축 현황, 의료·교육·금융·교통 확장 계획, 그리고 구독이 곧 서버 인프라 구축으로 이어지는 구조를 한 번에 정리했습니다.</p>
+       <div class="about-card-foot">
+         <span class="about-src">통합 요약 · PDF</span>
+diff --git a/pages/agents.html b/pages/agents.html
+index bf3d3679..4aac598e 100644
+--- a/pages/agents.html
++++ b/pages/agents.html
+@@ -228,7 +228,7 @@ body {
+     <div class="section-tag reveal">AI Agents</div>
+     <h2 class="section-title reveal">등록된 <strong>AI 에이전트</strong></h2>
+     <div class="section-body reveal">
+-      <p>아래는 우리가 구축한 AI 평행 세계의 쌍둥이들입니다. 각 Agent는 해당 분야 전용 System Prompt를 보유하며, 이로 인해 일반 AI 모델(Claude, GPT 등)보다 월등히 우수한 성능을 발휘합니다. 가령, K-Law의 System Prompt를 적용한 Claude는 그렇지 않은 Claude에 비해 법리 분석과 판결 성능이 압도적으로 뛰어납니다. K-Law는 수 년이 소요되는 소송 기간을 <strong>5~10초</strong>로, 비용을 <strong>100원 내외</strong>로 줄입니다. 다른 모든 AI 쌍둥이들도 같습니다.</p>
++      <p>아래는 우리가 구축한 AI 평행 세계의 쌍둥이들입니다. 각 Agent는 해당 분야 전용 System Prompt를 보유하며, 이는 일반 AI 모델(Claude, GPT 등)의 응답을 해당 분야의 절차와 형식에 맞추도록 안내합니다. 성능 향상 정도는 자체 실험 단계이며 제3자 검증을 거치지 않았습니다. K-Law는 사건 개요를 입력하면 참고용 가상 판결문을 생성하는 서비스이며, 법률 자문이 아니고 법적 효력이 없습니다. 다른 AI 쌍둥이들도 같습니다.</p>
+       <p style="margin-top:10px;font-size:13px;color:var(--text3)">전문 Agent가 업무를 완료하면, 결과를 자체 DB에 저장하고 6하원칙 보고서를 AI 비서에게 제출합니다. AI 비서는 이를 사용자의 PDV에 기록하며, PDV의 해시값은 OpenHash Network에 앵커링되어 위변조를 원천 차단합니다.</p>
+       <div style="margin-top:16px;padding:16px 20px;background:var(--brand-bg);border:1px solid #a7f3d0;border-radius:var(--radius-lg);font-size:13px;color:var(--text2);line-height:1.75">
+         <strong>백설공주와 일곱 난쟁이</strong>에 비유하면 이해가 쉽습니다. 이용자가 대화하는 유일한 상대는 <strong>나만의 AI 비서(백설공주)</strong>뿐입니다. 아래 나열된 K-Law, K-Market, GDC 같은 전문 Agent들은 <strong>일곱 난쟁이</strong>와 같습니다 — AI 비서가 필요할 때마다 임무를 맡기고, 난쟁이들은 각자의 전문 영역에서 임무를 완수한 뒤 AI 비서에게 보고합니다. 이용자는 난쟁이를 직접 호출하지 않고, 오직 AI 비서에게만 말하면 됩니다.
+diff --git a/pages/ai-assistant.html b/pages/ai-assistant.html
+index 9b092db3..06328afb 100644
+--- a/pages/ai-assistant.html
++++ b/pages/ai-assistant.html
+@@ -145,7 +145,7 @@ table.ug-table td.ug-hondi { color: var(--brand-dk); font-weight: 500; }
+     <h2><span class="ug-num"></span>00. 패러다임의 전환 — 개인의 편차를 AI로 상향 평준화</h2>
+     <p>혼디는 단순한 편의 도구가 아니라 <b>패러다임의 전환</b>입니다.</p>
+     <p>사람과 사람 간의 대화와 소통은 개인의 지적 능력과 경험에 크게 의존합니다. 같은 문제를 두고도 누구를 만나느냐에 따라 결과가 크게 달라지고, 그 편차는 개인이 가진 지식·경험·인맥의 한계에서 비롯됩니다.</p>
+-    <p>혼디는 <b>세상의 모든 지식과 경험을 공유하는 AI 비서</b>입니다. 혼디를 이용한다는 것은, 모든 개인이 <b>세계 최고 수준의 석학 수백 명을 개인 비서로 두는 것</b>과 같습니다. 법률은 최고의 법조인 수준으로, 의료는 최고의 의사 수준으로, 행정은 최고의 행정 전문가 수준으로 — 분야마다 가장 정확한 지식과 경험이 개인 곁에 붙습니다.</p>
++    <p>혼디는 <b>분야별 전문 AI 페르소나를 개인 비서 곁에 연결하는 AI 비서</b>를 지향합니다. 법률·의료·행정 등 분야마다 전문 지식을 참고용으로 안내하며, 변호사·의사 등 전문가의 자문·진단·처방을 대체하지 않습니다. 중요한 판단은 해당 분야 전문가와 상담하세요.</p>
+     <p>즉, 혼디는 <b>개인의 지적 편차와 경험 편차를 AI로 상향 평준화</b>합니다. 누가 묻든, 어디에 살든, 어떤 배경을 가졌든, 같은 수준의 최선의 답과 처리를 받을 수 있게 하는 것이 혼디의 근본적인 지향점입니다.</p>
+ 
+     <div class="ug-illustration">
+@@ -271,7 +271,7 @@ table.ug-table td.ug-hondi { color: var(--brand-dk); font-weight: 500; }
+         <tbody>
+           <tr><td>기본 동작</td><td>질문에 답변</td><td class="ug-hondi">지시를 실제로 수행(실행 대행)</td></tr>
+           <tr><td>내부 구조</td><td>거대 모델 하나가 모든 질문 처리</td><td class="ug-hondi">특화된 소형 모델 수백 개 중 필요한 것만 호출</td></tr>
+-          <tr><td>전력·비용</td><td>매 질문마다 거대 모델 전체 가동</td><td class="ug-hondi">필요한 부분만 가동 — 전력 사용량 최대 96% 절감</td></tr>
++          <tr><td>전력·비용</td><td>매 질문마다 거대 모델 전체 가동</td><td class="ug-hondi">필요한 부분만 가동 — 전력 사용량 최대 96% 절감(자체 측정·추정, 제3자 검증 전)</td></tr>
+           <tr><td>개인화</td><td>대화 맥락 안에서만 개인화</td><td class="ug-hondi">PDV에 평생 기록을 쌓아 그 사람만의 맥락으로 응답</td></tr>
+         </tbody>
+       </table>
+@@ -298,7 +298,7 @@ table.ug-table td.ug-hondi { color: var(--brand-dk); font-weight: 500; }
+ 
+     <p>대부분의 거래는 사건이 일어난 바로 그 동의 경비실(L1)에서, 아주 짧은 시간 안에 끝납니다. 원본 대화·거래 내용은 각자의 기기(PDV)에만 보관되고, Openhash 계층에는 "위조되지 않았다"를 증명하는 지문(해시)만 새겨집니다.</p>
+     <ul>
+-      <li>기존 블록체인 대비 에너지 소비 <b>최대 99.8% 절감</b> (FPGA 기반 하드웨어 가속 실측, GPU 대비 18.2W vs 160.3W)</li>
++      <li>기존 블록체인 대비 에너지 소비 <b>최대 99.8% 절감(자체 측정·추정, 제3자 검증 전)</b> (FPGA 기반 하드웨어 가속 실측, GPU 대비 18.2W vs 160.3W)</li>
+       <li>한 번 새겨진 기록은 절대 조작할 수 없음</li>
+       <li>혼디 서버는 대화·거래 원본을 저장하지 않으며, 한곳에 모인 데이터가 없어 대량 유출될 "표적" 자체가 없음</li>
+     </ul>
+@@ -326,7 +326,7 @@ table.ug-table td.ug-hondi { color: var(--brand-dk); font-weight: 500; }
+         <tbody>
+           <tr><td>검증 방식</td><td>전 세계 모든 참여 컴퓨터가 전부 검증</td><td class="ug-hondi">해시값에 따라 5개 계층 중 하나가 확률적으로 검증</td></tr>
+           <tr><td>원본 데이터</td><td>참여자 다수가 사본 보관</td><td class="ug-hondi">사용자 단말기(PDV)에만 보관</td></tr>
+-          <tr><td>에너지 소비</td><td>참여자가 많을수록 급증</td><td class="ug-hondi">기존 대비 최대 99.8% 절감</td></tr>
++          <tr><td>에너지 소비</td><td>참여자가 많을수록 급증</td><td class="ug-hondi">기존 대비 최대 99.8% 절감(자체 측정·추정, 제3자 검증 전)</td></tr>
+         </tbody>
+       </table>
+     </div>
+diff --git a/pages/k-government.html b/pages/k-government.html
+index 8f9fefc9..ff6d0647 100644
+--- a/pages/k-government.html
++++ b/pages/k-government.html
+@@ -510,7 +510,7 @@ var BRANCH_CONTENT = {
+       </div>
+ 
+       <div class="svc-callout">
+-        대법원 공개 판례 대상 자체측정 기준, K-Law 가상 판결문의 실제 판결 일치도는 약 74%(10점 만점 평균 7.44점, 최초 평가 기준)입니다(참고용 수치이며 법적 효력 없음).
++        대법원 공개 판례 대상 자체측정 기준, K-Law 가상 판결문의 실제 판결 일치도는 73%(판결 주문 기준, 2026년 5월 측정·자체 실험·제3자 검증 전)입니다(참고용 수치이며 법적 효력 없음).
+       </div>
+       <div class="svc-callout important">
+         K-Law는 실제 법원의 재판 절차를 대체하지 않습니다. 화해계약이 성립하지 않으면 당사자는 언제든 정식 소송 절차를 이용할 수 있으며, 최종 법적 판단 권한은 언제나 법원에 있습니다.
+diff --git a/pages/k-services.html b/pages/k-services.html
+index 48aa1b4c..4b07d521 100644
+--- a/pages/k-services.html
++++ b/pages/k-services.html
+@@ -1655,7 +1655,7 @@ var SVC_CONTENT = {
+       <p class="svc-note">K-Report로 기록이 남으면 반추 단계가 자동으로 트리거됩니다. 선택 기능이 아닙니다. 계획(K-Intent·K-Compose)과 실제 결과(K-Deliver·K-Report)를 대조해 어긋난 지점이 있다면 <b>계획 결함</b>(달성 가능성 평가가 부정확했는가), <b>실행 결함</b>(계획대로 실행되지 않았는가), <b>외부 변수</b>(담당자 교체 등 예측 불가능한 요인이었는가) 중 어디에 해당하는지 원인을 분류하고, 계획 결함으로 판단되면 같은 오판이 이 사용자의 다음 플랜에서 재발하지 않도록 PDV에 반영합니다. 결함은 숨기지 않고 요약해 사용자에게 보고합니다.</p>
+ 
+       <h3>경험의 공유 — 한 사람의 경험이 모두의 자산이 됩니다</h3>
+-      <p class="svc-note">반추에서 나온 교훈은 개인 식별 정보를 제외한 모든 경험이 집단 학습 저장소에 쌓여, 다른 사용자의 K-Plan도 참조할 수 있습니다. 경험은 추상적인 사실 수준으로 충분합니다 — 고유명사(기관명·소속·인명 등)는 상위 카테고리로 치환됩니다. 예를 들어 "제주대학교 모 학과와 접촉했다"는 "대학의 학과와 접촉했다"로 추상화됩니다. 원본 PDV 데이터는 각자의 로컬에 남고, 저장소에는 이렇게 비식별화된 패턴만 전송됩니다. 이 저장소 역시 Openhash 위변조 방지 원칙 위에서 운영되어, 쌓인 교훈이 사후에 조작되지 않도록 보장합니다.</p>
++      <p class="svc-note">반추에서 나온 교훈은 개인 식별 정보를 제외한 모든 경험이 집단 학습 저장소에 쌓여, 다른 사용자의 K-Plan도 참조할 수 있습니다. 경험은 추상적인 사실 수준으로 충분합니다 — 고유명사(기관명·소속·인명 등)는 상위 카테고리로 치환됩니다. 예를 들어 "제주대학교 모 학과와 접촉했다"는 "대학의 학과와 접촉했다"로 추상화됩니다. 원본 PDV 데이터는 각자의 로컬에 남고, 저장소에는 이렇게 비식별화된 패턴만 전송됩니다. 이 저장소 역시 Openhash 위변조 방지 원칙 위에서 운영되어, 쌓인 교훈이 사후에 조작되는 것을 방지하는 것을 목표로 합니다.</p>
+ 
+       <h3>K-Recompose — 중간 재평가, 그리고 K-Mail과의 관계</h3>
+       <p class="svc-note">플랜이 여러 단계·여러 주에 걸쳐 진행될 때, K-Compose가 미리 지정한 체크포인트(회신 마감 등)에 도달하면 아직 실행되지 않은 나머지 단계를 실제 결과로 재평가합니다 — 건너뛸 수 없는 강제 단계입니다. 이 체크포인트를 실제로 만들어내는 실행 채널이 K-Mail입니다: K-Mail이 다이제스트(회신 취합 결과)를 만들면 K-Recompose가 자동 트리거되고, 그 재평가 결과는 이제 plan 레코드(대화 이력·체크포인트 카운트)에 실제로 저장됩니다. 나아가 K-Mail이 인바운드 메일을 사람 확인 없이 처리해도 되는지 즉석에서 판단이 안 설 때, K-Mail은 K-Plan에게 실시간으로 물어보고 즉답을 받습니다(함수 API <code>_kplanDecideForKMail</code>) — 이때 K-Plan은 계획서뿐 아니라 <b>실시간 상태</b>(재고·영업시간 등 — 아직 사람이 직접 입력하며, K-JIT 같은 자동 연동은 미구현) 저장소(<code>kplan_plan_state</code>)와 <b>그 상대와의 과거 대화 이력</b>까지 판단 근거로 씁니다. K-Plan↔K-Mail의 전체 역할 분담·API 설계는 <code>docs/KPLAN_KMAIL_AGENT_TO_AGENT_ARCHITECTURE_v1_0_20260903.md</code> 참고.</p>
+diff --git a/pages/klaw-simulation-record.html b/pages/klaw-simulation-record.html
+index af1ce41d..2dbfbe96 100644
+--- a/pages/klaw-simulation-record.html
++++ b/pages/klaw-simulation-record.html
+@@ -75,7 +75,7 @@ K-Law v17 이상의 테스트는 <a href="https://klaw.hondi.net/library.html" t
+ 
+ <section class="card">
+ <h2>1. 게재 문구와 이 페이지의 역할</h2>
+-<p class="claim">대법원이 공개한 판례를 최신 순으로 300건을 수집하여, K-Law 방법론 v15.1로 가상 판결문 작성 혹은 실제 대법원 판결문 예측 테스트를 진행한 결과, 70~75%의 일치도를 보였습니다(1심, 2심 일치도는 40~45%).</p>
++<p class="claim">대법원이 공개한 판례를 최신 순으로 300건을 수집하여, K-Law 방법론 v15.1로 가상 판결문 작성 테스트를 진행한 결과, 판결 주문 기준 70~75%의 일치도를 보였습니다(1심, 2심 일치도는 40~45%). 자체 실험 결과이며 제3자 검증 전입니다.</p>
+ <p>이 페이지는 위 문구의 근거가 되는 시뮬레이션 기록(평가 점수표, 보고서, 방법론 문서, 코드, 원자료)을 한곳에 모은 자료실입니다. 아래 수치는 보관된 사건별 평가 파일을 그대로 집계한 것이며, 산출 기준과 한계를 함께 적었습니다.</p>
+ </section>
+ 
+diff --git a/pages/klaw.html b/pages/klaw.html
+index b51c843a..20deab5b 100644
+--- a/pages/klaw.html
++++ b/pages/klaw.html
+@@ -159,7 +159,7 @@ body {
+ 
+       <p style="margin-top:12px"><strong>현실의 한국 사법 체계</strong>는 지방법원(1심), 고등법원(2심), 대법원(3심) 및 헌법재판소로 구성됩니다. 약 3천 명의 판사(대법원·헌법재판소 20여 명), 3천 명의 검사, 4만 명의 변호사가 활동 중입니다. 민사 합의 사건 기준, 1심 선고까지 평균 13~14개월, 3심 확정 판결까지는 통상 3~4년 이상 소요되며, 소송 비용은 변호사 착수금(최소 330만~550만 원)과 인지대·송달료 등이 포함되어 평균 수백만 원에서 수천만 원 수준입니다.</p>
+ 
+-      <p style="margin-top:12px">이러한 현실에서 <strong>K‑Law</strong>는 사건 개요만으로 대법원 가상 판결문을 생성하는 AI 시스템입니다. 대법원이 공개한 판례 300여 건으로 자체 실증 실험한 결과, 가상 판결문과 실제 대법원 판결의 일치도는 <strong>10점 만점 평균 7.44점(약 74%, 최초 평가 기준)</strong>이며, 대법원 공개 판례에 한정하면 1·2심 판결과 대법원 판결의 일치도(약 40~45%)보다 높게 나타났습니다.</p>
++      <p style="margin-top:12px">이러한 현실에서 <strong>K‑Law</strong>는 사건 개요만으로 대법원 가상 판결문을 생성하는 AI 시스템입니다. 대법원이 공개한 판례 300여 건으로 자체 실증 실험한 결과, 가상 판결문과 실제 대법원 판결의 일치도는 <strong>73%(판결 주문 기준, 2026년 5월 측정)</strong>이며, 대법원 공개 판례에 한정하면 1·2심 판결과 대법원 판결의 일치도(약 40~45%)보다 높게 나타났습니다.</p>
+ 
+       <p style="margin-top:12px">74%라는 수치는 대법원이 공개하는 <strong>법리적으로 복잡하고 난해한 사건들(전체 소송의 극히 일부)</strong>만을 대상으로 한 결과입니다. 일반적이고 일상적인 갈등(전체 소송의 대다수, 나아가 소송 이전 단계의 수백만 건 분쟁)에서는 기존 판례와 법리가 명확하므로, K‑Law의 일치도는 이보다 높아질 것으로 기대되나, 이는 실측이 아닌 추정입니다.</p>
+ 
+@@ -167,20 +167,20 @@ body {
+ 
+       <p style="margin-top:12px">다만, 이러한 변화가 기존 법원 중심의 사법 체계를 즉각 대체할 것이라고 단정하기는 어렵습니다. 인적·제도적 장벽이 존재할 수 있으며, 궁극적으로는 <strong>기존 사법 체계와의 공존 또는 점진적인 보완 관계</strong>를 모색하게 될 가능성이 큽니다. 일각에서는 K‑Law에 기반한 <strong>초고속·저비용 중재·조정 시스템</strong>이 장기적으로 법원의 역할을 상당 부분 대체할 수 있을 것이라는 전망을 내놓고 있으나, 이는 어디까지나 기술적 가능성에 대한 하나의 시나리오입니다.</p>
+ 
+-      <p style="margin-top:12px">결과적으로, K‑Law는 '판결을 예측하는 도구'를 넘어 <strong>사법 접근성의 민주화</strong>와 <strong>사회적 갈등 해결 비용의 혁신적 감소</strong>라는 사회적 효용을 가져올 잠재력을 지니고 있습니다.</p>
++      <p style="margin-top:12px">결과적으로, K‑Law는 <strong>사법 접근성의 민주화</strong>와 <strong>사회적 갈등 해결 비용의 감소</strong>에 기여할 수 있다는 전망이 있으나, 이는 검증되지 않은 기대입니다.</p>
+     </div>
+ 
+     <!-- 수치 요약 카드 -->
+     <div class="reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:48px">
+       <div style="background:var(--surface);padding:28px 20px;text-align:center">
+         <div style="font-family:'Pretendard', sans-serif;font-size:11px;color:var(--brand-dk);letter-spacing:1px">소요 기간</div>
+-        <div style="font-size:28px;font-weight:300;color:var(--text);margin:8px 0">3~4년 → <strong style="color:var(--brand)">수 분</strong></div>
+-        <div style="font-size:13px;color:var(--text3)">99.999% 이상 단축</div>
++        <div style="font-size:28px;font-weight:300;color:var(--text);margin:8px 0"><strong style="color:var(--brand)">시간 절감</strong></div>
++        <div style="font-size:13px;color:var(--text3)">실제 소송 절차와 직접 비교할 수 없는 참고용 시뮬레이션 기준</div>
+       </div>
+       <div style="background:var(--surface);padding:28px 20px;text-align:center;border-left:1px solid var(--border)">
+         <div style="font-family:'Pretendard', sans-serif;font-size:11px;color:var(--brand-dk);letter-spacing:1px">소송 비용</div>
+-        <div style="font-size:28px;font-weight:300;color:var(--text);margin:8px 0">수백만 원 → <strong style="color:var(--brand)">수천 원</strong></div>
+-        <div style="font-size:13px;color:var(--text3)">99% 이상 절감</div>
++        <div style="font-size:28px;font-weight:300;color:var(--text);margin:8px 0"><strong style="color:var(--brand)">비용 절감</strong></div>
++        <div style="font-size:13px;color:var(--text3)">실제 소송 비용과 직접 비교할 수 없음</div>
+       </div>
+       <div style="background:var(--surface);padding:28px 20px;text-align:center;border-left:1px solid var(--border)">
+         <div style="font-family:'Pretendard', sans-serif;font-size:11px;color:var(--brand-dk);letter-spacing:1px">일치도 (공개 판례, 자체 평가)</div>
+@@ -191,7 +191,7 @@ body {
+ 
+     <!-- 맺음말: 공존 시나리오 -->
+     <div class="reveal" style="margin-top:28px;padding:20px 26px;background:var(--bg-subtle);border-left:4px solid var(--brand);border-radius:var(--radius);font-size:13px;color:var(--text2);line-height:1.8">
+-      ⚖️ K‑Law는 법원을 대체하는 것이 아니라, <strong>국민의 알 권리와 사법 접근성을 획기적으로 높이는 도구</strong>로 기능할 것입니다. 법원은 여전히 최종적 분쟁 해결 기관으로서의 역할을 유지하되, K‑Law는 예측 가능성을 제공하여 소송 이전의 조정·화해를 촉진하는 역할을 담당할 것입니다.
++      ⚖️ K‑Law는 법원을 대체하는 것이 아니라, <strong>국민의 알 권리와 사법 접근성을 높이는 데 기여하는 도구</strong>를 지향합니다. 법원은 여전히 최종적 분쟁 해결 기관으로서의 역할을 유지하며, K‑Law는 참고용 가상 판결문으로 쟁점 이해를 돕고 소송 이전의 조정·화해 논의에 참고 자료를 제공하는 것을 목표로 합니다(결과를 예측하거나 보장하지 않습니다).
+     </div>
+ 
+   </div>
+diff --git a/pages/openhash.html b/pages/openhash.html
+index c5b4ca75..1a025e9c 100644
+--- a/pages/openhash.html
++++ b/pages/openhash.html
+@@ -159,7 +159,7 @@ body {
+     <h2 class="section-title reveal">Openhash란?</h2>
+ 
+     <div class="section-body reveal">
+-      <p>데이터 무결성을 보장하는 다양한 기술 중 하나입니다. 우리가 가진 주민등록증이나 운전면허증은 <strong>국가가 그 무결성을 보장</strong>합니다. 블록체인은 데이터 무결성을 순수히 기술적으로 구현하였지만, 에너지 과소비 문제로 상용화될 수 없는 한계가 있습니다. Openhash는 <strong>각국의 기존 국가 인프라와 통신망을 이용</strong>하여 데이터 무결성을 보장하며, 주민등록증·운전면허증·졸업증명서 등 수천 종의 인증 수단을 단 하나의 기술로 대체합니다.</p>
++      <p>데이터 무결성을 보장하는 다양한 기술 중 하나입니다. 우리가 가진 주민등록증이나 운전면허증은 <strong>국가가 그 무결성을 보장</strong>합니다. 블록체인은 데이터 무결성을 순수히 기술적으로 구현하였지만, 에너지 과소비 문제로 상용화될 수 없는 한계가 있습니다. Openhash는 <strong>각국의 기존 국가 인프라와 통신망을 이용</strong>하여 데이터 무결성을 보장하며, 주민등록증·운전면허증·졸업증명서 등 수천 종의 인증 수단의 무결성 검증에 하나의 기술을 적용하는 것을 목표로 합니다(기존 인증 수단의 보완·연계 구상 단계).</p>
+     </div>
+ 
+     <!-- 직조 비유 -->
+@@ -312,7 +312,7 @@ body {
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+             <span style="font-size:13px;font-weight:700;color:#92400e">블록체인 — 혁신이자 한계</span>
+           </div>
+-          <p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 12px">블록체인이 세상을 놀라게 한 이유는 하나입니다. <strong>사람의 개입 없이 데이터의 진실성을 보장한 최초의 기술</strong>이기 때문입니다. 공증인도, 법원도, 국가도 필요 없이, 코드가 곧 진실의 보증인이 되었습니다.</p>
++          <p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 12px">블록체인이 세상을 놀라게 한 이유는 하나입니다. <strong>중앙 기관 없이 기록의 위변조를 어렵게 만든 기술</strong>이기 때문입니다. 기록의 무결성 검증을 코드가 담당하게 되었으나, 기록된 내용 자체가 진실인지까지 보장하지는 않습니다.</p>
+           <div style="background:var(--amber-lt);border:1px solid #fde68a;border-radius:var(--radius);padding:12px 14px;font-size:13px;color:#92400e;line-height:1.75">
+             그러나 블록체인은 태생적이자 치명적인 한계를 안고 있습니다. <strong>에너지 과소비.</strong> 이 때문에 그 적용 범위는 사실상 지하 경제와 투기적 자산에 국한되었고, 일상적 경제 활동으로 확장되지 못했습니다.
+           </div>
+@@ -323,7 +323,7 @@ body {
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+             <span style="font-size:13px;font-weight:700;color:var(--brand-dk)">오픈해시(Openhash) — 한계의 해소</span>
+           </div>
+-          <p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 16px">오픈해시는 블록체인의 데이터 무결성 보장 능력을 계승하면서, 에너지 소비를 <strong>99.8% 절감</strong>했습니다. 비로소 일상 경제 전반에 적용 가능한 사실 확인 인프라가 탄생했습니다.</p>
++          <p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 16px">오픈해시는 블록체인의 데이터 무결성 보장 능력을 계승하면서, 에너지 소비를 크게 줄이는 것을 목표로 하며, 자체 측정 기준 <strong>최대 99.8% 절감</strong>을 확인했습니다(제3자 검증 전, 비교 조건에 따라 달라집니다). 비로소 일상 경제 전반에 적용 가능한 사실 확인 인프라가 탄생했습니다.</p>
+           <div style="display:flex;flex-direction:column;gap:8px">
+             <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 12px;background:white;border:1px solid #a7f3d0;border-radius:var(--radius)">
+               <span style="color:var(--text3)">에너지 절감</span>
+@@ -437,7 +437,7 @@ body {
+         <li>고팡에 등록된 Agent들 중에서 적절한 AI Agent가 없다면, AI 비서는 웹 검색 등으로 스스로 해당 지시를 이행하고, 결과를 보고합니다. 만약, 특정 분야 Agent의 개발이 필요하다고 판단되면, 그 필요성을 개발자에게 보고합니다.</li>
+         <li>AI 비서 및 AI Agent들의 업무 수행 결과는 사용자의 전용 데이터 금고(PDV, Private Data Vault)에 6하원칙에 따라 기록되며, 이 기록은 오직 본인만 접근할 수 있습니다.</li>
+       </ul>
+-      <p style="margin-top:20px">고팡은 관문(Portal)이며, 100여 종의 하위 AI 시스템은 의료, 법률, 교육 등 제반 인프라의 AI 쌍둥이입니다. 또한, 고팡은 완전히 새로운 형식의 웹이며, 한국의 수십 만 웹 사이트를 100여 종의 AI Agent로 대체합니다.</p>
++      <p style="margin-top:20px">고팡은 관문(Portal)이며, 100여 종의 하위 AI 시스템은 의료, 법률, 교육 등 제반 인프라의 AI 쌍둥이입니다. 또한, 고팡은 완전히 새로운 형식의 웹이며, 한국의 수십 만 웹 사이트의 기능을 100여 종의 AI Agent로 통합하는 것을 목표로 합니다.</p>
+       <p style="margin-top:16px;text-align:center;font-size:1.25rem;font-weight:700;letter-spacing:0.5px">아날로그 시대 &nbsp;⇒&nbsp; 디지털 시대 &nbsp;⇒&nbsp; AI 시대 (고팡)</p>
+     </div>
+   </div>
+@@ -758,7 +758,7 @@ td:first-child { font-weight: 600; color: var(--text); }
+   <div class="section-inner">
+     <div class="section-tag reveal">Performance</div>
+     <h2 class="section-title reveal">검증된 <strong>성능 수치</strong></h2>
+-    <p class="section-body reveal">AWS EC2 환경 실증 결과. 기존 시스템 대비 압도적인 처리 성능과 에너지 효율.</p>
++    <p class="section-body reveal">AWS EC2 환경 자체 측정 결과(제3자 검증 전). 처리 성능과 에너지 효율을 개선하는 것을 목표로 합니다.</p>
+     <p class="section-body reveal" style="margin-top:16px">고팡의 AI 비서와 수백 종의 AI Agent가 딛고 있는 발판은 각 사용자가 자신의 PC와 스마트폰에 보관하는 데이터 금고(PDV, Private Data Vault)이며, 재차, PDV의 발판은 데이터 무결성을 보장하는 Openhash 기술입니다.</p>
+ 
+     <!-- 계층 구조 시각화 -->
+@@ -844,14 +844,14 @@ td:first-child { font-weight: 600; color: var(--text); }
+         </svg>
+         <div>
+           <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">OpenHash &mdash; PHLD 분산 원장</div>
+-          <div style="font-size:14px;color:#555;line-height:1.7">데이터 무결성 보장 · 변조 불가 · 에너지 소비 99.8% 절감<br>전 세계 분산 노드 · 블록체인 대비 압도적 효율</div>
++          <div style="font-size:14px;color:#555;line-height:1.7">데이터 무결성 검증 · 위변조 방지 목표 · 에너지 소비 절감(자체 측정 최대 99.8%, 제3자 검증 전)<br>분산 노드 구조 · 블록체인 대비 효율 개선 목표</div>
+         </div>
+       </div>
+ 
+     </div>
+     <!-- /계층 구조 시각화 -->
+ 
+-    <p class="section-body reveal" style="margin-top:12px">블록체인은 혁신적인 데이터 위변조 방지 기술이지만, 에너지 과소비 문제로 상용화될 수 없는 한계가 뚜렷하며, 그 용도는 불법 자금 세탁 등 매우 제한적입니다. Openhash는 블록체인의 데이터 무결성을 보장하면서 에너지 소비를 <strong>99.8%</strong> 줄였습니다.</p>
++    <p class="section-body reveal" style="margin-top:12px">블록체인은 혁신적인 데이터 위변조 방지 기술이지만, 에너지 과소비 등의 한계가 지적됩니다. Openhash는 블록체인의 데이터 무결성 검증 기능을 유지하면서 에너지 소비를 줄이는 것을 목표로 하며, 자체 측정 기준 <strong>최대 99.8%</strong> 절감을 확인했습니다(제3자 검증 전).</p>
+ 
+     <div class="metrics-grid">
+       <div class="metric-card reveal" data-label="TPS">
+@@ -867,7 +867,7 @@ td:first-child { font-weight: 600; color: var(--text); }
+       <div class="metric-card reveal" style="transition-delay:.16s" data-label="PRIVACY">
+         <div class="metric-big amber">0%</div>
+         <div class="metric-title">소비자 데이터 노출</div>
+-        <div class="metric-sub">차분 프라이버시 ε ≤ 0.1<br>GDPR · 개인정보보호법 완벽 준수</div>
++        <div class="metric-sub">차분 프라이버시 ε ≤ 0.1<br>GDPR · 개인정보보호법 준수를 목표로 설계(법적 적합성은 별도 검토 필요)</div>
+       </div>
+       <div class="metric-card reveal" style="transition-delay:.24s" data-label="RECOVERY">
+         <div class="metric-big" style="color:#059669">99.99%</div>
+diff --git a/pages/project-support.html b/pages/project-support.html
+index df590dbb..c620cad5 100644
+--- a/pages/project-support.html
++++ b/pages/project-support.html
+@@ -23,7 +23,7 @@
+ <section class="ps-hero">
+   <div class="ps-hero-inner">
+     <h1 class="ps-hero-title">국내 AI 서버 구축을 위해 <span>혼디 프로젝트를 지원해 주십시오</span></h1>
+-    <p class="ps-hero-sub">혼디는 5천만 국민 각자에게, 그리고 수백만에 이르는 기관·부서 각각에게 전담 AI 비서를 제공하는 전자동 AI 정부 플랫폼입니다. 2026년 9월 현재 완성도는 90% 수준이지만, 서버 자원의 한계로 설계 성능의 절반밖에 발휘하지 못하고 있습니다. 지금 가입하시면 국내 AI 서버 구축에 직접 동참하시게 됩니다.</p>
++    <p class="ps-hero-sub">혼디는 5천만 국민 각자에게, 그리고 수백만에 이르는 기관·부서 각각에게 전담 AI 비서를 제공하는 전자동 AI 정부 플랫폼입니다. 개발자 자체 평가로 2026년 9월 현재 완성도는 90% 수준이며(제3자 검증 전), 서버 자원의 한계로 설계 성능을 충분히 발휘하지 못하고 있습니다. 지금 가입하시면 국내 AI 서버 구축에 직접 동참하시게 됩니다.</p>
+   </div>
+ </section>
+ 
+diff --git a/personas/law.html b/personas/law.html
+index 1e5f75c8..222ee7e4 100644
+--- a/personas/law.html
++++ b/personas/law.html
+@@ -198,7 +198,7 @@ table.svc-table td.svc-hondi { color: var(--brand-dk); font-weight: 600; }
+ </div>
+ 
+ <script>
+-var REL_CALLOUT = 'K-Law는 판결 예측·법률 절차 자동화를 담당하는 사법 인프라로 공익을 우선하는 반면, 이 페르소나는 같은 대화창 안에서 System Prompt로 교체돼 사용자 개인의 입장에서 참고 정보를 정리합니다. 이 페르소나는 변호사 등 자격자가 아니므로 사적 법률 자문이나 소송·법률사무 대리를 할 수 없습니다.';
++var REL_CALLOUT = 'K-Law는 참고용 가상 판결 시뮬레이션과 법률 절차 안내를 담당하는 사법 인프라로 공익을 우선하는 반면, 이 페르소나는 같은 대화창 안에서 System Prompt로 교체돼 사용자 개인의 입장에서 참고 정보를 정리합니다. 이 페르소나는 변호사 등 자격자가 아니므로 사적 법률 자문이나 소송·법률사무 대리를 할 수 없습니다.';
+ var DISCLAIMER = '이 페르소나는 자문·정보 제공을 보조할 뿐이며, 실제 법적 자격과 최종 책임은 언제나 해당 자격을 갖춘 전문가 본인에게 있습니다.';
+ 
+ var SVC_LABEL = {
+diff --git a/user-manual.html b/user-manual.html
+index 1a72d8a6..64611bc3 100644
+--- a/user-manual.html
++++ b/user-manual.html
+@@ -459,7 +459,7 @@ html,body{height:100%;background:#fff;color:#111;
+       <span class="m-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg></span>
+       <span class="m-title">분쟁 해결 — 1초 안에 진실 확인</span>
+     </div>
+-    <div class="m-body">분쟁이나 갈등이 발생하면 PDV는 증거나 증언을 대체하며, 데이터의 진실성을 <b>100% 보장</b>합니다. 확인 과정은 <b>1초 이내</b>에 완료됩니다.</div>
++    <div class="m-body">분쟁이나 갈등이 발생하면 PDV 기록이 사실관계를 확인하는 참고 자료로 활용될 수 있도록 설계되었습니다. 기록은 Openhash로 위변조 여부를 검증할 수 있으나, 기록 내용의 진실성을 보장하지는 않으며 증거로서의 효력은 법원 등이 판단합니다.</div>
+   </div>
+ 
+   <div class="m-category">나만의 AI 비서</div>
+-- 
+2.43.0
+

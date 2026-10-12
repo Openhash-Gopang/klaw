@@ -1,0 +1,717 @@
+From e0c7fb15dd3f188b0d8827c8b7389ca9a408d5ce Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 5 Oct 2026 23:01:57 +0000
+Subject: [PATCH] =?UTF-8?q?fix(klaw):=20=EC=98=A4=ED=95=B4=20=EC=86=8C?=
+ =?UTF-8?q?=EC=A7=80=20=ED=91=9C=ED=98=84=20=EC=A0=84=EC=88=98=20=EC=A0=95?=
+ =?UTF-8?q?=EB=A6=AC=20=E2=80=94=20=EC=9D=B4=EB=A1=A0=EC=A0=81=C2=B7?=
+ =?UTF-8?q?=EB=AF=B8=EA=B2=80=EC=A6=9D=20=EC=9D=BC=EC=B9=98=EB=8F=84(90/95?=
+ =?UTF-8?q?.5/99.9%)=20=EC=82=AD=EC=A0=9C,=20=EC=82=AC=EA=B1=B4=EB=B3=84?=
+ =?UTF-8?q?=20=EC=9D=BC=EC=B9=98=EB=8F=84=20=EC=98=88=EC=83=81=20=EC=A0=9C?=
+ =?UTF-8?q?=EA=B1=B0,=20=EA=B0=80=EC=A7=9C=20SHA256=C2=B7=EC=98=88?=
+ =?UTF-8?q?=EC=8B=9C=20=ED=86=B5=EA=B3=84=C2=B7FREE=20=EB=B0=B0=EC=A7=80?=
+ =?UTF-8?q?=C2=B7=EB=AC=B4=EB=A3=8C=20=ED=91=9C=EA=B8=B0=C2=B73,000?=
+ =?UTF-8?q?=EC=9B=90=C2=B7=EC=84=B1=EA=B3=BC=EC=97=B0=EB=8F=99=20=ED=99=98?=
+ =?UTF-8?q?=EB=B6=88=20=EC=84=A4=EA=B3=84=EC=95=88=20=EC=A0=95=EC=A0=95?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ benchmark.html        | 24 +++----------
+ dashboard.html        | 37 ++++++-------------
+ desktop.html          | 84 ++++++++++++++++++++-----------------------
+ index.html            | 14 ++++----
+ klaw_intro.html       | 13 ++++---
+ library.html          |  4 +--
+ my-history.html       |  4 +--
+ public-board.html     |  2 +-
+ report.html           |  3 +-
+ user-manual.html      |  6 ++--
+ verdict-generate.html |  3 +-
+ webapp.html           | 20 ++++-------
+ whitepaper.html       |  5 +--
+ 13 files changed, 85 insertions(+), 134 deletions(-)
+
+diff --git a/benchmark.html b/benchmark.html
+index 6c9142b..60b5575 100644
+--- a/benchmark.html
++++ b/benchmark.html
+@@ -253,7 +253,6 @@ button{font-family:var(--font);cursor:pointer}
+     <span>고팡</span><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">벤치마크</span>
+   </div>
+   <div class="topbar-right">
+-    <span class="badge badge-free">FREE</span>
+     <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
+     <div class="tsep"></div>
+     <span class="topbar-clock" id="clock">--:--:--</span>
+@@ -507,7 +506,7 @@ button{font-family:var(--font);cursor:pointer}
+             <div class="llm-name">DeepSeek</div>
+             <div class="llm-model">deepseek-chat</div>
+             <div class="llm-desc">법리 분석 최적화 · 빠른 추론 속도</div>
+-            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 무료 (내장 프록시)</div>
++            <div class="llm-free"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 내장 프록시</div>
+           </div>
+           <div class="llm-card" id="card-claude" onclick="selectLLM('claude')">
+             <div class="llm-sel-dot"></div>
+@@ -1201,14 +1200,6 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
+ 
+ 응답은 반드시 위 형식만 사용하세요.`;
+ 
+-function calcMatchRate(complexity) {
+-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+-  const rate = 99.99 - (c - 1) * (9.99 / 9);
+-  if (rate >= 99.9) return rate.toFixed(2) + '%';
+-  if (rate >= 99)   return rate.toFixed(1) + '%';
+-  return rate.toFixed(0) + '%';
+-}
+-
+ function buildKlawSimPrompt(caseNo, level) {
+   // ── DeepSeek Context Cache 최적화 ─────────────────────────
+   // 고정 prefix (캐시 대상): 역할 선언 + 방법론 전체 + 출력형식 안내
+@@ -1239,7 +1230,7 @@ const STEP_DEFS = [
+   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
+     prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+-    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
++    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+ ];
+ 
+ // ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
+@@ -1478,13 +1469,13 @@ async function runJudgementSim() {
+     verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
+     confidence:  confM ? confM[1]+'/10' : null,
+     complexity:  complexM ? complexM[1] : null,
+-    matchRate:   complexM ? calcMatchRate(complexM[1]) : null,
++    matchRate: null,
+   }, conversationState.caseText || '');
+ 
+   // PDV 보고 — 판결 시뮬레이션 완료
+   await _sendPdvReport(currentUser, {
+     summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
+-    goal:    '판결 예측 시뮬레이션'
++    goal:    '가상 판결 시뮬레이션'
+   });
+ 
+   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+@@ -1539,7 +1530,6 @@ function appendConfidenceBlock(fullText) {
+   const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+   const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,500}?)(?:\n\n|\[━|$)/);
+ 
+@@ -1549,7 +1539,6 @@ function appendConfidenceBlock(fullText) {
+   const complexity= complexM ? complexM[1] : null;
+   const vType     = typeM    ? typeM[1].trim() : '—';
+   const summary   = summM    ? summM[1].trim() : '';
+-  const matchRate = matchLLM ? matchLLM[1].trim() : complexity ? calcMatchRate(complexity) : '90~99.99%';
+   const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
+   const cx = parseFloat(complexity);
+   const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
+@@ -1567,11 +1556,6 @@ function appendConfidenceBlock(fullText) {
+       <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
+       <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
+       <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
+-      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
+-        <span class="conf-label">대법원 판결 일치도 예상</span>
+-        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
+-        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
+-      </div>
+       <div class="conf-item" style="border-right:none">
+         <span class="conf-label">결론 유형</span>
+         <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
+diff --git a/dashboard.html b/dashboard.html
+index b352996..ff8bdd0 100644
+--- a/dashboard.html
++++ b/dashboard.html
+@@ -437,7 +437,7 @@ async function loadAllData() {
+ const panelTitles = {
+   dashboard: '종합 대시보드', simulations: '시뮬레이션 이력',
+   users: '사용자 현황', 'klaw-versions': 'K-Law 버전 이력',
+-  stats: '사건 유형 통계', accuracy: '일치도 지표', blockchain: '블록체인 기록'
++  stats: '사건 유형 통계', accuracy: '일치도 지표', blockchain: '접수 기록'
+ };
+ 
+ function showPanel(id) {
+@@ -752,28 +752,12 @@ function renderAccuracy() {
+   const maxAvg = Math.max(1, ...bucketAvgs.map(b => b.avg));
+ 
+   return `
+-  <div class="section-hd">K-Law 일치도 지표 지표</div>
+-  <div class="kpi-row">
+-    <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-body"><div class="kpi-val gold">99.9%</div><div class="kpi-label">논문 기준 일치도</div><div class="kpi-sub">K-Law 이론적 추정치</div></div></div>
+-    <div class="kpi-card"><div class="kpi-icon">⚖</div><div class="kpi-body"><div class="kpi-val">${overallAvg !== null ? overallAvg.toFixed(1) + '%' : '—'}</div><div class="kpi-label">대법원 일치도(실측 누적 평균)</div><div class="kpi-sub">${withRate.length}건 기준</div></div></div>
+-    <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kpi-val green">+28%p</div><div class="kpi-label">인간 원심 대비</div><div class="kpi-sub">2심 대비 일치도 차이(이론적 추정)</div></div></div>
+-    <div class="kpi-card"><div class="kpi-icon">🔬</div><div class="kpi-body"><div class="kpi-val orange">95.5%</div><div class="kpi-label">전수 상고 환경 추정</div><div class="kpi-sub">이론적 추정(±5%p)</div></div></div>
+-  </div>
+-  <div class="card" style="margin-bottom:16px">
+-    <div class="card-header">📅 ${useWeekly ? '주별' : '일별'} 일치도 평균 추이 <span style="font-weight:400;color:var(--hint);font-size:11px">최근 ${bucketAvgs.length}개 구간</span></div>
+-    <div class="card-body">
+-      ${bucketAvgs.length ? bucketAvgs.map(b => `
+-      <div class="stat-bar-row">
+-        <div class="stat-bar-label">${b.key}</div>
+-        <div class="stat-bar-track"><div class="stat-bar-fill" data-width="${Math.round(b.avg / maxAvg * 100)}" style="width:0%;background:var(--primary)"></div></div>
+-        <div class="stat-bar-val">${b.avg.toFixed(1)}% <span style="color:var(--hint);font-weight:400">(${b.n}건)</span></div>
+-      </div>`).join('') : '<div style="text-align:center;color:var(--hint);padding:24px">일치도 데이터를 가진 사건이 아직 없습니다</div>'}
+-    </div>
+-  </div>
++  <div class="section-hd">K-Law 일치도 지표</div>
+   <div class="card">
+-    <div class="card-header">📋 면책 고지</div>
+-    <div class="card-body" style="font-size:12px;color:var(--sub);line-height:1.8">
+-      ⚠ 99.9% 및 95.5%, +28%p 수치는 K-Law 논문 기반 이론적 추정치입니다. "대법원 일치도(실측 누적 평균)"와 위 추이 차트는 klaw_cases 테이블에 기록된 실제 시뮬레이션 결과를 집계한 것이나, 일치도 자체가 각 LLM이 스스로 보고한 예상치(자기평가)이며 표본이 편중되어 있을 수 있어 전체 사건 분포를 대표하지 않을 수 있습니다. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 변호사의 법률 자문을 대체하지 않습니다.
++    <div class="card-header">📋 안내</div>
++    <div class="card-body" style="font-size:13px;color:var(--sub);line-height:1.9">
++      사건별 "대법원 판결 일치도 예상" 값은 AI가 스스로 보고한 값(자기평가)으로 검증되지 않아 집계·표시하지 않습니다. 논문상 이론적 추정치(99.9%, 95.5% 등)도 실측이 아니므로 표시하지 않습니다.<br>
++      대법원 판결 일치도의 실측 결과(자체 실험, 제3자 검증 전)는 <a href="library.html" style="color:var(--primary)">K-Law 자료실</a>과 <a href="rounds.html" style="color:var(--primary)">라운드별 시험 기록</a>을 참고하세요. K-Law는 법률 정보 제공 목적의 AI 시스템으로, 법률 자문이 아니며 법적 효력이 없습니다.
+     </div>
+   </div>`;
+ }
+@@ -784,16 +768,15 @@ function renderBlockchain() {
+     id: 'TX-' + (allSessions.length-i).toString().padStart(4,'0'),
+     ver: s.klaw_version,
+     model: modelLabel[s.llm_model]||s.llm_model,
+-    ts: s.used_at,
+-    hash: Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join('')+'…'
++    ts: s.used_at
+   }));
+   return `
+-  <div class="section-hd">Openhash 블록체인 기록 <span class="section-hd-right">최근 ${txs.length}건</span></div>
++  <div class="section-hd">시뮬레이션 접수 기록 <span class="section-hd-right">최근 ${txs.length}건</span></div>
+   ${txs.length ? txs.map(tx=>`
+   <div class="card" style="margin-bottom:10px">
+     <div class="card-header" style="justify-content:space-between">
+       <span>⛓ ${tx.id} — 판결 시뮬레이션 접수</span>
+-      <span class="badge badge-green">기록 보존</span>
++      
+     </div>
+     <div class="card-body" style="font-size:12px">
+       <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px">
+@@ -801,7 +784,7 @@ function renderBlockchain() {
+         <div><span style="color:var(--hint)">LLM 모델</span> <strong>${esc(tx.model)}</strong></div>
+         <div><span style="color:var(--hint)">타임스탬프</span> <strong>${fmtDate(tx.ts)}</strong></div>
+       </div>
+-      <div style="font-size:10px;color:var(--hint);font-family:monospace;background:var(--bg);padding:6px 10px;border-radius:4px">SHA256: ${tx.hash}</div>
++      <div style="font-size:11px;color:var(--hint)">※ 이 화면의 목록은 접수 내역이며, 블록체인 해시는 표시하지 않습니다.</div>
+     </div>
+   </div>`).join('') : '<div class="card"><div class="card-body" style="text-align:center;color:var(--hint);padding:32px">기록된 트랜잭션이 없습니다</div></div>'}`;
+ }
+diff --git a/desktop.html b/desktop.html
+index a0b4d0d..7d5fbda 100644
+--- a/desktop.html
++++ b/desktop.html
+@@ -355,7 +355,6 @@ button{font-family:var(--font);cursor:pointer}
+     <a href="https://hondi.net" style="color:inherit;text-decoration:none">고팡</a><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">판결 시뮬레이터</span>
+   </div>
+   <div class="topbar-right">
+-    <span class="badge badge-free">FREE</span>
+     <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
+     <div class="tsep"></div>
+     <span class="topbar-clock" id="clock">--:--:--</span>
+@@ -646,13 +645,13 @@ button{font-family:var(--font);cursor:pointer}
+           <!-- 모델별 일치도 표 -->
+           <div>
+             <div style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+-              모델별 대법원 판결 일치도 (K-Law v15.1 자체 테스트 기준)
++              모델별 대법원 판결 일치도 〔추정치〕 (K-Law v15.1 자체 테스트 기준)
+             </div>
+             <table style="width:100%;border-collapse:collapse;font-size:13px">
+               <thead>
+                 <tr style="border-bottom:1px solid var(--bdr)">
+                   <th style="text-align:left;padding:8px 10px;color:var(--txt3);font-weight:600;font-size:11px;text-transform:uppercase">모델</th>
+-                  <th style="text-align:right;padding:8px 10px;color:var(--txt3);font-weight:600;font-size:11px;text-transform:uppercase">일치도</th>
++                  <th style="text-align:right;padding:8px 10px;color:var(--txt3);font-weight:600;font-size:11px;text-transform:uppercase">일치도 (추정)</th>
+                 </tr>
+               </thead>
+               <tbody>
+@@ -668,12 +667,17 @@ button{font-family:var(--font);cursor:pointer}
+                   <td style="padding:8px 10px;color:var(--txt2)">Claude Opus</td>
+                   <td style="padding:8px 10px;text-align:right;color:var(--txt2);font-family:var(--mono)">약 82%</td>
+                 </tr>
+-                <tr style="background:var(--blue-bg)">
+-                  <td style="padding:8px 10px;color:#1e40af;font-weight:700">K-Law Ensemble</td>
+-                  <td style="padding:8px 10px;text-align:right;color:#1e40af;font-weight:700;font-family:var(--mono)">약 95%</td>
+-                </tr>
+               </tbody>
+             </table>
++            <div style="margin-top:10px;font-size:12px;color:var(--txt3);line-height:1.75">
++              위 모델별 수치는 모델 간 상대적 수준을 가늠하기 위한 <b>〔추정치〕</b>이며, 모델별로 따로 실측한 값이 아닙니다.
++              실측으로 공개된 수치는 다음과 같습니다. 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에서 K-Law(v15.1)의 판결 주문(유지/파기) 일치도는
++              <b>73%</b>, 같은 사건에서 원심(2심)과 대법원 판결의 일치도는 <b>45%</b>였습니다 <b>〔실측 · 2026년 5월 기준〕</b>.
++              현재 적용 중인 방법론 v17.x는 개발 세트 100건을 10라운드로 나눠 검증하는 중이며, 그 결과는 잠정치입니다.
++              모든 수치는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 자세한 내용은
++              <a href="library.html" style="color:var(--pri-dk);font-weight:600">K-Law 자료실</a>과
++              <a href="rounds.html" style="color:var(--pri-dk);font-weight:600">라운드별 시험 기록</a>을 참고하세요.
++            </div>
+             <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+               <div style="font-size:12px;color:var(--pri-dk);font-weight:600">💰 비용 대비 효용은 DeepSeek이 압도적입니다.</div>
+               <button type="button" onclick="openApiKeyHelp()"
+@@ -686,14 +690,13 @@ button{font-family:var(--font);cursor:pointer}
+           <!-- K-Law Ensemble 설명 -->
+           <div style="font-size:13px;color:var(--txt2);line-height:1.85">
+             <b>K-Law Ensemble</b>은 단일 모델이 아니라, <b>다수의 LLM들 간의 경쟁과 토의를 거쳐 도출된 판결문</b>입니다.
+-            서로 다른 모델이 독립적으로 판단한 뒤 의견이 갈리는 지점을 다시 토론시켜, 단일 모델보다 높은 일치도(약 95%)를 보입니다.
++            서로 다른 모델이 독립적으로 판단한 뒤 의견이 갈리는 지점을 다시 토론시키는 방식으로, 단일 모델의 편차를 줄이는 것을 목표로 합니다.
+           </div>
+ 
+-          <!-- 모집단 기준 추정 일치도 -->
++          <!-- 일반화 한계 고지 (2026-10-06: 모집단 기준 99.9% 추정치 삭제 — 이론적 상한이며 검증되지 않음) -->
+           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
+-            📊 한국 사회에서 발생하는 모든 사건이 대법원까지 진행한다고 가정할 경우,
+-            K-Law의 가상 판결문과 대법원 실제 판결문 간의 일치도는 <b>99.9% 이상</b>으로 추정됩니다.
+-            <span style="color:var(--txt3);font-size:11.5px">(근거: 논문 초고 참조 — 위 표는 이미 대법원까지 도달한 쟁점 사건만을 대상으로 한 수치입니다.)</span>
++            📊 위 일치도는 대법원까지 도달한 쟁점 사건(선별된 표본)에서 측정한 것으로, 모든 사건으로 일반화할 수 없습니다.
++            전체 사건을 기준으로 한 이론적 추정치는 실측이 아니고 제3자 검증을 거치지 않았으므로 이 페이지에서 제시하지 않습니다.
+           </div>
+ 
+           <!-- 면책/한계 고지 -->
+@@ -725,10 +728,10 @@ button{font-family:var(--font);cursor:pointer}
+           <!-- 버전 안내 -->
+           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
+             ℹ️ <b>버전 안내</b><br>
+-            2026년 9월 현재, K-Law의 버전은 <b>v20.0(Ensemble)</b>이며, 이 사이트는 <b>v15.1</b>을 적용하였습니다.
++            이 사이트에는 <b>K-Law 방법론 v17.x</b>가 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
+             v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
+-            K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고, 대법원 실제 판결문과 일치도 역시 더 높지만,
+-            상당한 API 비용(건당 약 3,000원)으로 인해, 본 사이트의 데모에 포함하지 않았습니다.
++            K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고 대법원 실제 판결문과의 일치도도 더 높을 것으로 기대되나,
++            상당한 API 비용으로 인해 본 사이트의 데모에 포함하지 않았습니다.
+           </div>
+ 
+         </div>
+@@ -1850,14 +1853,6 @@ const KLAW_ANALYZE_PROMPT = `당신은 K-Law AI 판결 분석 시스템입니다
+ 
+ 응답은 반드시 위 형식만 사용하세요.`;
+ 
+-function calcMatchRate(complexity) {
+-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+-  const rate = 99.99 - (c - 1) * (9.99 / 9);
+-  if (rate >= 99.9) return rate.toFixed(2) + '%';
+-  if (rate >= 99)   return rate.toFixed(1) + '%';
+-  return rate.toFixed(0) + '%';
+-}
+-
+ // v15.2 스모크테스트에서 발견 — 이 함수는 이전엔 "아래 가상판결 출력형식
+ // v13.3을 준수하세요"라고 지시하면서 그 출력형식 텍스트 자체를 프롬프트에
+ // 넣지 않고 있었다(가상판결_출력형식_v13_3.txt를 fetch하는 코드가 없었음).
+@@ -1881,6 +1876,11 @@ function buildKlawSimPrompt() {
+ ${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
+ 사건번호·심급 등 이번 사건의 구체적인 정보는 이어지는 사용자 메시지에서 확인하세요.
+ 
++[이 시뮬레이터의 예외 지시 — 위 출력형식보다 우선]
++사건별 "대법원 판결 일치도 예상" 수치는 검증되지 않은 값이므로 출력하지 않습니다. 위 출력형식에 있는
++"[K-Law 대법원 판결 일치도 예상: …]" 태그, 일치도 산출 공식·표, 판결 요약에 일치도 예상을 포함하라는 지시,
++"통계적 추정치입니다" 각주는 모두 생략하세요. 그 밖의 형식과 완료 태그는 그대로 준수합니다.
++
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다.
+ 가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
+@@ -1908,7 +1908,7 @@ const STEP_DEFS = [
+   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문', maxTokens: 48000,
+     prompt: ctx => `${ctx}\n\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증', maxTokens: 27000,
+-    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
++    prompt: ctx => `${ctx}\n\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+ ];
+ 
+ // ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
+@@ -2198,14 +2198,7 @@ async function runJudgementSim() {
+   const confM    = fullText.match(/\[종합 확신도:[^\]]*?([\d.]+)\/10\]/);
+   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,150}?)(?:\n\n|\[|$)/);
+-  // 2026-09-16 신설 — 이력에 표시할 "일치도 점수". appendConfidenceBlock와
+-  // 동일한 파싱·폴백 규칙(LLM 자체 보고값 → 복잡도 기반 추정 → 기본
+-  // 범위)을 그대로 따른다.
+-  // 2026-09-18 수정(주피터 지시) — 이력의 "일치도 예상" 칼럼에는 순수
+-  // 퍼센트만 저장한다. 화면(appendConfidenceBlock)에는 "(복잡도 N/10
+-  // 기준)" 부연설명을 계속 보여주지만, 그건 이 정규식과 별개다.
+-  const matchM   = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%)/);
+-  const matchRate = matchM ? matchM[1].trim() : complexM ? calcMatchRate(complexM[1]) : '90~99.99%';
++  // 2026-10-06: 사건별 "대법원 판결 일치도 예상"은 검증되지 않은 값이라 산출·저장하지 않는다.
+ 
+   await recordKlawUsage(klawVersion, conversationState.llmModel || 'deepseek', {
+     caseType:    conversationState.caseData?.type    || null,
+@@ -2214,7 +2207,6 @@ async function runJudgementSim() {
+     caseSummary: summM ? summM[1].trim().slice(0,150) : null,
+     verdict:     verdictM ? verdictM[1].trim().slice(0,80) : null,
+     confidence:  confM ? confM[1] + '/10' : null,
+-    matchRate:   matchRate,
+     caseInput:   (conversationState.caseText || '').slice(0, 200),
+     verdictFull: fullText
+   });
+@@ -2229,7 +2221,7 @@ async function runJudgementSim() {
+   // PDV 보고 — 판결 시뮬레이션 완료
+   await _sendPdvReport(currentUser, {
+     summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
+-    goal:    '판결 예측 시뮬레이션'
++    goal:    '가상 판결 시뮬레이션'
+   });
+ 
+   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+@@ -2258,6 +2250,14 @@ function hideProgressToast() {
+   if (t) t.classList.remove('open');
+ }
+ 
++// 2026-10-06 — 모델이 출력형식(v13.3)을 따라 사건별 "대법원 판결 일치도 예상"을 써도 화면·이력·저장본에서 제거한다.
++function _klawStripMatchTag(t) {
++  return String(t || '')
++    .replace(/\[K-Law 대법원 판결 일치도 예상[^\]]*(\]|$)/g, '')
++    .replace(/^.*일치도 예상 수치는.*추정치입니다.*$/gm, '')
++    .replace(/\n{3,}/g, '\n\n');
++}
++
+ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+   const stepsEl = document.getElementById('verdict-steps');
+   const card = document.createElement('div');
+@@ -2297,9 +2297,9 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+     const result = await callLLMStream(msgs, stepDef.maxTokens || 27000, (delta, fullSoFar) => {
+       if (!streamStarted) {
+         streamStarted = true;
+-        bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
++        bodyEl.innerHTML = `<div class="step-body">${escHtml(_klawStripMatchTag(fullSoFar))}<span class="stream-cursor"></span></div>`;
+       } else {
+-        bodyEl.firstElementChild.firstChild.nodeValue = fullSoFar;
++        bodyEl.firstElementChild.firstChild.nodeValue = _klawStripMatchTag(fullSoFar);
+       }
+     }, { stepCycle: true });
+ 
+@@ -2315,9 +2315,9 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+       finalResult = await callLLMStream(msgs, retryTokens, (delta, fullSoFar) => {
+         if (!streamStarted) {
+           streamStarted = true;
+-          bodyEl.innerHTML = `<div class="step-body">${escHtml(fullSoFar)}<span class="stream-cursor"></span></div>`;
++          bodyEl.innerHTML = `<div class="step-body">${escHtml(_klawStripMatchTag(fullSoFar))}<span class="stream-cursor"></span></div>`;
+         } else {
+-          bodyEl.firstElementChild.firstChild.nodeValue = fullSoFar;
++          bodyEl.firstElementChild.firstChild.nodeValue = _klawStripMatchTag(fullSoFar);
+         }
+       }, { stepCycle: true });
+     }
+@@ -2328,6 +2328,7 @@ async function renderStepStreaming(stepDef, baseCtx, caseNo, level) {
+       window._verdictParts[stepDef.id] = '';
+       return;
+     }
++    finalResult = _klawStripMatchTag(finalResult);
+     window._verdictParts[stepDef.id] = finalResult;
+     if (bodyEl) bodyEl.innerHTML = `<div class="step-body">${escHtml(finalResult)}</div>`;
+     const completeMatch = finalResult.match(/\[STEP-[A-Z0-9-]+-COMPLETE[^\]]*\]/g);
+@@ -2347,7 +2348,6 @@ function appendConfidenceBlock(fullText) {
+   const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+   const totalM   = fullText.match(/\[종합 확신도:[^\]]*?([\d.]+)\/10\]/);
+   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
+ 
+@@ -2357,7 +2357,6 @@ function appendConfidenceBlock(fullText) {
+   const complexity= complexM ? complexM[1] : null;
+   const vType     = typeM    ? typeM[1].trim() : '—';
+   const summary   = summM    ? summM[1].trim() : '';
+-  const matchRate = matchLLM ? matchLLM[1].trim() : complexity ? calcMatchRate(complexity) : '90~99.99%';
+   const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
+   const cx = parseFloat(complexity);
+   const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
+@@ -2375,11 +2374,6 @@ function appendConfidenceBlock(fullText) {
+       <div class="conf-item"><span class="conf-label">사실 확신도</span><span class="conf-val" style="color:${confColor};font-size:18px">${factConf}/10</span></div>
+       <div class="conf-item"><span class="conf-label">종합 확신도</span><span class="conf-val" style="color:${confColor};font-size:24px">${totalConf}/10</span></div>
+       <div class="conf-item"><span class="conf-label">사건 복잡도</span><span class="conf-val" style="color:${cxColor2};font-size:18px">${complexity?complexity+'/10':'—'}</span></div>
+-      <div class="conf-item" style="border-right:none;margin-right:0;padding-right:0">
+-        <span class="conf-label">대법원 판결 일치도 예상</span>
+-        <span class="conf-val" style="color:var(--pri-dk);font-size:22px">${escHtml(matchRate)}</span>
+-        <span style="font-size:10px;color:var(--txt4);margin-top:2px">K-Law v15.1 논문 기준</span>
+-      </div>
+       <div class="conf-item" style="border-right:none">
+         <span class="conf-label">결론 유형</span>
+         <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
+diff --git a/index.html b/index.html
+index d7a1cef..207f70a 100644
+--- a/index.html
++++ b/index.html
+@@ -248,10 +248,10 @@ a { text-decoration: none; color: inherit; }
+ <div class="kpis-band">
+   <div class="kpis-band-inner">
+     <div class="kpi-card">
+-      <div class="kpi-card-val gold">99.9%</div>
+-      <div class="kpi-card-title">논문상 이론적 추정치(실측 아님)</div>
+-      <div class="kpi-card-desc">논문의 모델과 가정에 따른 추정치이며 실제 서비스 성능이 아닙니다(제3자 검증 전)</div>
+-      <div class="kpi-card-ref">논문 참조</div>
++      <div class="kpi-card-val gold">73%</div>
++      <div class="kpi-card-title">대법원 판결 주문 일치도 (v15.1)</div>
++      <div class="kpi-card-desc">대법원 공개 판례 300건 기준 자체 실험(2026-05) · 제3자 검증 전 · 모든 사건으로 일반화할 수 없음</div>
++      <div class="kpi-card-ref">원심(2심)↔대법원 45%</div>
+     </div>
+     <div class="kpi-card">
+       <div class="kpi-card-val" style="font-size:22px">시간 절감</div>
+@@ -266,8 +266,8 @@ a { text-decoration: none; color: inherit; }
+       <div class="kpi-card-ref">K-Law 기준</div>
+     </div>
+     <div class="kpi-card">
+-      <div class="kpi-card-val">90%</div>
+-      <div class="kpi-card-title">분쟁 해결 방식 전망(연구 가설)</div>
++      <div class="kpi-card-val" style="font-size:22px">연구 가설</div>
++      <div class="kpi-card-title">분쟁 해결 방식 전망</div>
+       <div class="kpi-card-desc">향후 5년 내 법원 소송 일부가 당사자 합의로 해결될 것으로 예상</div>
+       <div class="kpi-card-ref">논문 가설 · 제3자 검증 전</div>
+     </div>
+@@ -466,7 +466,7 @@ RULES:
+ <div class="footer-disclaimer" style="margin-top:32px">
+   <div class="footer-disclaimer-inner">
+     ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않으며, 법원·정부기관의 공식 서비스가 아니고 가상 판결문은 법적 효력이 없습니다. 사건 개요에 실명·주민등록번호·연락처 등 개인정보를 입력하지 마십시오.
+-    73%, 45% 수치는 대법원 선별 공개 판례(극소수 고난도 사건) 기준 예비 측정치. 95.5%는 전수 상고 모형 이론적 추정치(±5%p).
++    73%, 45% 수치는 대법원 선별 공개 판례(극소수 고난도 사건) 기준 예비 측정치이며 자체 실험 결과(제3자 검증 전)입니다. 모든 사건으로 일반화할 수 없습니다.
+     법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
+   </div>
+ </div>
+diff --git a/klaw_intro.html b/klaw_intro.html
+index eb491c1..dd84176 100644
+--- a/klaw_intro.html
++++ b/klaw_intro.html
+@@ -445,14 +445,13 @@ RULES:
+ 
+ <!-- 실시간 현황 -->
+ <div class="wide-section" style="margin-top:32px">
+-  <div class="section-title">현황 (일부 예시 수치)</div>
++  <div class="section-title">현황</div>
+   <div class="wide-h2">K-Law 시뮬레이션 현황 대시보드</div>
+-<div class="wide-sub">누적 시뮬레이션·분석 시간 등 일부 수치는 화면 구성을 보여 주는 예시이며 실시간 집계가 아닙니다. 실제 집계는 대시보드 메뉴에서 확인하세요.</div>
++<div class="wide-sub">아래 일치도 수치는 대법원 공개 판례 300건을 대상으로 한 자체 실험 결과(제3자 검증 전)이며 모든 사건으로 일반화할 수 없습니다. 자세한 내용은 K-Law 자료실을 참고하세요.</div>
+   <div class="dash-stats" style="margin-top:14px">
+-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--primary)">1,284</div><div class="dash-stat-lbl">누적 시뮬레이션</div><div class="dash-stat-sub">↑ 47건 전일 대비</div></div>
+-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">90%</div><div class="dash-stat-lbl">대법원 일치도 (v15.3)</div><div class="dash-stat-sub">복잡 판례 300건 기준</div></div>
+-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">2026-05 업데이트</div></div>
+-    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">3.2초</div><div class="dash-stat-lbl">평균 분석 시간</div><div class="dash-stat-sub">DeepSeek 기준</div></div>
++        <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green)">73%</div><div class="dash-stat-lbl">대법원 판결 주문 일치도 (v15.1)</div><div class="dash-stat-sub">판례 300건 · 2026-05 자체 실험</div></div>
++    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--gold)" id="klaw-ver-stat">v15.1</div><div class="dash-stat-lbl">현재 버전</div><div class="dash-stat-sub">방법론 최신 버전</div></div>
++    <div class="dash-stat"><div class="dash-stat-val" style="color:var(--orange)">45%</div><div class="dash-stat-lbl">원심(2심)↔대법원 일치도</div><div class="dash-stat-sub">같은 300건 · 예비 측정치</div></div>
+   </div>
+ </div>
+ 
+@@ -530,7 +529,7 @@ RULES:
+ <div class="footer-disclaimer" style="margin-top:32px">
+   <div class="footer-disclaimer-inner">
+     ⚠️ <strong>중요 고지:</strong> K-Law는 법률 정보 제공 목적의 AI 시스템으로 변호사의 법률 자문을 대체하지 않으며, 법원·정부기관의 공식 서비스가 아니고 가상 판결문은 법적 효력이 없습니다. 사건 개요에 실명·주민등록번호·연락처 등 개인정보를 입력하지 마십시오.
+-    K-Law v15.3 기준, 대법원 공개 복잡 판례 300건에 대한 판결 일치도는 약 90%이며, 동일 사건에서 원심(고등법원) 판결과 대법원 판결 간 일치도는 약 45%입니다. 과거 v10.0 버전에서는 약 73% 수준이었으며, 지속적으로 개선 중입니다. 본 수치는 자체 실험 결과(제3자 검증 전, 재현성 실험 진행 중)이며, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
++    K-Law v15.1 기준, 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에 대한 판결 주문(유지/파기) 일치도는 73%, 동일 사건에서 원심(2심) 판결과 대법원 판결 간 일치도는 45%입니다(2026년 5월 측정). 본 수치는 선별된 판례에서 측정한 자체 실험 결과(제3자 검증 전)이며 모든 사건으로 일반화할 수 없고, 사건 특성에 따라 실제 결과는 달라질 수 있습니다.
+     법적 분쟁 시 반드시 자격 있는 법률 전문가와 상담하십시오.
+   </div>
+ </div>
+diff --git a/library.html b/library.html
+index 9701561..764fcd4 100644
+--- a/library.html
++++ b/library.html
+@@ -191,7 +191,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
+       <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">텍스트 · 66 KB</span></div>
+       <h3>고팡(Gopang) — 실시간 예방 법학 시스템의 설계·구현·정량 검증</h3>
+       <div class="lib-sub">v2.1 · 2026.3.22</div>
+-      <p>AI 비서, 개인 데이터 볼트(PDV), OpenHash 분산원장을 결합해 예방 법학을 개인 소통 수준에서 구현하는 논문입니다. 소통 매개 범죄·분쟁의 약 99% 예방 가능성은 문헌 통계에 기반한 정량 추정치입니다.</p>
++      <p>AI 비서, 개인 데이터 볼트(PDV), OpenHash 분산원장을 결합해 예방 법학을 개인 소통 수준에서 구현하는 논문입니다. 예방 가능성에 관한 정량 수치는 문헌 통계와 논문의 가정에 기반한 추정치이며 제3자 검증을 거치지 않았습니다.</p>
+       <div class="lib-actions"><a class="btn btn-pri" href="https://github.com/Openhash-Gopang/klaw/blob/main/library/papers/03-gopang-preventive-law-system-v2.1.txt" target="_blank" rel="noopener">읽기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/03-gopang-preventive-law-system-v2.1.txt" target="_blank" rel="noopener">원문</a></div>
+     </article>
+     <article class="lib-card" data-cat="paper">
+@@ -219,7 +219,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt2);line-height:
+       <div class="lib-top"><span class="lib-chip chip-paper">연구 논문</span><span class="lib-meta">PDF · 584 KB</span></div>
+       <h3>오픈해시 기반 예방적 사법 체계 구축에 관한 연구</h3>
+       <div class="lib-sub">PDF · 18쪽</div>
+-      <p>오픈해시 기반 개인정보금고를 전제로, 사법 체계를 사후 분쟁 해결에서 사전 분쟁 예방 중심으로 바꾸는 방안을 제안한 연구입니다. 승소확률 예측과 AI 중재, 대법관 증원 구조, 글로벌 판례 비교를 통한 입법 환류를 다룹니다. 본문의 효과 수치는 논문의 모델과 가정에 따른 것이며 제3자 검증을 거치지 않았습니다.</p>
++      <p>오픈해시 기반 개인정보금고를 전제로, 사법 체계를 사후 분쟁 해결에서 사전 분쟁 예방 중심으로 바꾸는 방안을 제안한 연구입니다. 승소확률 예측과 AI 중재, 대법관 증원 구조, 글로벌 판례 비교를 통한 입법 환류를 다루는 제안 수준의 연구이며, K-Law 판결 시뮬레이터는 승소 확률을 예측하지 않습니다. 본문의 효과 수치는 논문의 모델과 가정에 따른 것이며 제3자 검증을 거치지 않았습니다.</p>
+       <div class="lib-actions"><a class="btn btn-pri" href="library/papers/07-openhash-preventive-judicial-system.pdf" target="_blank" rel="noopener">PDF 보기</a><a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/library/papers/07-openhash-preventive-judicial-system.pdf" target="_blank" rel="noopener">다운로드</a></div>
+     </article>
+     <article class="lib-card" data-cat="appendix">
+diff --git a/my-history.html b/my-history.html
+index f5f97b4..cb7da9e 100644
+--- a/my-history.html
++++ b/my-history.html
+@@ -91,7 +91,7 @@ tr.row-clickable:hover{background:var(--bg)}
+         <tr>
+           <th>생성 시각</th>
+           <th>제목</th>
+-          <th>일치도 예상</th>
++          <th>일치도<br><span style="font-weight:400;font-size:10px">AI 산정·제3자 검증 전</span></th>
+           <th>항목별 평가</th>
+           <th>공개</th>
+         </tr>
+@@ -328,7 +328,7 @@ async function viewKlawHistoryDetail(id) {
+     body.innerHTML = `
+       <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
+         ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
+-        · 일치도 예상 <b style="color:var(--pri-dk)">${escHtml(_klawStripMatchRate(json.match_rate) || '—')}</b>
++        · 일치도(AI 산정·제3자 검증 전) <b style="color:var(--pri-dk)">${escHtml(_klawStripMatchRate(json.match_rate) || '—')}</b>
+         ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
+       </div>
+       ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
+diff --git a/public-board.html b/public-board.html
+index 294259e..b6dd2bd 100644
+--- a/public-board.html
++++ b/public-board.html
+@@ -72,7 +72,7 @@ tr.row-clickable:hover{background:var(--bg)}
+           <th>생성 시각</th>
+           <th>작성자</th>
+           <th>제목</th>
+-          <th>종합 일치도</th>
++          <th>일치도<br><span style="font-weight:400;font-size:10px">AI 산정·제3자 검증 전</span></th>
+           <th>항목별 평가</th>
+         </tr>
+       </thead>
+diff --git a/report.html b/report.html
+index f1da0c2..b73259d 100644
+--- a/report.html
++++ b/report.html
+@@ -52,8 +52,7 @@
+     <div class="kf-grid">
+       <div class="key-finding"><div class="kf-val gold">73%</div><div class="kf-label">대법원 판결 일치도<br><span style="font-size:11px;color:var(--hint)">실측값 · 대법원 공개 판례 300건</span></div></div>
+       <div class="key-finding"><div class="kf-val">+28%p</div><div class="kf-label">인간 원심(2심) 대비 격차<br><span style="font-size:11px;color:var(--hint)">원심 45% → K-Law 73%</span></div></div>
+-      <div class="key-finding"><div class="kf-val">95.5%</div><div class="kf-label">전수 상고 환경 추정 일치율<br><span style="font-size:11px;color:var(--hint)">이론적 추정치 ±5%p</span></div></div>
+-    </div>
++          </div>
+     <!-- 탭 네비게이션 -->
+     <div class="doc-nav">
+       <button class="doc-nav-btn active" onclick="showSection('main-report')">📊 실증 결과 보고서 v2.0</button>
+diff --git a/user-manual.html b/user-manual.html
+index 6c7bb68..24c9a2e 100644
+--- a/user-manual.html
++++ b/user-manual.html
+@@ -79,8 +79,8 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px soli
+     </div>
+ 
+     <div class="card">
+-      <h2><span class="step-num">2</span> 로그인 한 번이면 무료로 시작</h2>
+-      <p>API Key를 따로 발급받지 않아도 됩니다. <b>hondi.net 전화번호 인증</b>만 하면 DeepSeek 모델을 무료로 쓸 수 있습니다(사용량만큼 GDC가 차감됩니다). 화면 우측 상단에 "hondi 인증됨"이 뜨면 준비 완료입니다.</p>
++      <h2><span class="step-num">2</span> 로그인 한 번이면 바로 시작</h2>
++      <p>API Key를 따로 발급받지 않아도 됩니다. <b>hondi.net 전화번호 인증</b>만 하면 DeepSeek 모델을 쓸 수 있습니다(사용량만큼 GDC가 차감됩니다). 화면 우측 상단에 "hondi 인증됨"이 뜨면 준비 완료입니다.</p>
+       <p>본인이 발급받은 Claude·Gemini·Groq API Key가 있다면 그걸 입력해서 써도 됩니다 — 이 경우 K-Law 서버를 거치지 않고 브라우저에서 바로 해당 AI사에 요청합니다.</p>
+     </div>
+ 
+@@ -190,7 +190,7 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px soli
+ 
+     <div class="card">
+       <h2><span class="step-num">5</span> K-Law Ensemble(v20.0)과의 차이</h2>
+-      <p>현재 이 사이트는 K-Law v15.1을 적용하고 있습니다. 최신 버전인 v20.0(Ensemble)은 서로 다른 제조사의 AI 모델 셋 이상이 각각 피고·원고·판결 역할을 맡아 경쟁·토의를 거쳐 판결문을 만들어, 단일 모델보다 일치도가 더 높습니다. 다만 건당 API 비용이 상당히 커서(약 3,000원) 이 데모 사이트에는 포함되어 있지 않습니다.</p>
++      <p>현재 이 사이트에는 K-Law 방법론 v17.x가 적용됩니다. v20.0(Ensemble)은 서로 다른 제조사의 AI 모델 셋 이상이 각각 피고·원고·판결 역할을 맡아 경쟁·토의를 거쳐 판결문을 만드는 방식으로, 2027년 상반기 공개 예정이며 이 데모 사이트에는 포함되어 있지 않습니다.</p>
+     </div>
+ 
+   </div>
+diff --git a/verdict-generate.html b/verdict-generate.html
+index 8f8b3b7..eb212db 100644
+--- a/verdict-generate.html
++++ b/verdict-generate.html
+@@ -359,7 +359,6 @@ button{font-family:var(--font);cursor:pointer}
+     <a href="https://hondi.net" style="color:inherit;text-decoration:none">고팡</a><span class="sep">/</span><a href="klaw_intro.html" style="color:inherit;text-decoration:none">K-Law</a><span class="sep">/</span><span class="cur">판결 시뮬레이터</span>
+   </div>
+   <div class="topbar-right">
+-    <span class="badge badge-free">FREE</span>
+     <span class="badge badge-green"><span class="badge-dot"></span>AI 가동 중</span>
+     <div class="tsep"></div>
+     <span class="topbar-clock" id="clock">--:--:--</span>
+@@ -2229,7 +2228,7 @@ async function runJudgementSim() {
+   // PDV 보고 — 판결 시뮬레이션 완료
+   await _sendPdvReport(currentUser, {
+     summary: `K-Law 판결 시뮬레이션 완료: ${conversationState.caseData?.type || '미분류'} / ${caseNo}`,
+-    goal:    '판결 예측 시뮬레이션'
++    goal:    '가상 판결 시뮬레이션'
+   });
+ 
+   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
+diff --git a/webapp.html b/webapp.html
+index dfbd0fa..64863b7 100644
+--- a/webapp.html
++++ b/webapp.html
+@@ -458,14 +458,6 @@ function _parseInterviewState(raw) {
+   return { visible, state };
+ }
+ 
+-function calcMatchRate(complexity) {
+-  const c = Math.max(1, Math.min(10, parseFloat(complexity) || 5));
+-  const rate = 99.99 - (c - 1) * (9.99 / 9);
+-  if (rate >= 99.9) return rate.toFixed(2) + '%';
+-  if (rate >= 99)   return rate.toFixed(1) + '%';
+-  return rate.toFixed(0) + '%';
+-}
+-
+ // stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
+ // stepKey: 'step0' | 'stepA' | 'stepB' | 'stepC' — 해당 STEP 절차문만 투입(+공통 원칙 core)
+ // ★ 토큰 절약 프로토콜(SP_token_efficiency_v1_0.md) T1 준수: 사건번호·심급처럼
+@@ -490,6 +482,11 @@ function buildKlawSimPrompt() {
+ ${methodBody}${formatBody}위 가상판결 출력형식 v13.3을 반드시 준수하여 판결문을 작성하세요.
+ 사건번호·심급 등 이번 사건의 구체적인 정보, 그리고 지금 작성할 STEP은 이어지는 사용자 메시지에서 확인하세요.
+ 
++[이 시뮬레이터의 예외 지시 — 위 출력형식보다 우선]
++사건별 "대법원 판결 일치도 예상" 수치는 검증되지 않은 값이므로 출력하지 않습니다. 위 출력형식에 있는
++"[K-Law 대법원 판결 일치도 예상: …]" 태그, 일치도 산출 공식·표, 판결 요약에 일치도 예상을 포함하라는 지시,
++"통계적 추정치입니다" 각주는 모두 생략하세요. 그 밖의 형식과 완료 태그는 그대로 준수합니다.
++
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 본 시뮬레이션은 법률 정보 제공 목적이며 법률 자문이 아닙니다. K-Law는 변호사가 아니며 소송·법률사무를 대리하지 않고 변호사를 소개·연결하지 않습니다.
+ 가상판결 출력형식 v13.3 | K-Law ${klawVersion} 적용
+@@ -504,7 +501,7 @@ const STEP_DEFS = [
+   { id:'stepB', tag:'STEP B', title:'STEP B — 법률관계 확정 · 최종 판결문',
+     prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP B만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP A가 완료되었습니다. STEP B만 작성하세요.\nB-1~B-7 소항목, 주문+이유 완성, [STEP-B-COMPLETE] 포함.` },
+   { id:'stepC', tag:'STEP C', title:'STEP C — 완결 게이트웨이 · 확신도 · 자기 검증',
+-    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP C만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10] [K-Law 대법원 판결 일치도 예상: XX%]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
++    prompt: ctx => `${ctx}\n\n지금은 STEP 전체가 아니라 STEP C만 작성하는 단계입니다 — 다른 STEP의 내용을 미리 쓰지 마세요.\nSTEP B가 완료되었습니다. STEP C를 작성하고 아래 형식으로 마무리하세요.\n[법리 확신도: X/10] [사실 확신도: Y/10] [종합 확신도: Z/10]\n[사건 복잡도: X/10]\n[결론 유형: 확정적/조건부/판단유보]\n판결 요약: [핵심 2~3문장]\n[STEP-C-COMPLETE]` }
+ ];
+ 
+ function caseTypeColor(type) {
+@@ -1072,7 +1069,6 @@ async function runJudgementSim() {
+         // 사건을 K-Law에 입력해 생성과 채점을 같은 흐름에서 수행함).
+         // 여기서는 판결문 본문에 이미 있는 K-Law 자신의 예측치(자기평가,
+         // 검증 아님)만 detail에 같이 남긴다.
+-        const predictedMatch = (fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/) || [])[1] || null;
+         recordOwnerPDV({
+           ownerAgency: 'klaw',
+           recordType: 'own_output',
+@@ -1082,7 +1078,6 @@ async function runJudgementSim() {
+             subtype: 'verdict_generated',
+             case_no: caseNo,
+             klaw_version: klawVersion,
+-            predicted_match_rate: predictedMatch, // 자기평가 예측치일 뿐, 검증된 값 아님
+             verified: false,
+           },
+         }).catch(() => {});
+@@ -1096,14 +1091,12 @@ function buildVerdictSummaryBubble(fullText, caseNo) {
+   const factM    = fullText.match(/\[사실 확신도:\s*([\d.]+)\/10\]/);
+   const totalM   = fullText.match(/\[종합 확신도:\s*([\d.]+)\/10\]/);
+   const complexM = fullText.match(/\[사건 복잡도:\s*([\d.]+)\/10\]/);
+-  const matchLLM = fullText.match(/\[K-Law 대법원 판결 일치도 예상:\s*([\d.]+%[^\]]*?)\]/);
+   const typeM    = fullText.match(/\[결론 유형:\s*([^\]]+)\]/);
+   const summM    = fullText.match(/판결 요약:\s*([\s\S]{1,200}?)(?:\n\n|\[━|$)/);
+   const totalConf = totalM ? totalM[1] : '—';
+   const complexity = complexM ? complexM[1] : null;
+   const vType = typeM ? typeM[1].trim() : '—';
+   const summary = summM ? summM[1].trim() : '';
+-  const matchRate = matchLLM ? matchLLM[1].trim() : (complexity ? calcMatchRate(complexity) : '90~99.99%');
+   return `
+     <div class="verdict-card">
+       <div class="vc-badge">사건번호 ${escHtml(caseNo)} · K-Law ${escHtml(klawVersion)}</div>
+@@ -1111,7 +1104,6 @@ function buildVerdictSummaryBubble(fullText, caseNo) {
+       <div class="vc-grid">
+         <div><span>종합 확신도</span><b>${escHtml(totalConf)}/10</b></div>
+         <div><span>사건 복잡도</span><b>${complexity ? escHtml(complexity)+'/10' : '—'}</b></div>
+-        <div><span>대법원 일치도 예상</span><b>${escHtml(matchRate)}</b></div>
+         <div><span>결론 유형</span><b>${escHtml(vType)}</b></div>
+       </div>
+     </div>`;
+diff --git a/whitepaper.html b/whitepaper.html
+index 19a7983..d0fecae 100644
+--- a/whitepaper.html
++++ b/whitepaper.html
+@@ -280,13 +280,14 @@ burn_amount_factor = floor( log₂( burned_GPT + 1 ) )   ← 최대 8
+ 낙찰금의 20% → 소각
+ 경쟁 없을 경우: 갱신 비용 0.0001 GPT
+ </pre>
+-<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.5 K-Law AI 성과 기반 수수료 (193개국)</h3>
++<h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">6.5 K-Law AI 성과 기반 수수료 (초기 설계안)</h3>
++<p style="margin-bottom:8px;color:#9B2C2C;line-height:1.75;font-size:13px">※ 아래는 초기 설계안이며 현재 K-Law 서비스에는 적용되지 않습니다. 현재 K-Law는 대한민국 판례를 기준으로 한 참고용 가상 판결 시뮬레이션으로, 결과의 정확도를 보장하거나 정확도에 연동해 환불·보상하지 않습니다. 아래 정확도 구간은 설계 예시이며 검증된 수치가 아닙니다.</p>
+ <pre style="background:#F4F6F9;border:1px solid #D1D9E6;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6">
+ 정확도 ≥ 90%  →  1 GPT 수수료 (9 GPT 환불)
+ 정확도 70~90% →  5 GPT 수수료 (5 GPT 환불)
+ 정확도 &lt; 70%  →  전액 환불 + 2 GPT 추가 보상
+ </pre>
+-<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">K-Law AI는 세계 193개국 법률 체계에서 동시 서비스하며, 각국 법률 데이터를 GPT 수수료 수익과 교환하는 방식으로 현지화됩니다.</p>
++<p style="margin-bottom:8px;color:#4A5568;line-height:1.75">K-Law AI는 향후 각국 법률 체계로 확장하는 구상이며, 현재는 대한민국 판례를 기준으로 합니다. 확장 시 각국 법률 데이터를 GPT 수수료 수익과 교환하는 방식의 현지화를 검토하고 있습니다.</p>
+ <hr style="border:none;border-top:1px solid #D1D9E6;margin:20px 0">
+ <h2 style="font-size:17px;font-weight:800;margin:20px 0 8px;color:#1A202C;border-bottom:2px solid #D1D9E6;padding-bottom:6px">7. 글로벌 결제: 국경 없는 직불 시스템 (신규)</h2>
+ <h3 style="font-size:14px;font-weight:700;margin:16px 0 6px;color:#1A202C">7.1 핵심 시나리오: 한국인의 태국·라오스 여행 결제</h3>
+-- 
+2.43.0
+
