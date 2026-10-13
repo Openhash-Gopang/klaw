@@ -329,6 +329,28 @@ button{font-family:var(--font);cursor:pointer}
 .hp-model{color:var(--txt3)}
 .hp-time{font-size:11px;color:var(--txt4);margin-left:auto;white-space:nowrap}
 .hp-empty{padding:20px 14px;text-align:center;color:var(--txt4);font-size:12px}
+/* ── 단일·복합·나비 LLM 탭 (2026-10-14 신설) ── */
+.tab-soon{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;vertical-align:middle}
+#vv-composite-panel,#vv-navi-intro{display:none}
+.content.vm-composite > #vv-composite-panel,.content.vm-navi > #vv-navi-intro{display:block}
+.content.vm-composite > #vv-single-intro,.content.vm-navi > #vv-single-intro{display:none}
+.content.vm-composite > #llm-section,.content.vm-navi > #llm-section{display:none}
+.main.vm-composite #vv-key-note,.main.vm-composite #vv-single-hdr,.main.vm-navi #vv-key-note,.main.vm-navi #vv-single-hdr{display:none !important}
+.content.vm-navi #run-btn{opacity:.55}
+.content.vm-navi #run-btn::after{content:' (예정)'}
+.vm-note{font-size:12px;color:var(--txt2);line-height:1.7;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.vm-note.warn{background:var(--org-bg);border-color:#fde68a;color:#92400e}
+.vm-tier{display:inline-block;margin-right:6px;padding:2px 9px;border-radius:999px;border:1px solid var(--pri);background:var(--pri-bg);color:var(--pri-dk);font-size:11px;font-weight:700}
+.vm-keys{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.vm-key-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vm-key-row b{min-width:92px;font-size:12px;color:var(--txt)}
+.vm-key-row select,.vm-key-row input{padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:12px;background:var(--sur);color:var(--txt);outline:none}
+.vm-key-row input{flex:1;min-width:180px;font-family:var(--mono)}
+.vm-tier-pick{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.vm-tier-pick label{display:flex;gap:6px;align-items:center;padding:7px 12px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur);font-size:12.5px;cursor:pointer}
+.vm-tier-pick label.on{border-color:var(--pri);background:var(--pri-bg)}
+.vm-state{font-size:12px;color:var(--txt3);margin-top:6px}
+.vm-state.ok{color:var(--pri-dk)}
 </style>
 <style>
 /* 가상 판결 작성 결과 목록 (2026-10-12 신설) */
@@ -485,7 +507,7 @@ button{font-family:var(--font);cursor:pointer}
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
           <div class="page-subtitle" id="vv-key-note" style="color:var(--txt2);line-height:1.7;max-width:760px">여러분이 선호하는 AI 모델(Claude, Gemini, ChatGPT 등)을 선택하고, API Key를 입력하십시오. 그 방법은 해당 AI에게 물어보세요. 본 사이트는 API Key를 서버에 저장하지 않지만(이 브라우저에만 보관), <b>1회용 API Key를 생성하여 입력하고, 사용 후에는 반드시 폐기하십시오.</b></div>
           <!-- ── 모델 선택 드롭다운 ── -->
-          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <div id="vv-single-hdr" style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
             <!-- LLM 선택 -->
             <select id="hdr-llm-select" onchange="onHdrLLMChange()"
               style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
@@ -509,6 +531,12 @@ button{font-family:var(--font);cursor:pointer}
                 font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
                 outline:none;width:200px"
               oninput="conversationState.apiKey=this.value">
+            <!-- 두 번째 Key (검증용, 2026-10-14 신설) — 같은 LLM의 두 번째 Key -->
+            <input id="hdr-api-key-2" type="password" placeholder="Key 2 (검증용, 같은 LLM)"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
+                outline:none;width:200px"
+              oninput="conversationState.apiKey2=this.value">
           </div>
         </div>
         <div class="page-actions">
@@ -527,12 +555,46 @@ button{font-family:var(--font);cursor:pointer}
         </div>
       </div>
       <div class="page-tabs">
-        <button class="page-tab active">입력 및 분석</button>
+        <button class="page-tab active" id="vm-tab-single" onclick="vvSwitchMode('single')">단일 LLM</button>
+        <button class="page-tab" id="vm-tab-composite" onclick="vvSwitchMode('composite')">복합 LLM</button>
+        <button class="page-tab" id="vm-tab-navi" onclick="vvSwitchMode('navi')">나비 LLM<span class="tab-soon">예정</span></button>
         <button class="page-tab" id="history-tab-btn" onclick="location.href='my-history.html'">이력</button>
       </div>
     </div>
 
-    <div class="content">
+    <div class="content" id="vv-content">
+
+      <!-- 단일 LLM (2026-10-14 신설) -->
+      <div class="panel" id="vv-single-intro">
+        <div class="panel-hd"><div class="panel-title">단일 LLM</div></div>
+        <div style="padding:14px 16px">
+          <div class="vm-note"><span class="vm-tier">보급형</span><b>하나의 LLM에 Key 2개</b>를 씁니다. 두 개의 LLM이 관여하는 구성으로, Key 1은 가상 판결문 작성에, Key 2는 검증에 쓰는 것을 전제로 합니다. 위의 LLM 선택에서 제공사와 모델을 고르고 Key 1과 Key 2를 입력하세요.</div>
+          <div class="vm-state" id="vm-single-state"></div>
+        </div>
+      </div>
+
+      <!-- 복합 LLM (2026-10-14 신설) -->
+      <div class="panel" id="vv-composite-panel">
+        <div class="panel-hd"><div class="panel-title">복합 LLM</div></div>
+        <div style="padding:14px 16px">
+          <div class="vm-note"><b>둘 이상의 LLM과 셋 이상의 Key</b>를 씁니다. <span class="vm-tier">표준형</span>은 세 개의 LLM(Key 3개), <span class="vm-tier">고급형</span>은 네 개의 LLM(Key 4개)이 관여합니다. 서로 다른 제공사의 LLM을 둘 이상 골라야 합니다.</div>
+          <div class="vm-tier-pick" id="vm-tier-pick">
+            <label class="on"><input type="radio" name="vm-tier" value="3" checked onchange="vvBuildKeySlots()"> 표준형 · LLM 3개</label>
+            <label><input type="radio" name="vm-tier" value="4" onchange="vvBuildKeySlots()"> 고급형 · LLM 4개</label>
+          </div>
+          <div class="vm-keys" id="vm-keys"></div>
+          <div class="vm-state" id="vm-comp-state"></div>
+          <div class="vm-note warn" style="margin-top:12px;margin-bottom:0"><b>실행 기능은 연결 작업 중입니다.</b> 이 탭에서는 LLM과 Key 구성을 확인하는 단계까지 동작합니다. 입력한 Key는 이 브라우저의 화면에만 두고 저장하지 않습니다.</div>
+        </div>
+      </div>
+
+      <!-- 나비 LLM (2026-10-14 신설) -->
+      <div class="panel" id="vv-navi-intro">
+        <div class="panel-hd"><div class="panel-title">나비 LLM<span class="tab-soon">예정</span></div></div>
+        <div style="padding:14px 16px">
+          <div class="vm-note warn" style="margin-bottom:0"><b>예정입니다.</b> 나비 LLM은 아직 이용할 수 없어 아래의 분석 시작은 동작하지 않습니다.</div>
+        </div>
+      </div>
 
       <div class="panel">
         <div class="panel-hd">
@@ -1135,7 +1197,7 @@ let attachedFiles = [];
 
 let conversationState = {
   phase: 'idle', messages: [], caseData: null,
-  apiKey: '', llmModel: '', caseText: ''
+  apiKey: '', apiKey2: '', llmModel: '', caseText: ''
 };
 
 // ── 시계
@@ -1292,6 +1354,70 @@ function selectLLM(model) {
   // (예: 페이지 초기화가 뒤늦게 한 번 더 실행되는 경우) 사용자가 이미 입력 중인 값을 덮어쓰지 않도록 함.
   if (modelChanged) apiInput.value = loadApiKey(model);
 }
+
+
+// ══ 단일·복합·나비 LLM 탭 (2026-10-14 신설) ═══════════════════════
+// 단일 LLM = 하나의 LLM + Key 2개(보급형), 복합 LLM = 둘 이상의 LLM + Key 3~4개
+// (표준형 3, 고급형 4), 나비 LLM = 예정. 복합 탭의 Key는 화면에만 두고 저장하지 않는다.
+const VM_LLMS = [
+  {id:'deepseek', label:'DeepSeek', ph:'sk-…'},
+  {id:'claude',   label:'Claude',   ph:'sk-ant-…'},
+  {id:'gemini',   label:'Gemini',   ph:'AIza…'},
+  {id:'groq',     label:'Groq (Llama)', ph:'gsk_…'}
+];
+function vvSwitchMode(mode) {
+  const c = document.getElementById('vv-content');
+  const m = document.querySelector('main.main');
+  ['single','composite','navi'].forEach(k => {
+    document.getElementById('vm-tab-' + k)?.classList.toggle('active', k === mode);
+    c?.classList.toggle('vm-' + k, k === mode);
+    m?.classList.toggle('vm-' + k, k === mode);
+  });
+  if (mode === 'composite') vvBuildKeySlots();
+  if (mode === 'single') vvUpdateSingleState();
+}
+function vvUpdateSingleState() {
+  const el = document.getElementById('vm-single-state');
+  if (!el) return;
+  const k1 = (document.getElementById('hdr-api-key')?.value || '').trim();
+  const k2 = (document.getElementById('hdr-api-key-2')?.value || '').trim();
+  el.textContent = 'Key 1: ' + (k1 ? '입력됨' : '비어 있음') + ' · Key 2: ' + (k2 ? '입력됨' : '비어 있음') + ' (Key 2의 검증 단계 연결은 작업 중입니다)';
+  el.classList.toggle('ok', !!(k1 && k2));
+}
+function vvBuildKeySlots() {
+  const n = parseInt((document.querySelector('input[name="vm-tier"]:checked') || {value:'3'}).value, 10);
+  document.querySelectorAll('#vm-tier-pick label').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
+  const box = document.getElementById('vm-keys');
+  if (!box) return;
+  // 이미 입력한 값은 슬롯 수가 바뀌어도 유지한다.
+  const old = Array.from(box.querySelectorAll('.vm-key-row')).map(r => ({llm: r.querySelector('select').value, key: r.querySelector('input').value}));
+  const defaults = ['deepseek','claude','gemini','groq'];
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const cur = old[i] || {llm: defaults[i], key: ''};
+    html += '<div class="vm-key-row"><b>LLM·Key ' + (i + 1) + '</b>' +
+      '<select onchange="vvCheckComposite()">' + VM_LLMS.map(l => '<option value="' + l.id + '"' + (l.id === cur.llm ? ' selected' : '') + '>' + l.label + '</option>').join('') + '</select>' +
+      '<input type="password" placeholder="API Key" autocomplete="off" value="" oninput="vvCheckComposite()"></div>';
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.vm-key-row').forEach((r, i) => { if (old[i]) r.querySelector('input').value = old[i].key; });
+  vvCheckComposite();
+}
+function vvCheckComposite() {
+  const rows = Array.from(document.querySelectorAll('#vm-keys .vm-key-row'));
+  const llms = new Set(rows.map(r => r.querySelector('select').value));
+  const keys = rows.filter(r => r.querySelector('input').value.trim()).length;
+  const el = document.getElementById('vm-comp-state');
+  if (!el) return;
+  const okLLM = llms.size >= 2, okKey = keys === rows.length;
+  el.textContent = 'LLM ' + llms.size + '종(2종 이상 필요) · Key ' + keys + '/' + rows.length + '개 입력' +
+    (okLLM && okKey ? ' — 구성이 갖춰졌습니다.' : '');
+  el.classList.toggle('ok', okLLM && okKey);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  ['hdr-api-key','hdr-api-key-2'].forEach(id => document.getElementById(id)?.addEventListener('input', vvUpdateSingleState));
+  vvUpdateSingleState();
+});
 
 // ══ API Key 발급 안내 모달 ════════════════════════════════════
 function openApiKeyHelp() {
@@ -1758,6 +1884,8 @@ const STEP_DEFS = [
 
 // ══ STEP 1: 입력 완료 → 분석 ════════════════════════════
 async function runSimulation() {
+  if (document.getElementById('vv-content')?.classList.contains('vm-navi')) { alert('나비 LLM은 예정입니다. 아직 이용할 수 없습니다.'); return; }
+  if (document.getElementById('vv-content')?.classList.contains('vm-composite')) { alert('복합 LLM의 실행 기능은 연결 작업 중입니다.'); return; }
   const caseInput = document.getElementById('case-input').value.trim();
   if (!caseInput || caseInput.length < 20) { alert('사건 개요를 20자 이상 입력해 주세요.'); return; }
 
