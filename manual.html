@@ -80,8 +80,22 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
 .tabpanel[hidden]{display:none}
 .card-head a.open{flex:0 0 auto;flex-direction:row;padding:6px 12px;font-size:13px}
 @media (max-width:520px){.tablist{flex-wrap:nowrap;gap:6px}.tab{flex:1 1 0;padding:8px 4px;font-size:13px}.tab small{font-size:10px}}
+/* 접이식 섹션: 제목만 보이고, 누르면 내용이 펼쳐지며(slide out) 한 번 더 누르면 접힌다(slide in) */
+.acc h2{font-size:inherit}
+.acc-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 16px;font:inherit;font-size:18px;font-weight:700;color:var(--txt);text-align:left;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer}
+.acc-btn:hover{background:var(--code-bg)}
+.acc-btn:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.acc-chev{flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--txt3);border-bottom:2px solid var(--txt3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s ease}
+.acc.open .acc-chev{transform:rotate(-135deg) translate(-2px,-2px)}
+.acc-panel{display:grid;grid-template-rows:1fr}
+.acc-inner{min-height:0;overflow:hidden}
+.acc-inner>*:first-child{margin-top:12px}
+.js .acc-panel{grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .3s ease,visibility 0s linear .3s}
+.js .acc.open .acc-panel{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .3s ease,visibility 0s}
+@media (prefers-reduced-motion:reduce){.js .acc-panel,.js .acc.open .acc-panel,.acc-chev{transition:none}}
 @media (max-width:520px){h1{font-size:22px}.card{padding:16px}}
 </style>
+<script>document.documentElement.className+=' js';</script>
 </head>
 <body>
 <header class="topbar">
@@ -99,8 +113,9 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <b>먼저 알아 두세요.</b> K-Law가 만드는 판결문은 AI가 쓴 <b>참고용 가상 판결문</b>입니다. 실제 법원의 판단과 다를 수 있고, 법적 효력이 없으며, 법률 자문이 아닙니다. 소송을 진행하거나 준비 중이라면 변호사와 상담하세요. 이름, 주민등록번호, 연락처, 주소, 계좌번호는 입력하지 말고 가명이나 익명으로 바꿔 쓰세요. 성능 수치는 모두 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다.
   </div>
 
-  <section>
-    <h2>어떤 버튼을 누르면 되나요</h2>
+  <section class="acc">
+    <h2><button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-which"><span>어떤 버튼을 누르면 되나요</span><span class="acc-chev" aria-hidden="true"></span></button></h2>
+    <div class="acc-panel" id="acc-which"><div class="acc-inner">
     <p class="sec-desc">하려는 일에 맞는 줄을 찾아 버튼 이름을 확인하세요.</p>
     <div class="tablewrap">
       <table>
@@ -112,10 +127,12 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
         <tr><td>스마트폰에서 AI와 대화하면서 가상 판결문을 만들고 싶다</td><td><a href="#b-mobile">모바일 웹앱</a></td></tr>
       </table>
     </div>
+    </div></div>
   </section>
 
-  <section id="compare">
-    <h2>K-Law와 Agon, 무엇이 다른가요</h2>
+  <section class="acc" id="compare">
+    <h2><button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-compare"><span>K-Law와 Agon, 무엇이 다른가요</span><span class="acc-chev" aria-hidden="true"></span></button></h2>
+    <div class="acc-panel" id="acc-compare"><div class="acc-inner">
     <p class="sec-desc">두 방법론은 입력 데이터, 판단 방법, 채점 기준이 서로 다른 별개의 방법론입니다. 일치도는 직접 비교할 수 없습니다.</p>
     <div class="tablewrap">
       <table>
@@ -134,10 +151,12 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <div class="notice" style="margin-top:12px">
       두 방법론의 일치도는 채점 기준이 달라 직접 비교할 수 없습니다. 모든 수치는 자체 실험 결과이며 제3자 검증 전입니다. 출처: 일치도 평가 기준 v1.6·v3.0, 사건 개요 작성 규칙, K-Law 검증 보고서 v2.0. K-Law는 <a href="#b-v151">성능 테스트 · K-Law v15.1</a>, Agon은 <a href="#b-agon">성능 테스트 · Agon 1.0</a>에서 직접 시험할 수 있습니다.
     </div>
+    </div></div>
   </section>
 
-  <section>
-    <h2>AI 엔진과 버전</h2>
+  <section class="acc">
+    <h2><button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-engines"><span>AI 엔진과 버전</span><span class="acc-chev" aria-hidden="true"></span></button></h2>
+    <div class="acc-panel" id="acc-engines"><div class="acc-inner">
     <div class="tablewrap">
       <table>
         <tr><th>버전</th><th>AI 엔진</th></tr>
@@ -150,10 +169,12 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <div class="notice" style="margin-top:12px">
       이 사이트에서 직접 고르는 AI는 모두 해외 LLM입니다. Navi LLM을 쓰는 K-Law v15.2 이상과 Agon 이후 버전은 아직 공개되지 않았고, 아래 API Key 안내는 해외 LLM을 쓰기 위한 것입니다. 성능 테스트 · K-Law v15.1 화면의 <b>나비 AI</b> 탭은 이 Navi LLM을 위한 자리이며 <b>준비 중</b>입니다.
     </div>
+    </div></div>
   </section>
 
-  <section>
-    <h2>로그인, 비용, API Key</h2>
+  <section class="acc">
+    <h2><button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-login"><span>로그인, 비용, API Key</span><span class="acc-chev" aria-hidden="true"></span></button></h2>
+    <div class="acc-panel" id="acc-login"><div class="acc-inner">
     <p class="sec-desc">첫 번째부터 세 번째 버튼의 입력 화면은 같은 방식으로 AI를 고릅니다.</p>
     <ul style="margin-top:12px">
       <li><b>기본 AI(DeepSeek)</b>는 API Key 없이 hondi.net 전화번호 인증으로 쓸 수 있습니다. K-Law 공유 계정을 거치며 사용한 만큼 GDC가 차감됩니다.</li>
@@ -167,6 +188,7 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <div class="tip" style="margin-top:14px">
       <b>여러 AI의 결과를 비교해 보세요.</b> ChatGPT, Gemini, Claude 등 여러 LLM에 같은 사건 개요를 입력하여, 가상 판결문 생성 결과를 비교해 보십시오. 가령, ChatGPT와 Gemini에게 각기 같은 사건의 가상 판결문을 생성하게 하고, Claude에게 두 가상 판결문을 전달하여, 어느 쪽이 더 정확한지(혹은 법리가 우수한지) 평가하게 할 수 있습니다. <a href="api-key-guide.html">무료 API를 획득하는 안내문</a>을 참고하십시오.
     </div>
+    </div></div>
   </section>
 
   <section class="tabs" id="guide-tabs">
@@ -402,6 +424,31 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
   });
   window.addEventListener('hashchange', function(){ show(location.hash.slice(1), true); });
   if (!show(location.hash.slice(1), true)) select(tabs[0]);
+})();
+</script>
+<script>
+(function(){
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section.acc'));
+  if (!secs.length) return;
+  function setOpen(sec, open){
+    sec.classList.toggle('open', open);
+    sec.querySelector('.acc-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  secs.forEach(function(sec){
+    setOpen(sec, false);
+    sec.querySelector('.acc-btn').addEventListener('click', function(){
+      setOpen(sec, !sec.classList.contains('open'));
+    });
+  });
+  /* #compare 같은 주소로 들어오면 해당 섹션을 펼친다 */
+  function openFromHash(){
+    var id = location.hash.slice(1);
+    if (!id) return;
+    var sec = secs.filter(function(s){ return s.id === id; })[0];
+    if (sec) { setOpen(sec, true); sec.scrollIntoView({block:'start'}); }
+  }
+  window.addEventListener('hashchange', openFromHash);
+  openFromHash();
 })();
 </script>
 </body>
