@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K-Law — 판결 시뮬레이터</title>
-<meta name="description" content="사건의 개요를 입력하면 AI가 참고용 가상 판결문을 작성합니다. 법률 자문이 아닌 K-Law 시뮬레이션.">
+<meta name="description" content="사건의 개요를 입력하면 AI가 참고용 가상 판결문을 작성합니다. K-Law 시뮬레이션.">
 <!-- 2026-07-23: K-Law 가상 판결 시뮬레이션은 혼디 로그인이 불필요 → subsystem-auth.js 제거 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <!-- 2026-09-18 신설 — "일치도 평가 기준" 원문이 .docx라 클라이언트에서
@@ -812,7 +812,7 @@ button{font-family:var(--font);cursor:pointer}
               위 모델별 수치는 모델 간 상대적 수준을 가늠하기 위한 <b>〔추정치〕</b>이며, 모델별로 따로 실측한 값이 아닙니다.
               실측으로 공개된 수치는 다음과 같습니다. 대법원이 사법공보에 수록한 2024~2025년 선고 판례 300건에서 K-Law(v15.1)의 판결 주문(유지/파기) 일치도는
               <b>73%</b>, 같은 사건에서 원심(2심)과 대법원 판결의 일치도는 <b>45%</b>였습니다 <b>〔실측 · 2026년 5월 기준〕</b>.
-              현재 적용 중인 방법론 v17.x는 개발 세트 100건을 10라운드로 나눠 검증하는 중이며, 그 결과는 잠정치입니다.
+              현재 적용 중인 방법론은 K-Law v15.1입니다.
               모든 수치는 자체 실험 결과이며 제3자의 검증을 거치지 않았습니다. 자세한 내용은
               <a href="library.html" style="color:var(--pri-dk);font-weight:600">K-Law 자료실</a>과
               <a href="rounds.html" style="color:var(--pri-dk);font-weight:600">라운드별 시험 기록</a>을 참고하세요.
@@ -842,7 +842,6 @@ button{font-family:var(--font);cursor:pointer}
           <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:12px 14px;font-size:12.5px;color:#1e40af;line-height:1.8">
             ⚠️ 같은 사건에 대해 <b>K-Law Ensemble의 가상 판결문과 대법원의 실제 판결문이 모순되거나 반대되는 경우</b>,
             어느 쪽의 법리가 헌법과 법률에 더 부합하는지는 <b>K-Law가 판단할 수 없습니다.</b>
-            본 시뮬레이션은 참고용 가상 판결이며, 실제 법적 효력이나 구속력을 갖지 않고 법률 자문이 아닙니다.
           </div>
 
           <!-- 웹 검색 차단 안내 -->
@@ -867,7 +866,7 @@ button{font-family:var(--font);cursor:pointer}
           <!-- 버전 안내 -->
           <div style="font-size:12.5px;color:var(--txt2);line-height:1.8">
             ℹ️ <b>버전 안내</b><br>
-            이 사이트에는 <b>K-Law 방법론 v17.x</b>가 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
+            이 페이지에는 <b>K-Law 방법론 v15.1</b>이 적용됩니다. K-Law <b>v20.0(Ensemble)</b>은 <b>2027년 상반기 공개 예정</b>입니다.
             v20.0은 서로 다른 메이커의 AI 모델을 셋 이상 사용하여, 각기 피고, 원고 및 판결 역할을 수행합니다.
             K-Law 앙상블 모델은 판결문의 법리 구성이 더욱 탄탄하고 대법원 실제 판결문과의 일치도도 더 높을 것으로 기대되나,
             상당한 API 비용으로 인해 본 사이트의 데모에 포함하지 않았습니다.
