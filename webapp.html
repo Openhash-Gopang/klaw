@@ -230,8 +230,8 @@ body > *{display:none}
   <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="음성 입력">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
   </button>
-  <textarea id="chat-input" rows="1" placeholder="메시지를 입력하세요…"></textarea>
-  <button class="send-btn" id="send-btn" onclick="sendMessage()" title="전송">
+  <textarea id="chat-input" data-requires-login="K-Law 대화" rows="1" placeholder="메시지를 입력하세요…"></textarea>
+  <button class="send-btn" id="send-btn" data-requires-login="K-Law 대화" onclick="sendMessage()" title="전송">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
   </button>
 </footer>
@@ -1416,5 +1416,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 });
 </script>
+<script src="https://hondi.net/auth/user-badge.js?v=20261027" defer></script>
 </body>
 </html>

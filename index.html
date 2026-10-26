@@ -223,7 +223,7 @@ a { text-decoration: none; color: inherit; }
         <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.80);" id="user-display">연결 중…</div>
       </div>
       <div class="topnav-clock" id="clock">--:--:--</div>
-    </div>
+    <span class="hondi-user-slot" data-hondi-user-slot="dark" style="flex:none;display:flex;align-items:center;padding-left:10px"></span></div>
   </div>
 </nav>
 
@@ -550,5 +550,6 @@ window._onGopangAuth = function(user) {
   if(display) display.textContent = 'Lv.' + (user.level||1) + ' · ' + shortId;
 };
 </script>
+<script src="https://hondi.net/auth/user-badge.js?v=20261027" defer></script>
 </body>
 </html>
