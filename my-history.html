@@ -37,7 +37,7 @@ tr.row-clickable{cursor:pointer}
 tr.row-clickable:hover{background:var(--bg)}
 /* 생성 시각 — 폭을 줄이고 한 줄로 압축 표기 */
 .when-cell{white-space:nowrap;color:var(--txt3);font-family:var(--mono);font-size:11.5px;width:1%}
-.title-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);font-weight:500}
+.title-cell{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);font-weight:500}
 .rate-chip{display:inline-block;font-weight:700;color:var(--pri-dk);white-space:nowrap}
 /* 항목별 평가 — "핵심" 정보이므로 폭이 부족해도 절대 잘리거나
    말줄임표로 가려지지 않게 한다. 필요하면 줄바꿈하되 내용은 다 보인다. */
@@ -69,6 +69,27 @@ tr.row-clickable:hover{background:var(--bg)}
 .klaw-hd-meta b{color:var(--txt2);font-weight:600}
 .klaw-hd-items{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px}
 .klaw-hd-items td{border:1px solid var(--bdr);padding:6px 10px}
+
+/* 제목 아래로 펼쳐지는 패널 */
+.title-cell .tl{color:var(--txt);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.title-cell .chev{display:inline-block;transition:transform .2s var(--ease);color:var(--txt4);font-size:11px}
+tr.open .chev{transform:rotate(90deg)}
+tr.open>td{background:var(--bg)}
+tr.pnl-row>td{padding:0;border-bottom:1px solid var(--bdr)}
+tr.pnl-row:not(.open){display:none}
+.pnl{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s var(--ease)}
+tr.pnl-row.open .pnl{grid-template-rows:1fr}
+.pnl-in{overflow:hidden;min-height:0}
+.pnl-box{padding:14px 18px 18px;background:var(--sur)}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--bdr);margin-bottom:14px}
+.tab{padding:8px 12px;font-size:12.5px;font-weight:600;color:var(--txt3);background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;margin-bottom:-1px}
+.tab:hover{color:var(--txt)}.tab.on{color:var(--pri-dk);border-bottom-color:var(--pri)}.tab.miss{font-weight:500;color:var(--txt4)}
+.doc-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--txt)}
+.doc-h a{font-weight:500;font-size:12px;color:var(--pri-dk)}
+.doc-pre{white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;line-height:1.75;color:var(--txt2);margin:0 0 16px;max-height:560px;overflow:auto;padding:12px 14px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px}
+.doc-none{font-size:13px;color:var(--txt4);padding:6px 0 16px;line-height:1.7}
+.kv{font-size:13px;line-height:1.8;color:var(--txt2);margin:0 0 14px}.kv b{color:var(--txt)}
+.pnl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--txt3);gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -78,7 +99,7 @@ tr.row-clickable:hover{background:var(--bg)}
   <div class="hero">
     <div>
       <h1>판결 이력</h1>
-      <p>본인이 생성한 가상 판결문 목록입니다. 기본적으로 본인만 볼 수 있고, 공개로 전환하면 입력하신 사건 개요와 판결문이 게시판에서 누구에게나 보입니다(실명·연락처 등 개인정보가 없는지 먼저 확인하세요).</p>
+      <p>본인이 생성한 가상 판결문 목록입니다. 사건번호를 누르면 아래로 펼쳐져 사건 개요·판결문·평가 결과를 탭별로 볼 수 있습니다. 새로 만든 판결문은 기본적으로 <b>공개</b>로 저장되며(사건 개요와 판결문이 게시판에서 누구에게나 보입니다), 오른쪽 스위치로 언제든 비공개로 바꿀 수 있습니다. 실명·연락처 등 개인정보가 없는지 확인하세요.</p>
     </div>
   </div>
 
@@ -98,18 +119,6 @@ tr.row-clickable:hover{background:var(--bg)}
   </div>
 </div>
 
-<!-- 상세 보기 모달 -->
-<div class="klaw-hd-modal" id="klaw-history-detail-modal" onclick="if(event.target===this) closeKlawHistoryDetail()">
-  <div class="klaw-hd-box">
-    <div class="klaw-hd-hd">
-      <span>판결문 전문</span>
-      <button onclick="closeKlawHistoryDetail()" style="background:none;border:none;cursor:pointer;color:var(--txt4);display:flex;align-items:center;padding:2px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="klaw-hd-body" id="klaw-history-detail-body"></div>
-  </div>
-</div>
 
 <script>
 const KLAW_API_BASE  = 'https://hondi-proxy.tensor-city.workers.dev';
@@ -137,11 +146,12 @@ function _klawFormatCompactDate(iso) {
 // 최소 라벨만 표시한다. 생성 시각은 별도 칼럼에 이미 있으므로 제목에는
 // 날짜를 절대 넣지 않는다(주피터 지시).
 function _klawFallbackTitle(row) {
-  if (row.title && row.title.trim()) return row.title.trim();
+  // 2026-11-11(주피터 지시) — 제목은 사건번호. "판결 시뮬레이션"은 모두 같으므로 쓰지 않는다.
+  if (row.case_no && row.case_no.trim()) return row.case_no.trim();
   const head = row.case_type ? `[${row.case_type}] ` : '';
-  const body = (row.case_summary || '').trim().slice(0, 40);
-  if (head || body) return (head + (body || '판결 시뮬레이션')).slice(0, 100);
-  return '(제목 없음)';
+  const t = String(row.title || '').replace(/^\(제목 없음\)$/, '').replace(/\s*판결 시뮬레이션\s*/g, ' ').replace(/\[[^\]]*\]\s*/, '').trim();
+  const body = (t || String(row.case_summary || '').trim()).slice(0, 40);
+  return (head + (body || '사건번호 미기재')).trim().slice(0, 100);
 }
 
 let _klawRows = [];
@@ -175,16 +185,17 @@ function renderBoard() {
   if (!_klawRows.length) { body.innerHTML = '<tr><td colspan="3"><div class="empty">아직 생성한 판결문이 없습니다</div></td></tr>'; return; }
 
   body.innerHTML = _klawRows.map(r => `
-      <tr class="row-clickable" onclick="viewKlawHistoryDetail('${escHtml(r.id)}')">
+      <tr class="row-clickable" id="r-${escHtml(r.id)}" onclick="togglePanel('${escHtml(r.id)}')">
         <td class="when-cell">${escHtml(_klawFormatCompactDate(r.created))}</td>
-        <td class="title-cell">${escHtml(_klawFallbackTitle(r))}</td>
+        <td class="title-cell"><span class="tl"><span class="chev">▶</span>${escHtml(_klawFallbackTitle(r))}</span>${r.match_rate ? `<span class="rate-chip" style="margin-left:10px;font-size:12px" title="종합 일치도">일치도 ${escHtml(r.match_rate)}</span>` : ''}</td>
         <td class="public-toggle-cell" onclick="event.stopPropagation()">
           <label class="toggle">
             <input type="checkbox" ${r.is_public ? 'checked' : ''} onchange="toggleVisibility('${escHtml(r.id)}', this.checked)">
             <span class="toggle-track"></span>
           </label>
         </td>
-      </tr>`).join('');
+      </tr>
+      <tr class="pnl-row" id="p-${escHtml(r.id)}"><td colspan="3"><div class="pnl"><div class="pnl-in"><div class="pnl-box" id="pb-${escHtml(r.id)}"></div></div></div></td></tr>`).join('');
 }
 
 async function toggleVisibility(id, isPublic) {
@@ -210,51 +221,99 @@ function _klawBasisLabel(b) {
     return ' <span style="font-weight:400;color:var(--txt4)">· 기준 ' + escHtml(o.version || '') + (o.draft ? ' (초안)' : '') + (o.at ? ' · ' + escHtml(new Date(o.at).toLocaleString('ko-KR')) : '') + '</span>'; } catch(e) { return ''; }
 }
 
-async function viewKlawHistoryDetail(id) {
-  if (typeof KAuth === 'undefined') return;
-  const modal = document.getElementById('klaw-history-detail-modal');
-  const body  = document.getElementById('klaw-history-detail-body');
-  modal.classList.add('open');
-  body.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--txt4);font-size:13px"><div class="spinner"></div>불러오는 중…</div>';
+const _klawDetail = {};   // id → 상세(한 번 불러오면 재사용)
+let _klawOpenId = null;
 
-  const doFetch = () => fetch(KLAW_API_BASE + '/klaw/sessions/detail?id=' + encodeURIComponent(id) +
-    '&phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
-
-  try {
-    let res = await doFetch();
-    let json = await res.json();
-    if (!json.ok && _klawIsRecoverableAuthError(json.message)) {
-      KAuth.logout();
-      await KAuth.ensureLogin();
-      res = await doFetch();
-      json = await res.json();
-    }
-    if (!json.ok) { body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div>`; return; }
-
-    const when = json.created ? new Date(json.created).toLocaleString('ko-KR') : '';
-    const metaRows = [
-      json.case_type ? `<div><b>사건 종류</b> — ${escHtml(json.case_type)}</div>` : '',
-      json.case_input ? `<div><b>사건 개요</b> — ${escHtml(json.case_input)}</div>` : '',
-      json.verdict ? `<div><b>주문</b> — ${escHtml(json.verdict)}</div>` : '',
-      json.case_summary ? `<div><b>판결 요약</b> — ${escHtml(json.case_summary)}</div>` : '',
-    ].filter(Boolean).join('');
-
-    body.innerHTML = `
-      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px">
-        ${escHtml(json.klaw_version || '')} · ${escHtml(json.llm_model || '')} · ${escHtml(json.case_level || '')} · ${escHtml(when)}
-        ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
-      </div>
-      ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
-      <div style="margin-bottom:10px"><a class="btn" href="desktop.html?eval=${encodeURIComponent(id)}" style="font-size:12px">이 판결문으로 일치도 평가</a></div>
-      ${json.match_report ? `<details class="eval-full" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700;font-size:13px">일치도 평가 보고서${_klawBasisLabel(json.match_basis)}</summary><pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:12.5px;line-height:1.7;color:var(--txt2);margin:8px 0 0">${escHtml(json.match_report)}</pre></details>` : ''}
-      <pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;line-height:1.7;color:var(--txt2);margin:0">${escHtml(json.verdict_full || '(저장된 전문이 없습니다)')}</pre>
-    `;
-  } catch(e) {
-    body.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오는 중 오류: ${escHtml(e.message)}</div>`;
-  }
+function _klawParseDocs(s) { try { const o = JSON.parse(s || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
+function _klawDlLink(name, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  return `<a href="${url}" download="${escHtml(name)}">내려받기</a>`;
 }
-function closeKlawHistoryDetail() {
-  document.getElementById('klaw-history-detail-modal').classList.remove('open');
+function _klawDocBlock(title, text, fname, none) {
+  if (!text || !String(text).trim()) return `<div class="doc-h">${escHtml(title)}</div><div class="doc-none">${none}</div>`;
+  return `<div class="doc-h"><span>${escHtml(title)}</span>${_klawDlLink(fname, text)}</div><pre class="doc-pre">${escHtml(text)}</pre>`;
+}
+const _KLAW_NO_DOC_HINT = '이 이력에는 저장된 문서가 없습니다. 나비웹 도우미(사건번호로 진행)로 만든 이력부터 판결문과 갱신 제안이 함께 저장됩니다.';
+
+// 탭 정의 — 각 탭은 해당 문서를 패널 안에서 연다.
+function _klawTabs(d) {
+  const docs = _klawParseDocs(d.case_docs);
+  const js = Array.isArray(docs.judgments) ? docs.judgments : [];
+  const lv = k => js.filter(j => j.level === k && j.text);
+  const upd = docs.update || {};
+  const no = d.case_no || docs.case_no || 'case';
+  const supreme = lv('supreme'), appeal = lv('appeal'), first = lv('first');
+  let basis = {}; try { basis = JSON.parse(d.match_basis || '{}'); } catch (e) {}
+  return [
+    { k: 'overview', label: '사건 개요', has: !!(d.case_input || d.verdict || d.case_summary), html: () => {
+        const rows = [
+          d.case_type ? `<div><b>사건 종류</b> — ${escHtml(d.case_type)}</div>` : '',
+          d.verdict ? `<div><b>주문</b> — ${escHtml(d.verdict)}</div>` : '',
+          d.case_summary ? `<div><b>판결 요약</b> — ${escHtml(d.case_summary)}</div>` : '',
+        ].filter(Boolean).join('');
+        return (rows ? `<div class="kv">${rows}</div>` : '') + _klawDocBlock('사건 개요(익명화된 입력)', d.case_input, `사건개요_${no}.txt`, '저장된 사건 개요가 없습니다.');
+      } },
+    { k: 'supreme', label: '대법원 판결', has: supreme.length > 0, html: () => supreme.length
+        ? supreme.map(j => _klawDocBlock('대법원 판결문' + (j.case_no ? ' ' + j.case_no : ''), j.text, `대법원판결_${j.case_no || no}.txt`, '')).join('')
+        : `<div class="doc-none">${_KLAW_NO_DOC_HINT}</div>` },
+    { k: 'lower', label: '1~2심 판결', has: appeal.length + first.length > 0, html: () => (appeal.length + first.length)
+        ? appeal.map(j => _klawDocBlock('2심 판결문' + (j.case_no ? ' ' + j.case_no : ''), j.text, `2심판결_${j.case_no || no}.txt`, '')).join('') +
+          first.map(j => _klawDocBlock('1심 판결문' + (j.case_no ? ' ' + j.case_no : ''), j.text, `1심판결_${j.case_no || no}.txt`, '')).join('') +
+          ((!appeal.length || !first.length) ? `<div class="doc-none">${!appeal.length ? '2심' : '1심'} 판결문은 확보하지 못했습니다. 원심이 일부 없어도 판결문 생성은 가능하지만 일치도가 낮아질 수 있습니다.</div>` : '')
+        : `<div class="doc-none">${_KLAW_NO_DOC_HINT}</div>` },
+    { k: 'verdict', label: '가상 판결문', has: !!d.verdict_full, html: () => _klawDocBlock('가상 판결문 전문', d.verdict_full, `가상판결문_${no}.txt`, '저장된 전문이 없습니다.') },
+    { k: 'eval', label: '일치도 평가', has: !!d.match_report, html: () =>
+        (d.match_rate ? `<div class="kv"><b>종합 일치도</b> — ${escHtml(d.match_rate)}</div>` : '') +
+        _klawDocBlock('일치도 평가 보고서', d.match_report, `일치도평가_${no}.md`, '아직 일치도 평가를 하지 않았습니다. <a href="desktop.html?eval=' + encodeURIComponent(d.id) + '">이 판결문으로 일치도 평가</a>') +
+        (docs.integrated ? _klawDocBlock('비교에 쓴 통합 판결문', docs.integrated, `통합판결문_${no}.md`, '') : '') },
+    { k: 'status', label: '방법론 갱신 여부', has: true, html: () => {
+        const ver = (basis.version ? escHtml(basis.version) + (basis.draft ? ' (초안)' : '') : '기록 없음');
+        const when = basis.at ? ' · 평가 시각 ' + escHtml(new Date(basis.at).toLocaleString('ko-KR')) : '';
+        const evalLine = d.match_report ? `일치도 평가 완료 — 평가 기준 ${ver}${when}` : '일치도 평가 전';
+        const updLine = upd.status === 'proposed'
+          ? '방법론 갱신 제안이 작성되었습니다. 방법론 파일에는 관리자의 검토·승인을 거쳐 반영됩니다(자동 반영되지 않음).'
+          : (d.match_report ? '이 이력에서는 방법론 갱신 제안을 작성하지 않았습니다.' : '일치도 평가 후에 갱신 제안을 작성할 수 있습니다.');
+        return `<div class="kv"><div><b>일치도 평가</b> — ${evalLine}</div><div><b>방법론 갱신</b> — ${updLine}</div></div>`;
+      } },
+    { k: 'update', label: '갱신 내용', has: upd.status === 'proposed' && !!upd.text, html: () => upd.text
+        ? _klawDocBlock('방법론 갱신 제안서' + (upd.at ? ' · ' + new Date(upd.at).toLocaleString('ko-KR') : ''), upd.text, `방법론갱신제안_${no}.md`, '')
+        : '<div class="doc-none">작성된 갱신 제안이 없습니다.</div>' },
+  ];
+}
+
+function _klawShowTab(id, k) {
+  const d = _klawDetail[id]; const box = document.getElementById('pb-' + id);
+  if (!d || !box) return;
+  const tabs = _klawTabs(d);
+  const cur = tabs.find(t => t.k === k) || tabs[0];
+  box.innerHTML = `<div class="pnl-top"><span>${escHtml(d.klaw_version || '')} · ${escHtml(d.llm_model || '')} · ${escHtml(d.created ? new Date(d.created).toLocaleString('ko-KR') : '')}${d.is_public ? '<span class="public-badge">공개</span>' : ''}</span><a class="btn" href="desktop.html?eval=${encodeURIComponent(id)}" style="font-size:12px">이 판결문으로 일치도 평가</a></div>
+    <div class="tabs" role="tablist">${tabs.map(t => `<button type="button" class="tab${t.k === cur.k ? ' on' : ''}${t.has ? '' : ' miss'}" role="tab" aria-selected="${t.k === cur.k}" onclick="event.stopPropagation();_klawShowTab('${escHtml(id)}','${t.k}')">${t.label}</button>`).join('')}</div>
+    <div>${cur.html()}</div>`;
+}
+
+async function togglePanel(id) {
+  const row = document.getElementById('r-' + id), pr = document.getElementById('p-' + id);
+  if (!row || !pr) return;
+  const willOpen = !pr.classList.contains('open');
+  if (_klawOpenId && _klawOpenId !== id) {            // 한 번에 하나만 펼친다
+    document.getElementById('p-' + _klawOpenId)?.classList.remove('open');
+    document.getElementById('r-' + _klawOpenId)?.classList.remove('open');
+  }
+  pr.classList.toggle('open', willOpen); row.classList.toggle('open', willOpen);
+  _klawOpenId = willOpen ? id : null;
+  if (!willOpen || _klawDetail[id]) { if (willOpen) _klawShowTab(id, 'overview'); return; }
+  const box = document.getElementById('pb-' + id);
+  box.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--txt4);font-size:13px"><div class="spinner"></div>불러오는 중…</div>';
+  const doFetch = () => fetch(KLAW_API_BASE + '/klaw/sessions/detail?id=' + encodeURIComponent(id) + '&phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
+  try {
+    let res = await doFetch(); let json = await res.json();
+    if (!json.ok && _klawIsRecoverableAuthError(json.message)) { KAuth.logout(); await KAuth.ensureLogin(); res = await doFetch(); json = await res.json(); }
+    if (!json.ok) { box.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div>`; return; }
+    json.id = id; _klawDetail[id] = json;
+    _klawShowTab(id, 'overview');
+  } catch (e) {
+    box.innerHTML = `<div style="color:var(--red);font-size:13px">⚠ 불러오는 중 오류: ${escHtml(e.message)}</div>`;
+  }
 }
 
 loadBoard();

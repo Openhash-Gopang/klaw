@@ -88,6 +88,21 @@
   function clip(t, n) { t = String(t || ''); return t.length > n ? t.slice(0, n) + '\n…(이하 생략)' : t; }
 
   /* ───────── 단계 정의 ───────── */
+  /* 이력(내 판결 이력)에 사건번호와 확보한 문서들을 남긴다 — 본인 이력에서 탭별로 다시 열람한다 */
+  function saveDocs() {
+    var id = window._klawCurrentSessionId;
+    if (!id || typeof KAuth === 'undefined' || !KAuth.getToken) return Promise.resolve();
+    var cut = function (t) { return String(t || '').slice(0, 150000); };
+    var docs = {
+      v: 1, case_no: window._klawAssistCaseNo || '',
+      judgments: (S.out.judgments || []).map(function (f) { return { level: f.level, court: f.court || '', case_no: f.caseNo || '', text: cut(f.text) }; }),
+      integrated: cut(S.out.int),
+      update: S.out.update ? { status: 'proposed', text: cut(S.out.update), at: new Date().toISOString() } : { status: 'none' }
+    };
+    return fetch(KLAW_API_BASE + '/klaw/sessions/visibility', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, phone_verify_token: KAuth.getToken(), case_no: window._klawAssistCaseNo || '', case_docs: JSON.stringify(docs) }) }).catch(function () { /* 이력 저장 실패는 진행을 막지 않는다 */ });
+  }
+
   var STAGES = [
     { id: 'fetch', name: '판결문 확보', run: stageFetch },
     { id: 'anon', name: '익명화', run: stageAnon },
@@ -224,7 +239,7 @@
     for (; i < STAGES.length; i++) {
       if (S.abort) break;
       S.stage = i; setStep(i + 1, STAGES.length, STAGES[i].name);
-      try { await STAGES[i].run(); }
+      try { await STAGES[i].run(); if (i >= 3) await saveDocs(); }
       catch (e) {
         live.end(); S.running = false;
         say(STAGES[i].name + ' 단계에서 멈췄습니다: ' + (e && e.message || e), { err: true });
@@ -235,7 +250,7 @@
     S.running = false;
     if (!S.abort) {
       setStep(STAGES.length, STAGES.length, '완료');
-      say('모든 과정을 마쳤습니다. 위 문서 링크는 이 창을 닫으면 사라지니 필요한 문서는 내려받아 두세요. 평가 결과는 "내 이력"에서 다시 볼 수 있습니다.', { ok: true });
+      say('모든 과정을 마쳤습니다. 위 문서 링크는 이 창을 닫으면 사라집니다. 사건 개요·판결문·평가·갱신 제안은 "판결 이력"에서 사건번호를 눌러 탭별로 다시 볼 수 있습니다.', { ok: true });
     }
     actions([]);
   }
@@ -246,6 +261,7 @@
     if (!CASE_RE.test(caseNo) && !(files && files.length)) { say('사건번호 형식이 올바르지 않습니다. 예: 2024도7082', { err: true }); return manualForm(); }
     if (S.running) return;
     S.caseNo = caseNo || '첨부'; S.files = files || []; S.out = {}; S.abort = false;
+    window._klawAssistCaseNo = /^\d{2,4}[가-힣]{1,4}\d{1,7}$/.test(String(caseNo || '').replace(/\s+/g, '')) ? String(caseNo).replace(/\s+/g, '') : '';
     headEl.textContent = '사건번호 ' + S.caseNo;
     say('도우미를 시작합니다. 사건번호 ' + S.caseNo + ' — 판결문 확보부터 방법론 갱신 제안까지 진행합니다. 가상 판결문 생성에는 GDC가 사용량만큼 차감됩니다.');
     say('안내: 판결문은 매번 새로 익명화한 뒤(실명·법인명·지명·물품·수량·일시를 가상 값으로 변경) 가상 판결문을 생성합니다. 그래서 같은 판례를 여러 사용자가 같은 AI로 생성하더라도, AI가 그 사건을 기억하고 있는지와 관계없이 입력에는 원래 사건을 알아볼 단서가 없어 판결문 생성에 영향을 주지 않도록 했습니다.');

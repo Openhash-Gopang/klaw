@@ -1189,7 +1189,10 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
         // 제목은 자동 생성, 공개 여부는 기본 false(비공개). 공개 전환은
         // my-history.html에서 사후에 토글한다.
         title:        _klawDeriveTitle(simData.caseType, simData.caseSummary, simData.caseName),
-        is_public:    false,
+        // 2026-11-11(주피터 지시) — 사건번호는 이력 제목으로 쓰고, 공개 여부의 기본값은 '공개'.
+        // 사후에 my-history.html에서 비공개로 바꿀 수 있다.
+        case_no:      window._klawAssistCaseNo || (String(simData.caseInput || '').match(/\d{2,4}[가-힣]{1,4}\d{1,7}/) || [''])[0],
+        is_public:    true,
       })
     });
     const json = await res.json();
