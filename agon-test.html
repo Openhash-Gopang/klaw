@@ -4,7 +4,7 @@
 <link rel="icon" href="data:,">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agon 테스트 하기</title>
+<title>K-Law 성능 테스트 하기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
 :root {
@@ -137,11 +137,11 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 <body>
 <div class="wrap">
   <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
-  <h1>Agon 테스트 하기</h1>
-  <p class="lead">대법원 최신 판례 한 건으로 Agon 방법론의 가상 판결문을 직접 생성하고, 표준 판결문과의 일치도를 평가해 보는 테스트입니다. 서로 다른 두 개의 API Key로 작업을 분리합니다.</p>
+  <h1>K-Law 성능 테스트 하기</h1>
+  <p class="lead">대법원 최신 판례 한 건으로 K-Law 방법론의 가상 판결문을 직접 생성하고, 표준 판결문과의 일치도를 평가해 보는 테스트입니다. 서로 다른 두 개의 API Key로 작업을 분리합니다.</p>
   <div class="pills">
-    <a href="rounds.html">Agon 테스트 진행 상황</a>
-    <a href="verdict-generate.html">Agon 가상 판결문 생성하기</a>
+    <a href="rounds.html">K-Law 테스트 진행 상황</a>
+    <a href="desktop.html">K-Law 가상 판결문 생성하기</a>
     <a href="library.html">K-Law 자료실</a>
   </div>
   <div class="notice">⚠️ 연구 테스트입니다. 결과는 자체 실험 결과로 제3자 검증을 거치지 않았습니다.</div>
@@ -161,12 +161,12 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 
     <div class="field">
       <label for="key2">두 번째 API Key</label>
-      <span class="role">Agon 가상 판결문 생성 (익명화된 사건 개요만 전달받습니다)</span>
+      <span class="role">K-Law 가상 판결문 생성 (익명화된 사건 개요만 전달받습니다)</span>
       <div class="keyrow">
         <input type="password" id="key2" autocomplete="off" spellcheck="false" placeholder="두 번째 LLM의 API Key (첫 번째와 다른 Key)">
         <button type="button" class="mini" data-toggle="key2">보기</button>
       </div>
-      <div class="warn" id="same-warn" role="alert">두 Key가 같습니다. 사건 개요 작성과 가상 판결문 생성에 같은 Key를 쓰면 Agon의 성능을 테스트할 수 없습니다. 서로 다른 Key를 입력해 주세요.</div>
+      <div class="warn" id="same-warn" role="alert">두 Key가 같습니다. 사건 개요 작성과 가상 판결문 생성에 같은 Key를 쓰면 K-Law의 성능을 테스트할 수 없습니다. 서로 다른 Key를 입력해 주세요.</div>
     </div>
 
     <div class="field">
@@ -193,7 +193,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
   <section class="card panel wide open" aria-labelledby="h-res">
     <button type="button" class="panel-h" id="h-res" aria-expanded="true" aria-controls="h-res-b"><span>2. 테스트 결과</span><span class="chev" aria-hidden="true">▾</span></button>
     <div class="panel-b" id="h-res-b"><div class="panel-in"><div class="panel-pad">
-    <p class="sub">테스트가 끝난 사건이 <a href="rounds.html">Agon 라운드별 시험 기록</a>과 같은 형식으로 나열됩니다. 날짜와 작성자(익명) 열이 추가되어, 내 테스트만 보거나 사건을 검색할 수 있습니다. 검색창에는 <b>대략적인 사건 개요를 문장으로</b> 입력하십시오. 비슷한 사건이 관련도 순으로 나열됩니다.</p>
+    <p class="sub">테스트가 끝난 사건이 <a href="rounds.html">K-Law 라운드별 시험 기록</a>과 같은 형식으로 나열됩니다. 날짜와 작성자(익명) 열이 추가되어, 내 테스트만 보거나 사건을 검색할 수 있습니다. 검색창에는 <b>대략적인 사건 개요를 문장으로</b> 입력하십시오. 비슷한 사건이 관련도 순으로 나열됩니다.</p>
     <div class="res-me">내 작성자 코드: <code id="my-id">-</code> · 이 코드는 이 브라우저가 만든 무작위 익명 코드이며 API Key나 계정 정보와 무관합니다. 다른 기기에서 내 테스트를 보려면 아래 검색창에 이 코드를 입력하십시오(사건 번호·날짜·작성자 코드도 그대로 찾아집니다).</div>
     <div class="ver-box" id="ver-box"></div>
     <div class="res-tools">
@@ -247,7 +247,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     <p>시뮬레이션 당사자가 자주 이용하는 LLM의 API Key 두 개를 준비합니다. 각 LLM의 API Key를 얻는 방법은 해당 LLM에게 질의하십시오. 두 Key를 위 필드에 각각 입력합니다.</p>
     <ol class="flow">
       <li><span class="who">첫 번째 Key</span><b>사건 자료 작성.</b> 첨부한 판례를 바탕으로 완전히 익명화된 사건의 개요, 쉬운 설명, 원고 주장, 피고 주장, 표준 판결문(1~3심 통합 판결문)을 작성합니다.</li>
-      <li><span class="who k2">두 번째 Key</span><b>가상 판결문 생성.</b> 익명화된 사건의 개요만 두 번째 Key로 전달되어 Agon 가상 판결문을 생성합니다. 표준 판결문은 전달되지 않습니다.</li>
+      <li><span class="who k2">두 번째 Key</span><b>가상 판결문 생성.</b> 익명화된 사건의 개요만 두 번째 Key로 전달되어 K-Law 가상 판결문을 생성합니다. 표준 판결문은 전달되지 않습니다.</li>
       <li><span class="who">첫 번째 Key</span><b>일치도 평가.</b> 생성된 가상 판결문이 첫 번째 Key로 전달되어, 표준 판결문과의 일치도를 평가합니다.</li>
     </ol>
 
@@ -255,7 +255,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     <p>두 Key를 쓰는 이유는 두 작업이 서로의 작업을 알 수 없게 하는 것입니다.</p>
     <div class="rules">
       <div class="rule good"><b>바람직한 구성.</b> 첫 번째와 두 번째 Key는 서로 다른 LLM의 Key를 쓰는 것이 바람직합니다. 하나의 LLM이라면 서로 다른 두 개의 Key를 준비합니다.</div>
-      <div class="rule"><b>하나의 Key로 사건 개요와 판결문을 함께 작성하지 마십시오.</b> 사건 개요와 판결문 작성을 하나의 Key로 동시에 진행하면, LLM이 이미 판결 결과를 알고 있으므로 Agon의 성능을 테스트할 수 없습니다.</div>
+      <div class="rule"><b>하나의 Key로 사건 개요와 판결문을 함께 작성하지 마십시오.</b> 사건 개요와 판결문 작성을 하나의 Key로 동시에 진행하면, LLM이 이미 판결 결과를 알고 있으므로 K-Law의 성능을 테스트할 수 없습니다.</div>
       <div class="rule"><b>사건 개요 작성에 쓴 Key는 그 사건의 가상 판결문 생성에 쓸 수 없습니다.</b> 특정 LLM의 특정 API Key가 특정 사건의 개요 작성에 이용되었다면, 그 Key는 그 사건의 가상 판결문 생성에 이용할 수 없습니다. 이미 정답을 알고 있기 때문입니다. 같은 사건을 다시 테스트할 때 첫 번째와 두 번째 Key를 서로 맞바꿔 쓰는 것도 같은 이유로 안 됩니다.</div>
     </div>
     </div></div></div>
@@ -267,9 +267,9 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     <div class="panel-b" id="h-safe-b"><div class="panel-in"><div class="panel-pad">
     <ul>
       <li>API Key는 비밀번호와 같습니다. 가능하면 테스트 전용 Key를 새로 만들어 쓰십시오. 아래 하단 경고를 항상 확인하십시오.</li>
-      <li><b>테스트 기록.</b> 테스트가 끝나면 <a href="rounds.html">Agon 라운드별 시험 기록</a>의 라운드처럼 사건번호, 사건의 개요, 일치도 평가 결과 등을 기록합니다. API Key는 기록하지 않습니다.</li>
+      <li><b>테스트 기록.</b> 테스트가 끝나면 <a href="rounds.html">K-Law 라운드별 시험 기록</a>의 라운드처럼 사건번호, 사건의 개요, 일치도 평가 결과 등을 기록합니다. API Key는 기록하지 않습니다.</li>
       <li>API 사용 비용은 Key를 발급한 계정에 청구됩니다. 판례 한 건의 테스트에는 세 번 이상의 LLM 호출이 필요합니다.</li>
-      <li>일치도 평가 기준과 Agon 방법론의 차이는 <a href="verdict-generate.html">Agon 가상 판결문 생성하기</a> 상단의 비교표에서, 지금까지의 시험 결과는 <a href="rounds.html">Agon 테스트 진행 상황</a>에서 볼 수 있습니다.</li>
+      <li>일치도 평가 기준과 방법론은 <a href="desktop.html">K-Law 판결 시뮬레이터</a>의 "일치도 평가" 안내(?)에서 볼 수 있습니다.</li>
     </ul>
     </div></div></div>
   </section>
@@ -381,7 +381,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
       return d[it[0]] ? '<a href="' + esc(viewer(d[it[0]], it[1])) + '" target="_blank" rel="noopener">' + it[1] + '</a>' : '<span class="na-cell">' + it[1] + '</span>';
     }).join('') + '</div>';
   }
-  // Agon 버전별 집계
+  // K-Law 버전별 집계
   var verSel = '';
   function verKey(v) { return String(v || '').replace(/[^0-9.]/g, '').split('.').map(function (n) { return parseInt(n || '0', 10); }); }
   function verCmp(a, b) { var x = verKey(a), y = verKey(b); for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (y[i] || 0) - (x[i] || 0); if (d) return d; } return 0; }
@@ -404,7 +404,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
         + '<td>' + (avg == null ? '–' : '<span class="ver-bar" style="width:' + Math.round(avg * 6) + 'px"></span><b>' + avg.toFixed(2) + '</b> / 10 <small style="color:var(--txt4)">(' + o.ns + '건)</small>') + '</td>'
         + '<td>' + (rate == null ? '–' : rate + '%') + '</td>';
     }
-    var h = '<h3>Agon 버전별 일치도</h3><div class="res-scroll"><table class="ver-table"><thead><tr><th>Agon 버전</th><th>건수</th><th>일치</th><th>잠정 일치</th><th>불일치</th><th>평균 점수</th><th>일치율<br><small>(일치+잠정)</small></th></tr></thead><tbody>';
+    var h = '<h3>K-Law 버전별 일치도</h3><div class="res-scroll"><table class="ver-table"><thead><tr><th>K-Law 버전</th><th>건수</th><th>일치</th><th>잠정 일치</th><th>불일치</th><th>평균 점수</th><th>일치율<br><small>(일치+잠정)</small></th></tr></thead><tbody>';
     names.forEach(function (v) {
       var o = g[v]; ['n', 'ok', 'pv', 'ng', 'sum', 'ns'].forEach(function (k) { tot[k] += o[k]; });
       h += '<tr class="vrow' + (verSel === v ? ' vsel' : '') + '" data-v="' + esc(v) + '" title="클릭하면 이 버전의 사건만 봅니다"><td>' + esc(v) + '</td>' + cells(o) + '</tr>';
@@ -440,7 +440,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
       body.innerHTML = '<div class="res-empty">' + (rows.length ? '조건에 맞는 테스트 결과가 없습니다.' : '아직 기록된 테스트 결과가 없습니다. 테스트가 끝나면 이곳에 나열됩니다.') + '</div>';
       return;
     }
-    var h = '<div class="res-scroll"><table class="ctable"><thead><tr><th class="sk">사건</th>' + (ranked ? '<th>관련도</th>' : '') + '<th>일시</th><th>작성자</th><th>Agon 버전</th><th>사건 개요 요지</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>가상 판결</th><th>일치도 평가</th></tr></thead><tbody>';
+    var h = '<div class="res-scroll"><table class="ctable"><thead><tr><th class="sk">사건</th>' + (ranked ? '<th>관련도</th>' : '') + '<th>일시</th><th>작성자</th><th>K-Law 버전</th><th>사건 개요 요지</th><th>법리 일치</th><th>분석 자료</th><th>대법원</th><th>2심</th><th>1심</th><th>가상 판결</th><th>일치도 평가</th></tr></thead><tbody>';
     list.forEach(function (c) {
       var d = c.docs || {};
       h += '<tr' + (c.author === myId ? ' class="me"' : '') + '><td class="sk">' + esc(c.id || c.case_no) + '</td>'
