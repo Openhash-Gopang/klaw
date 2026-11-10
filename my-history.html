@@ -245,7 +245,7 @@ async function viewKlawHistoryDetail(id) {
         ${json.is_public ? '<span class="public-badge">공개</span>' : ''}
       </div>
       ${metaRows ? `<div class="klaw-hd-meta">${metaRows}</div>` : ''}
-      <div style="margin-bottom:10px"><a class="btn" href="verdict-generate.html?eval=${encodeURIComponent(id)}" style="font-size:12px">Agon에서 일치도 평가 (통합 판결문)</a> <a class="btn" href="desktop.html?eval=${encodeURIComponent(id)}" style="font-size:12px">K-Law에서 일치도 평가 (실제 판결문)</a></div>
+      <div style="margin-bottom:10px"><a class="btn" href="desktop.html?eval=${encodeURIComponent(id)}" style="font-size:12px">이 판결문으로 일치도 평가</a></div>
       ${json.match_report ? `<details class="eval-full" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700;font-size:13px">일치도 평가 보고서${_klawBasisLabel(json.match_basis)}</summary><pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:12.5px;line-height:1.7;color:var(--txt2);margin:8px 0 0">${escHtml(json.match_report)}</pre></details>` : ''}
       <pre style="white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;line-height:1.7;color:var(--txt2);margin:0">${escHtml(json.verdict_full || '(저장된 전문이 없습니다)')}</pre>
     `;

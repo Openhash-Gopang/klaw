@@ -122,34 +122,10 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
         <tr><th>하려는 일</th><th>누를 버튼</th></tr>
         <tr><td>내 사건(소송 중이거나 소송 전)의 가상 판결문을 받아 보고 싶다</td><td><a href="#b-virtual">가상 판결</a></td></tr>
         <tr><td>K-Law가 실제 대법원 판결과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-v151">성능 테스트 · K-Law v15.1</a></td></tr>
-        <tr><td>새 방법론 Agon이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-agon">성능 테스트 · Agon 1.0</a></td></tr>
-        <tr><td>Agon 방법론이 어떤 시험을 거쳐 어떻게 바뀌어 왔는지 보고 싶다</td><td><a href="#b-rounds">Agon 갱신 이력</a></td></tr>
+        <tr><td>K-Law 최신 버전이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-agon">성능 테스트 · K-Law 최신</a></td></tr>
+        <tr><td>K-Law 방법론이 어떤 시험을 거쳐 어떻게 바뀌어 왔는지 보고 싶다</td><td><a href="#b-rounds">K-Law 갱신 이력</a></td></tr>
         <tr><td>스마트폰에서 AI와 대화하면서 가상 판결문을 만들고 싶다</td><td><a href="#b-mobile">모바일 웹앱</a></td></tr>
       </table>
-    </div>
-    </div></div>
-  </section>
-
-  <section class="acc" id="compare">
-    <h2><button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-compare"><span>K-Law와 Agon, 무엇이 다른가요</span><span class="acc-chev" aria-hidden="true"></span></button></h2>
-    <div class="acc-panel" id="acc-compare"><div class="acc-inner">
-    <p class="sec-desc">두 방법론은 입력 데이터, 판단 방법, 채점 기준이 서로 다른 별개의 방법론입니다. 일치도는 직접 비교할 수 없습니다.</p>
-    <div class="tablewrap">
-      <table>
-        <tr><th>항목</th><th>K-Law (v15.x)</th><th>Agon (0.x, 구 v17.x)</th></tr>
-        <tr><td>목적</td><td>1·2심 판단을 입력받아 대법원의 결론을 예측</td><td>1~3심과 헌법재판소로 나뉜 사법 체제를 하나로 통합한 가상의 "통합심"과 그 "표준 판결문"을 도출하고, 이를 기준으로 가상 판결문을 채점</td></tr>
-        <tr><td>모델 입력</td><td>사건요지(A4 1쪽, 한글 약 5,000자). 1라운드 기준선 시험(v15.1)은 원심 판단 요지가 포함된 검토용 개요</td><td>독립 개요: 당사자, 사건의 경위, 청구와 주장만. 1·2·3심 결론, 심급, 상소인, 법원명, 사건번호는 제외하고 식별정보를 제거(심급은 상고심으로 고정)</td></tr>
-        <tr><td>원심 결과</td><td>입력에 포함될 수 있음(기준선 시험)</td><td>완전 비공개</td></tr>
-        <tr><td>판단 절차</td><td>STEP 0 → A → B → C. 피고의 최강 논거를 1회 구성한 뒤 판단</td><td><b>변증법적 공방</b>(원고 청구 → 피고 방어 → 재반박 → 중단 판정) → 자기 검증 → 별도 세션 검수 → 재검토</td></tr>
-        <tr><td>채점 기준</td><td>일치도 평가 기준 v1.6: 10점 = 결론 방향 4 + 핵심 법리 3 + 세부 논증 3</td><td>일치도 평가 기준 v3.0: 10점 = 법리 일치 7(법리 해석·적용 3 + 승소 당사자·영역 2 + 승소 수준 2) + 세부 논증 3</td></tr>
-        <tr><td>주문 라벨</td><td>최종 주문의 방향(인용, 기각, 파기, 환송 등) 일치를 4점으로 채점</td><td>절차적 주문 라벨 비교를 폐지하고 법리와 원고·피고 승패를 비교. 파기환송은 방향성 법리만 비교</td></tr>
-        <tr><td>비교 기준</td><td>실제 대법원 판결문</td><td>실제 대법원 판결문. 시범으로 1·2·3심을 종합한 "모범 판결문" 명제표를 채점 기준으로 시험 중</td></tr>
-        <tr><td>규모와 결과</td><td>대법원 판례 300건. 주문(유지/파기) 일치 73%, 평균 7.44/10(자체 실측)</td><td>개발 세트 100건을 10건씩 10라운드로 시험 중. 일치, 잠정 일치, 불일치로 판정한 잠정 결과</td></tr>
-        <tr><td>AI 엔진</td><td>해외 LLM(v15.1). v15.2 이상은 Navi</td><td>해외 LLM(최신 버전). 이후 버전은 Navi</td></tr>
-      </table>
-    </div>
-    <div class="notice" style="margin-top:12px">
-      두 방법론의 일치도는 채점 기준이 달라 직접 비교할 수 없습니다. 모든 수치는 자체 실험 결과이며 제3자 검증 전입니다. 출처: 일치도 평가 기준 v1.6·v3.0, 사건 개요 작성 규칙, K-Law 검증 보고서 v2.0. K-Law는 <a href="#b-v151">성능 테스트 · K-Law v15.1</a>, Agon은 <a href="#b-agon">성능 테스트 · Agon 1.0</a>에서 직접 시험할 수 있습니다.
     </div>
     </div></div>
   </section>
@@ -162,12 +138,10 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
         <tr><th>버전</th><th>AI 엔진</th></tr>
         <tr><td>K-Law v15.1 (이 사이트에 적용)</td><td>ChatGPT, DeepSeek, Gemini 등 해외 LLM</td></tr>
         <tr><td>K-Law v15.2 이상</td><td>A.X 4.0을 파인튜닝한 Navi(나비) LLM. 상세는 추후 공개 예정입니다.</td></tr>
-        <tr><td>Agon 최신 버전 (이 사이트에 적용)</td><td>ChatGPT, DeepSeek, Gemini 등 해외 LLM</td></tr>
-        <tr><td>Agon 이후 버전</td><td>A.X 4.0을 파인튜닝한 Navi(나비) LLM. 상세는 추후 공개 예정입니다.</td></tr>
       </table>
     </div>
     <div class="notice" style="margin-top:12px">
-      이 사이트에서 직접 고르는 AI는 모두 해외 LLM입니다. Navi LLM을 쓰는 K-Law v15.2 이상과 Agon 이후 버전은 아직 공개되지 않았고, 아래 API Key 안내는 해외 LLM을 쓰기 위한 것입니다. 성능 테스트 · K-Law v15.1 화면의 <b>나비 AI</b> 탭은 이 Navi LLM을 위한 자리이며 <b>준비 중</b>입니다.
+      이 사이트에서 직접 고르는 AI는 모두 해외 LLM입니다. Navi LLM을 쓰는 이후 버전은 아직 공개되지 않았고, 아래 API Key 안내는 해외 LLM을 쓰기 위한 것입니다. 성능 테스트 · K-Law v15.1 화면의 <b>나비 AI</b> 탭은 이 Navi LLM을 위한 자리이며 <b>준비 중</b>입니다.
     </div>
     </div></div>
   </section>
@@ -195,7 +169,7 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <div class="tablist" role="tablist" aria-label="첫 화면 버튼 설명">
       <button type="button" class="chip tab" role="tab" id="tab-b-virtual" aria-controls="b-virtual" aria-selected="true">가상 판결<small>작성 · 공개</small></button>
       <button type="button" class="chip tab" role="tab" id="tab-b-v151" aria-controls="b-v151" aria-selected="false" tabindex="-1">성능 테스트<small>K-Law v15.1</small></button>
-      <button type="button" class="chip tab" role="tab" id="tab-b-agon" aria-controls="b-agon" aria-selected="false" tabindex="-1">성능 테스트<small>Agon 1.0</small></button>
+      <button type="button" class="chip tab" role="tab" id="tab-b-agon" aria-controls="b-agon" aria-selected="false" tabindex="-1">성능 테스트<small>K-Law 최신</small></button>
     </div>
   <article class="card tabpanel" id="b-virtual" role="tabpanel" aria-labelledby="tab-b-virtual" tabindex="0">
     <div class="card-head">
@@ -282,13 +256,13 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
 
   <article class="card tabpanel" id="b-agon" role="tabpanel" aria-labelledby="tab-b-agon" tabindex="0">
     <div class="card-head">
-      <p class="what">새 방법론 Agon이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험합니다.</p>
-      <a class="chip outline open" href="verdict-generate.html">이 화면 열기 →</a>
+      <p class="what">K-Law 최신 버전이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험합니다.</p>
+      <a class="chip outline open" href="desktop.html">이 화면 열기 →</a>
     </div>
     <div class="facts">
-      <div class="fact"><b>용도와 목적</b><p>Agon은 1심, 2심, 3심과 헌법재판소로 나뉜 판단을 하나로 합친 가상의 "통합심"과 그 "표준 판결문"을 만드는 것이 목표인 방법론입니다. 이 페이지는 그 성능을 시험하는 곳입니다.</p></div>
-      <div class="fact"><b>이럴 때 쓰세요</b><p>이전 K-Law(v15.1)와 Agon이 어떻게 다른지 직접 비교하고 싶을 때.</p></div>
-      <div class="fact"><b>적용 방법론</b><p>Agon 0.x (시험 단계, 해외 LLM). 정식 Agon 1.0은 2027년 상반기 공개 예정입니다.</p></div>
+      <div class="fact"><b>용도와 목적</b><p>K-Law의 통합심 방식은 1심, 2심, 3심과 헌법재판소로 나뉜 판단을 하나로 합친 가상의 "통합심"과 그 "표준 판결문"을 만드는 것이 목표인 방법론입니다. 이 페이지는 그 성능을 시험하는 곳입니다.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>통합심 방식(법리 한정 비교)의 결과를 직접 확인하고 싶을 때.</p></div>
+      <div class="fact"><b>적용 방법론</b><p>K-Law 최신 방법론(시험 단계, 해외 LLM).</p></div>
     </div>
     <div class="notice">
       <b>준비물: API Key 2개 이상.</b> 하나는 <b>사건 개요 작성, 쉬운 설명, 일치도 평가</b>(키 A)에, 다른 하나는 <b>가상 판결문 생성</b>(키 B)에 씁니다. 가능하면 서로 다른 AI 제공자의 키를 쓰세요. 하나의 키로 사건 개요 작성과 가상 판결문 작성을 모두 하면, AI가 이미 정답을 알고 판결문을 쓰게 되어 데이터가 오염됩니다.
@@ -296,13 +270,12 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <h3>사용법</h3>
     <ol>
       <li>입력 화면은 앞의 "성능 테스트 · K-Law v15.1"과 같은 순서입니다. 최신 대법원 판례를 고르고, <b>키 A의 AI</b>로 사실관계만 뽑아 <b>"사건의 개요"</b>를 만듭니다.</li>
-      <li>Agon의 사건 개요는 원심 결과를 가린 <b>독립 개요</b>입니다. 당사자, 경위, 청구와 주장만 넣고 1·2·3심의 결론, 법원명, 사건번호는 뺍니다.</li>
+      <li>K-Law의 사건 개요는 원심 결과를 가린 <b>독립 개요</b>입니다. 당사자, 경위, 청구와 주장만 넣고 1·2·3심의 결론, 법원명, 사건번호는 뺍니다.</li>
       <li>개요를 <b>"사건의 개요"</b>에 넣고 AI 모델을 <b>키 B의 AI</b>로 바꿔 키 B를 입력한 뒤 <b>"분석 시작"</b>을 누릅니다. 원고 청구, 피고 방어, 재반박을 거치는 변증법적 공방과 자기 검증을 거쳐 가상 판결문이 만들어집니다.</li>
-      <li>AI 모델을 다시 <b>키 A의 AI</b>로 바꾸고 <b>"일치도 평가"</b>에서 실제 판결문과 비교합니다. 평가 기준은 Agon용(법리와 승소 당사자 중심)을 씁니다.</li>
+      <li>AI 모델을 다시 <b>키 A의 AI</b>로 바꾸고 <b>"일치도 평가"</b>에서 실제 판결문과 비교합니다. 평가 기준은 통합 판결문과 법리만 비교하는 방식(법리 중심)을 씁니다.</li>
     </ol>
     <div class="note">
       <ul>
-        <li>화면 위쪽의 "K-Law와 Agon 비교표 보기"에서 입력 데이터, 판단 방법, 채점 방식의 차이를 볼 수 있습니다. 두 방법론의 일치도는 직접 비교할 수 없습니다.</li>
         <li>지금 단계의 결과는 잠정치이며 제3자 검증 전입니다.</li>
       </ul>
     </div>
@@ -312,25 +285,25 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
 
   <article class="card" id="b-rounds">
     <div class="card-head">
-      <a class="chip outline" href="rounds.html">Agon 갱신 이력</a>
-      <p class="what">Agon을 시험하고 고쳐 온 과정을 라운드별로 기록한 페이지입니다. 읽는 곳이며 입력할 것은 없습니다.</p>
+      <a class="chip outline" href="rounds.html">K-Law 갱신 이력</a>
+      <p class="what">K-Law를 시험하고 고쳐 온 과정을 라운드별로 기록한 페이지입니다. 읽는 곳이며 입력할 것은 없습니다.</p>
     </div>
     <div class="facts">
       <div class="fact"><b>용도와 목적</b><p>방법론을 어떤 사건으로 시험했고 무엇이 틀렸으며 무엇을 고쳤는지 투명하게 보여 주는 곳입니다.</p></div>
-      <div class="fact"><b>이럴 때 쓰세요</b><p>Agon을 믿어도 되는지 판단하고 싶을 때, 시험 방법과 한계를 확인하고 싶을 때, 연구에 인용하려고 할 때.</p></div>
+      <div class="fact"><b>이럴 때 쓰세요</b><p>K-Law를 믿어도 되는지 판단하고 싶을 때, 시험 방법과 한계를 확인하고 싶을 때, 연구에 인용하려고 할 때.</p></div>
       <div class="fact"><b>갱신 주기</b><p>방법론은 매주 갱신하며 기본적으로 1주일에 0.1씩 버전이 오릅니다. 버전별 기록은 <a href="library/benchmark/methodology-history.html">방법론 갱신 과정 · 버전 이력</a>에 있습니다.</p></div>
     </div>
     <h3>사용법</h3>
     <ol>
-      <li>맨 위의 두 탭에서 <b>Agon</b>(현재 시험)과 <b>이전 K-Law v15 판결 성능 검증</b>(300건 기록)을 고릅니다.</li>
-      <li>Agon 탭에서 라운드를 고르면 그 라운드가 쓴 방법론, 사건별 실제 판결문, 사건 개요, Agon의 가상 판결문, 법리 일치 여부, 단계별 결과, 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</li>
+      <li>맨 위의 두 탭에서 <b>K-Law</b>(현재 시험)과 <b>이전 K-Law v15 판결 성능 검증</b>(300건 기록)을 고릅니다.</li>
+      <li>K-Law 탭에서 라운드를 고르면 그 라운드가 쓴 방법론, 사건별 실제 판결문, 사건 개요, K-Law의 가상 판결문, 법리 일치 여부, 단계별 결과, 방법론을 갱신했는지 보류했는지에 대한 판단 근거를 볼 수 있습니다.</li>
       <li>"실험 환경", "날짜별 진행 기록", "방법론 갱신 기록", "검수 SP", "일치도 성적표 다운로드(CSV)"는 눌러서 펼치는 항목입니다.</li>
-      <li>직접 돌려 본 테스트 결과는 페이지 위쪽의 "Agon 테스트 결과 목록"에서 볼 수 있습니다. 테스트를 직접 실행하는 기능은 준비 중입니다.</li>
+      <li>직접 돌려 본 테스트 결과는 페이지 위쪽의 "K-Law 테스트 결과 목록"에서 볼 수 있습니다. 테스트를 직접 실행하는 기능은 준비 중입니다.</li>
     </ol>
     <div class="note">
       <ul>
         <li>아직 진행하지 않은 라운드는 표시만 있고 내용이 없습니다. 수치는 진행 중인 잠정치입니다.</li>
-        <li>Agon은 원심 결과를 보지 못하므로 사실인정과 원심 판단의 근거가 없다는 구조적 한계가 있습니다. 같은 페이지의 설명을 함께 읽으세요.</li>
+        <li>K-Law은 원심 결과를 보지 못하므로 사실인정과 원심 판단의 근거가 없다는 구조적 한계가 있습니다. 같은 페이지의 설명을 함께 읽으세요.</li>
       </ul>
     </div>
   </article>

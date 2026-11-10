@@ -159,6 +159,10 @@ button{font-family:var(--font);cursor:pointer}
 .hint-btn:hover{border-color:var(--pri);color:var(--pri)}
 .hint-btn[aria-expanded="true"]{background:var(--pri);border-color:var(--pri);color:#fff}
 .hint-box[hidden]{display:none!important}
+.draft-chip{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:10px;font-weight:700;text-transform:none;letter-spacing:0}
+.mode-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--txt2)}
+.mode-row label{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+
 .hint-box.page-hint{font-size:12.5px;color:var(--txt2);line-height:1.7;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;margin-top:8px;max-width:760px}
 .hint-box.page-hint .page-subtitle{margin-top:0;color:var(--txt2)}
 
@@ -531,7 +535,6 @@ button{font-family:var(--font);cursor:pointer}
           <div class="page-title">K-Law 판결 시뮬레이터<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-page" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
           <div class="hint-box page-hint" id="hint-page" hidden>
             <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
-            <div style="margin-top:8px">🆕 <strong>새 방법론 Agon</strong>은 K-Law(v15.x)와 입력·판단·채점 방법이 다른 별도 방법론입니다. <a href="verdict-generate.html" style="color:#1e3a8a;font-weight:700">Agon 가상 판결문 생성하기</a> · <a href="rounds.html" style="color:#1e3a8a;font-weight:700">Agon 라운드별 시험 기록</a></div>
           </div>
         </div>
         <div class="page-actions">
@@ -562,30 +565,6 @@ button{font-family:var(--font);cursor:pointer}
     </div>
 
     <div class="content">
-
-      <!-- K-Law와 Agon 비교 (2026-10-13 신설) -->
-      <div class="panel" id="method-compare">
-        <div class="panel-hd"><div class="panel-title">K-Law와 Agon의 차이<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-compare" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
-        <div class="hint-box" id="hint-compare" hidden style="padding:14px 16px">
-          <div class="cm-note" style="margin-bottom:10px">이 페이지는 <b>K-Law (v15.1)</b> 방법론을 시험하는 곳입니다. 새 방법론 <b>Agon</b>은 K-Law와 입력 데이터, 판단 방법, 채점 기준이 다른 별개의 방법론이며, 두 방법론의 일치도는 직접 비교할 수 없습니다. Agon은 <a href="verdict-generate.html">Agon 성능 테스트 페이지</a>에서 시험할 수 있습니다.</div>
-          <details>
-            <summary style="cursor:pointer;font-size:12.5px;font-weight:600;color:var(--txt2);margin-bottom:8px">K-Law와 Agon 비교표 보기 (목적 · 입력 데이터 · 판단 방법 · 채점 방식)</summary>
-            <div class="cm-tablewrap"><table class="cm-table">
-        <tr><th>항목</th><th>K-Law (v15.x)</th><th>Agon (0.x, 구 v17.x)</th></tr>
-        <tr><td>목적</td><td>1·2심 판단을 입력받아 대법원의 결론을 예측</td><td>1~3심과 헌법재판소로 나뉜 사법 체제를 하나로 통합한 가상의 "통합심"과 그 "표준 판결문"을 도출하고, 이를 기준으로 가상 판결문을 채점</td></tr>
-        <tr><td>모델 입력</td><td>사건요지(A4 1쪽, 한글 약 5,000자). 1라운드 기준선 시험(v15.1)은 원심 판단 요지가 포함된 검토용 개요</td><td>독립 개요: 당사자, 사건의 경위, 청구와 주장만. 1·2·3심 결론, 심급, 상소인, 법원명, 사건번호는 제외하고 식별정보를 제거(심급은 상고심으로 고정)</td></tr>
-        <tr><td>원심 결과</td><td>입력에 포함될 수 있음(기준선 시험)</td><td>완전 비공개</td></tr>
-        <tr><td>판단 절차</td><td>STEP 0 → A → B → C. 피고의 최강 논거를 1회 구성한 뒤 판단</td><td><b>변증법적 공방</b>(원고 청구 → 피고 방어 → 재반박 → 중단 판정) → 자기 검증 → 별도 세션 검수 → 재검토</td></tr>
-        <tr><td>채점 기준</td><td>일치도 평가 기준 v1.6: 10점 = 결론 방향 4 + 핵심 법리 3 + 세부 논증 3</td><td>일치도 평가 기준 v3.0: 10점 = 법리 일치 7(법리 해석·적용 3 + 승소 당사자·영역 2 + 승소 수준 2) + 세부 논증 3</td></tr>
-        <tr><td>주문 라벨</td><td>최종 주문의 방향(인용, 기각, 파기, 환송 등) 일치를 4점으로 채점</td><td>절차적 주문 라벨 비교를 폐지하고 법리와 원고·피고 승패를 비교. 파기환송은 방향성 법리만 비교</td></tr>
-        <tr><td>비교 기준</td><td>실제 대법원 판결문</td><td>실제 대법원 판결문. 시범으로 1·2·3심을 종합한 "모범 판결문" 명제표를 채점 기준으로 시험 중</td></tr>
-        <tr><td>규모와 결과</td><td>대법원 판례 300건. 주문(유지/파기) 일치 73%, 평균 7.44/10(자체 실측)</td><td>개발 세트 100건을 10건씩 10라운드로 시험 중. 일치, 잠정 일치, 불일치로 판정한 잠정 결과</td></tr>
-        <tr><td>AI 엔진</td><td>해외 LLM(v15.1). v15.2 이상은 Navi</td><td>해외 LLM(최신 버전). 이후 버전은 Navi</td></tr>
-      </table></div>
-            <div class="cm-note" style="margin:10px 0 0">모든 수치는 자체 실험 결과이며 제3자 검증 전입니다. 출처: 일치도 평가 기준 v1.6·v3.0, 사건 개요 작성 규칙, K-Law 검증 보고서 v2.0.</div>
-          </details>
-        </div>
-      </div>
 
       <!-- 나비 AI (2026-10-13 신설) -->
       <div class="panel" id="navi-intro">
@@ -934,17 +913,22 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            일치도 평가<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-match" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
+            일치도 평가 <span class="draft-chip" id="match-draft-chip" style="display:none">초안</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-match" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
           </div>
         </div>
         <div class="panel-bd">
           <div class="hint-box" id="hint-match" hidden style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
-            🧾 실제 대법원 판결문 전문을 붙여넣으면, 방금 생성된 K-Law 가상 판결문과 비교하여
-            <b>"일치도 평가 기준"</b> 방법론에 따라 평가 보고서를 작성합니다.
-            먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.
+            🧾 방금 생성된 K-Law 가상 판결문을 아래에서 고른 <b>비교 기준</b>의 판결문과 비교하여 <b>"일치도 평가 기준"</b> 방법론에 따라 평가 보고서를 작성합니다.
+            먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.<br>
+            · <b>통합 판결문</b>(기본): 실제 1·2·3심을 종합해 미리 작성한 가상의 정답 판결문과 비교합니다. K-Law는 제공된 일부 사실만으로 판단하므로 <b>법리만</b> 비교하고, 사실 인정 차이는 감점하지 않으며, 결과(유·무죄 등)는 참고 표시합니다.<br>
+            · <b>실제 대법원 판결문</b>: 실제 판결문과 법리·결과·세부 논증을 모두 비교합니다(기준 v3.0).
+          </div>
+          <div class="mode-row" role="radiogroup" aria-label="비교 기준">
+            <label><input type="radio" name="match-mode" value="integrated" checked onchange="setMatchMode(this.value)"> 통합 판결문과 비교 (법리 한정)</label>
+            <label><input type="radio" name="match-mode" value="actual" onchange="setMatchMode(this.value)"> 실제 대법원 판결문과 비교</label>
           </div>
           <textarea class="case-textarea" id="match-eval-input" data-requires-login="가상 재판 실행"
-            placeholder="실제 대법원 판결문 전문을 붙여넣으세요. (예: 종합법률정보 등에서 복사)"></textarea>
+            placeholder="통합 판결문 전문을 붙여넣으세요. (실제 1·2·3심을 종합해 작성한 정답 판결문; 부록의 법리 체크리스트 포함)"></textarea>
           <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <button class="btn btn-primary" id="match-eval-btn" onclick="runMatchEvaluation()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1732,7 +1716,7 @@ const KLAW_FORMAT_FILE = '가상판결_출력형식_v13_3.txt';
 function _klawUpdateDocLinks() {
   const set=(id,label,file)=>{ const a=document.getElementById(id); if(!a) return; a.href=KLAW_RAW_BASE+encodeURIComponent(file); const l=a.querySelector('.doc-label'); if(l) l.textContent=label; };
   if (typeof klawVersion==='string' && /^v\d/.test(klawVersion)) set('doc-method','방법론 원문 '+klawVersion,'klaw_v'+klawVersion.slice(1).replace('.','_')+'.md');
-  if (typeof matchEvalVersion==='string' && matchEvalText && /^v\d/.test(matchEvalVersion)) set('doc-eval','일치도 기준 '+matchEvalVersion,'일치도_평가_기준_v'+matchEvalVersion.slice(1).replace('.','_')+'.docx');
+  if (typeof matchEvalVersion==='string' && matchEvalText && matchEvalFile && /^v\d/.test(matchEvalVersion)) set('doc-eval','일치도 기준 '+matchEvalVersion+(matchEvalDraft?' (초안)':''),matchEvalFile);
 }
 async function loadKlawVersion() {
   // ── 캐시 확인: sessionStorage에 유효한 데이터가 있으면 재사용 ──
@@ -1799,15 +1783,28 @@ loadKlawVersion();
 let matchEvalVersion = '로딩 중…';
 let matchEvalText    = '';
 let matchEvalItemNames = [];
-const _MATCH_EVAL_CACHE_KEY = 'klaw_matcheval_cache_v1';
+let matchEvalDraft = false, matchEvalFile = '';
+// 2026-11-11 — K-Law는 평가 비교 기준을 두 가지로 제공한다(구 Agon 통합).
+//  · integrated(기본): 통합 판결문(실제 1~3심을 종합한 가상 정답)과 법리만 비교 — 기준 v3.2~(마크다운, 초안)
+//  · actual: 실제 대법원 판결문과 비교 — 기준 v3.0(docx)
+let matchMode = 'integrated';
+const _MATCH_MODES = {
+  integrated: { refName:'통합 판결문', cache:'klaw_matcheval_cache_md_v1', re:/^일치도_평가_기준_v[\d_]+(_초안)?\.md$/i, ext:'md',   fallbackVer:'v3.2', fallbackFile:'일치도_평가_기준_v3_2_초안.md' },
+  actual:     { refName:'실제 대법원 판결문', cache:'klaw_matcheval_cache_v1', re:/^일치도_평가_기준_v[\d_]+\.docx$/i,   ext:'docx', fallbackVer:'v3.0', fallbackFile:'일치도_평가_기준_v3_0.docx' },
+};
+function _matchRefName() { return _MATCH_MODES[matchMode].refName; }
+function _klawMatchNote() {
+  const note = document.getElementById('match-eval-ver-note');
+  if (note) note.textContent = matchEvalText ? `일치도 평가 기준 ${matchEvalVersion}${matchEvalDraft?' (초안)':''} 적용` : '⚠ 평가 기준 원문 로드 실패 — 일반 기준으로 평가됩니다';
+  const chip = document.getElementById('match-draft-chip');
+  if (chip) { chip.style.display = matchEvalDraft ? '' : 'none'; chip.title = matchEvalVersion + '은 초안이며 확정 전입니다'; }
+}
 
-// 2026-09-18 신설 — 실제 v1.6 문서를 mammoth로 추출해 확인한 결과, "제N장
-// 평가 항목 및 배점" 표가 (항목, 배점, 설명) 3줄 반복 패턴으로 풀린다.
-// my-history.html의 항목별 표시와 정확히 같은 이름을 쓰도록, 모델에게
-// 이 실제 항목명을 그대로 지정해 평가하게 한다 — 모델이 매번 다른
-// 표현으로 항목명을 지어내면 이력 페이지의 항목별 배지와 어긋난다.
 function _klawExtractEvalItemNames(text) {
   if (!text) return [];
+  // 마크다운 기준(v3.1~): "| A. 법리 항목 일치도 | 7 | ..." 형태의 배점 표에서 항목명 추출
+  const mdNames = [...text.matchAll(/^\|\s*([A-Z]\.\s[^|]+?)\s*\|\s*[\d.]+\s*\|/gm)].map(m => m[1].trim());
+  if (mdNames.length) return mdNames;
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const headIdx = lines.findIndex(l => /평가\s*항목\s*및\s*배점/.test(l));
   if (headIdx === -1) return [];
@@ -1823,14 +1820,19 @@ function _klawExtractEvalItemNames(text) {
   return names;
 }
 
-async function loadMatchEvalCriteria() {
+async function loadMatchEvalCriteria(mode) {
+  mode = mode || matchMode;
+  const cfg = _MATCH_MODES[mode];
+  const apply = (v, t, d, f) => {
+    if (mode !== matchMode) return; // 로드 중 모드가 바뀌면 무시
+    matchEvalVersion = v; matchEvalText = t; matchEvalDraft = d; matchEvalFile = f;
+    matchEvalItemNames = _klawExtractEvalItemNames(t);
+    _klawUpdateDocLinks(); _klawMatchNote();
+  };
   try {
-    const cached = JSON.parse(sessionStorage.getItem(_MATCH_EVAL_CACHE_KEY) || 'null');
+    const cached = JSON.parse(sessionStorage.getItem(cfg.cache) || 'null');
     if (cached?.version && cached?.text && cached?.ts && (Date.now() - cached.ts) < _KLAW_CACHE_TTL) {
-      matchEvalVersion = cached.version;
-      matchEvalText    = cached.text;
-      matchEvalItemNames = _klawExtractEvalItemNames(matchEvalText);
-      _klawUpdateDocLinks();
+      apply(cached.version, cached.text, !!cached.draft, cached.file || cfg.fallbackFile);
       return;
     }
   } catch(e) {}
@@ -1838,33 +1840,49 @@ async function loadMatchEvalCriteria() {
   try {
     const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
     const files = await res.json();
-    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^일치도_평가_기준_v[\d_]+\.docx$/i.test(n));
-    function parseVer(name){ const m=name.match(/v([\d]+)_?([\d]*)\.docx/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
+    const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>cfg.re.test(n));
+    function parseVer(name){ const m=name.match(/v(\d+)_(\d+)/i); return m?parseFloat(m[1]+'.'+m[2]):0; }
     vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
-    const latestFile = vFiles[0] || '일치도_평가_기준_v1_6.docx';
-    const verMatch = latestFile.match(/v([\d]+_?[\d]*)\.docx/i);
-    matchEvalVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v1.6';
+    const file = vFiles[0] || cfg.fallbackFile;
+    const vm = file.match(/v(\d+)_(\d+)/i);
+    const ver = vm ? 'v'+vm[1]+'.'+vm[2] : cfg.fallbackVer;
+    const draft = /초안/.test(file);
 
-    const rawRes = await fetch(KLAW_RAW_BASE + encodeURIComponent(latestFile), {cache:'no-cache'});
+    const rawRes = await fetch(KLAW_RAW_BASE + encodeURIComponent(file), {cache:'no-cache'});
     if (!rawRes.ok) throw new Error(`HTTP ${rawRes.status}`);
-    const arrayBuffer = await rawRes.arrayBuffer();
-    const parsed = await mammoth.extractRawText({ arrayBuffer });
-    matchEvalText = parsed.value || '';
-    matchEvalItemNames = _klawExtractEvalItemNames(matchEvalText);
-
-    try {
-      sessionStorage.setItem(_MATCH_EVAL_CACHE_KEY, JSON.stringify({ version: matchEvalVersion, text: matchEvalText, ts: Date.now() }));
-    } catch(e) {}
-    console.log('[K-Law] 일치도 평가 기준 로드 완료:', matchEvalVersion);
+    let text;
+    if (cfg.ext === 'docx') {
+      const parsed = await mammoth.extractRawText({ arrayBuffer: await rawRes.arrayBuffer() });
+      text = parsed.value || '';
+    } else {
+      text = await rawRes.text();
+    }
+    try { sessionStorage.setItem(cfg.cache, JSON.stringify({ version: ver, text, draft, file, ts: Date.now() })); } catch(e) {}
+    console.log('[K-Law] 일치도 평가 기준 로드 완료:', mode, ver, draft?'(초안)':'');
+    apply(ver, text, draft, file);
   } catch(e) {
     console.warn('[K-Law] 일치도 평가 기준 로드 실패:', e.message);
-    matchEvalVersion = 'v1.6'; matchEvalText = '';
+    apply(cfg.fallbackVer, '', false, cfg.fallbackFile);
   }
-  const note = document.getElementById('match-eval-ver-note');
-  _klawUpdateDocLinks();
-  if (note) note.textContent = matchEvalText ? `일치도 평가 기준 ${matchEvalVersion} 적용` : '⚠ 평가 기준 원문 로드 실패 — 일반 기준으로 평가됩니다';
 }
-loadMatchEvalCriteria();
+
+// 비교 기준 전환(통합 판결문 ↔ 실제 대법원 판결문)
+function setMatchMode(m) {
+  if (!_MATCH_MODES[m] || m === matchMode) return;
+  matchMode = m;
+  matchEvalText = ''; matchEvalVersion = '로딩 중…'; matchEvalDraft = false; matchEvalItemNames = [];
+  const ta = document.getElementById('match-eval-input');
+  if (ta) ta.placeholder = m === 'integrated'
+    ? '통합 판결문 전문을 붙여넣으세요. (실제 1·2·3심을 종합해 작성한 정답 판결문; 부록의 법리 체크리스트 포함)'
+    : '실제 대법원 판결문 전문을 붙여넣으세요. (예: 종합법률정보 등에서 복사)';
+  const inpLbl = document.getElementById('match-hint-mode');
+  if (inpLbl) inpLbl.innerHTML = m === 'integrated'
+    ? '통합 판결문과 <b>법리만</b> 비교합니다(사실 인정 차이는 감점하지 않고, 결과는 참고 표시).'
+    : '실제 대법원 판결문과 법리·결과·세부 논증을 모두 비교합니다.';
+  _klawMatchNote();
+  loadMatchEvalCriteria(m);
+}
+document.addEventListener('DOMContentLoaded', () => { loadMatchEvalCriteria(); });
 
 // ── 일치도 평가 진행 표시 (analyze-progress-*와 동일한 패턴, 별도 ID로 독립) ──
 let _matchEvalProgressTimer = null;
@@ -1890,10 +1908,20 @@ function _stopMatchEvalProgress(success) {
   if (wrap) setTimeout(() => wrap.classList.remove('active'), success ? 300 : 0);
 }
 
+
+function _matchIntro() {
+  if (matchMode === 'actual') {
+    return '당신은 K-Law 일치도 평가관입니다. 아래 "일치도 평가 방법론"에 따라, K-Law가 생성한 가상 판결문과 실제 대법원 판결문을 비교하여 일치도를 평가한 보고서를 작성하세요.';
+  }
+  return '당신은 K-Law 일치도 평가관입니다. 아래 "일치도 평가 방법론"에 따라, K-Law가 생성한 가상 판결문과 통합 판결문(실제 1~3심을 통합한 가상 정답)을 비교하여 일치도를 평가한 보고서를 작성하세요.\n' +
+    'K-Law는 사건 개요로 제공된 일부 사실만으로 판단하고 증거 조사를 하지 못하므로, 비교는 오직 법리에 한정합니다. 사실 인정의 차이는 감점하지 말고, 결과(유·무죄 등)는 점수에 넣지 않고 "결과 참고 표시" 표로만 기록하세요(쟁점별 일치 여부와 원인 분류 포함). 통합 판결문에 법리 체크리스트(부록)가 있으면 그 항목을 기준으로 법리 항목별 판정(일치 1 / 부분 0.5 / 불일치·미포착 0)을 표로 제시하세요.' +
+    (matchEvalDraft ? ' 이 방법론(' + matchEvalVersion + ')은 초안이므로 보고서 첫머리에 "기준 ' + matchEvalVersion + ' 초안 적용"이라고 표시하세요.' : '');
+}
+
 // ══ 일치도 평가 실행 (2026-09-18 신설) ═══════════════════════════
 async function runMatchEvaluation() {
   const actualJudgment = (document.getElementById('match-eval-input').value || '').trim();
-  if (!actualJudgment) { alert('실제 대법원 판결문을 입력해주세요.'); return; }
+  if (!actualJudgment) { alert(_matchRefName() + '을(를) 입력해주세요.'); return; }
   if (!window._verdictText) { alert('먼저 위에서 판결 시뮬레이션(STEP 0~C)을 완료해야 일치도를 평가할 수 있습니다.'); return; }
 
   const btn = document.getElementById('match-eval-btn');
@@ -1907,7 +1935,7 @@ async function runMatchEvaluation() {
     const liveTextEl = document.getElementById('match-eval-live-text');
     const buildPrompt = () => [{
       role: 'user',
-      content: `당신은 K-Law 일치도 평가관입니다. 아래 "일치도 평가 방법론"에 따라, K-Law가 생성한 가상 판결문과 실제 대법원 판결문을 비교하여 일치도를 평가한 보고서를 작성하세요.
+      content: `${_matchIntro()}
 
 [일치도 평가 방법론 ${matchEvalVersion}]
 ${matchEvalText || '(방법론 원문 로드 실패 — 법리 구성·사실관계 인정·결론(주문)의 일치 여부를 기준으로 항목별로 평가하세요)'}
@@ -1915,7 +1943,7 @@ ${matchEvalText || '(방법론 원문 로드 실패 — 법리 구성·사실관
 [K-Law 가상 판결문]
 ${window._verdictText}
 
-[실제 대법원 판결문]
+[${_matchRefName()}]
 ${actualJudgment}
 
 위 방법론에 따라 항목별 평가가 포함된 평가 보고서를 작성하세요. 보고서 서술이 끝난 뒤, 반드시 아래와 같은 형식으로 아래 나열된 평가 항목 각각에 대해(방법론 원문에서 자동 추출한 실제 항목명이며, 항목명을 다른 표현으로 바꾸지 말고 정확히 그대로 사용하세요) 한 줄씩 점수를 매기고, 맨 마지막 줄에 종합 일치도를 추가하세요 — 이 태그들은 시스템이 자동으로 파싱하므로 형식을 정확히 지켜야 합니다:
@@ -1966,8 +1994,8 @@ ${(matchEvalItemNames.length ? matchEvalItemNames : ['법리 구성','사실관�
             id: window._klawCurrentSessionId,
             phone_verify_token: KAuth.getToken(),
             match_items: JSON.stringify(matchItems),
-            match_report: result + '\n\n---\n[비교에 사용한 ' + (window._klawEvalRefLabel || '실제 판결문') + ']\n' + actualJudgment,
-            match_basis: JSON.stringify({ version: (typeof matchEvalVersion!=='undefined'?matchEvalVersion:''), draft: !!(typeof matchEvalDraft!=='undefined'&&matchEvalDraft), at: new Date().toISOString() }),
+            match_report: result + '\n\n---\n[비교에 사용한 ' + _matchRefName() + ']\n' + actualJudgment,
+            match_basis: JSON.stringify({ mode: matchMode, version: (typeof matchEvalVersion!=='undefined'?matchEvalVersion:''), draft: !!(typeof matchEvalDraft!=='undefined'&&matchEvalDraft), at: new Date().toISOString() }),
           })
         });
         _loadKlawHistory();
@@ -2666,7 +2694,7 @@ async function _klawLoadForEval(id) {
     window._verdictCaseNo = 'history-' + id.slice(-6);
     if (panel) {
       const bd = panel.querySelector('.panel-bd');
-      if (bd) bd.insertAdjacentHTML('afterbegin', '<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;font-size:12.5px;color:var(--txt2);margin-bottom:10px">📂 이력에서 불러온 판결문(' + escHtml(json.klaw_version || '') + ' · ' + escHtml(json.case_type || '') + ')을 평가합니다. 실제 판결문을 붙여넣고 평가를 시작하세요. 결과는 같은 이력에 저장됩니다.</div>');
+      if (bd) bd.insertAdjacentHTML('afterbegin', '<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;font-size:12.5px;color:var(--txt2);margin-bottom:10px">📂 이력에서 불러온 판결문(' + escHtml(json.klaw_version || '') + ' · ' + escHtml(json.case_type || '') + ')을 평가합니다. ' + _matchRefName() + '을(를) 붙여넣고 평가를 시작하세요. 결과는 같은 이력에 저장됩니다.</div>');
       panel.scrollIntoView({behavior:'smooth', block:'start'});
     }
   } catch(e) {
