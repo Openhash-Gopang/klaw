@@ -12,6 +12,8 @@
 <!-- 2026-09-18 신설 — "일치도 평가 기준" 원문이 .docx라 클라이언트에서
      텍스트로 뽑아 프롬프트에 넣으려면 파서가 필요하다. -->
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<!-- 2026-11-10 신설 — 사건 개요 파일 첨부(모든 문서 형식의 글자 추출) -->
+<script src="klaw-attach.js?v=20261110"></script>
 <style>
 :root {
   --bg:#f8f9fa; --sur:#ffffff; --bdr:#e5e7eb; --bdr2:#d1d5db;
@@ -174,6 +176,11 @@ button{font-family:var(--font);cursor:pointer}
 .file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--txt2)}
 .chip-remove{cursor:pointer;color:var(--txt4)}
 .chip-remove:hover{color:var(--txt2)}
+.vv-attach-hint{font-size:11.5px;color:var(--txt3);line-height:1.6;margin-top:8px}
+.vv-attach-msg{font-size:12px;line-height:1.6;margin-top:4px}
+.vv-attach-msg:empty{display:none}
+.vv-attach-msg.err{color:var(--red)}
+.vv-attach-msg.ok{color:var(--pri-dk)}
 
 .llm-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:16px;box-shadow:var(--shadow-1);max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease}
 .llm-panel.visible{max-height:420px;opacity:1}
@@ -549,9 +556,9 @@ button{font-family:var(--font);cursor:pointer}
             placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
           <div class="input-toolbar" id="input-toolbar">
             <div class="toolbar-left">
-              <label class="file-label" title="파일 첨부">
+              <label class="file-label" title="파일 첨부 — txt·md·docx·hwp·hwpx·pdf·xlsx·pptx·이미지 등" onclick="window._klPicking=true">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="file-input" style="display:none" accept=".pdf,.doc,.docx,.txt,.hwp,.jpg,.png" onchange="handleFileAttach(this)">
+                <input type="file" id="file-input" style="display:none" multiple onchange="handleFileAttach(this)">
               </label>
               <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
@@ -564,6 +571,8 @@ button{font-family:var(--font);cursor:pointer}
             </button>
             <span style="font-size:10.5px;color:var(--txt4);margin-left:6px;white-space:nowrap">Ctrl+Enter</span>
           </div>
+          <div class="vv-attach-hint" id="kl-attach-hint">📎 txt · md · docx · hwp · hwpx · pdf · xlsx · pptx · rtf · html · zip 등 대부분의 문서와 이미지(글자 인식)를 첨부할 수 있습니다. 글자만 읽어 위 입력란에 추가하며 파일 자체는 올라가지 않습니다. 개인정보는 가린 뒤 첨부하세요.</div>
+          <div class="vv-attach-msg" id="vv-attach-msg" role="status" aria-live="polite"></div>
           <div class="analyze-progress-wrap" id="analyze-progress-wrap">
             <div class="analyze-live-text" id="analyze-live-text"></div>
             <div class="analyze-progress-track">
@@ -1354,12 +1363,22 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ══ 파일 첨부 ════════════════════════════════════════════
-function handleFileAttach(input) {
-  const file = input.files[0];
-  if (!file) return;
-  attachedFiles.push(file);
-  renderFileChips();
-  input.value = '';
+// 2026-11-10 개편 — 형식별 글자 추출은 klaw-attach.js가 맡는다. 첨부한 파일의 글자를 사건 개요 입력란에 넣어
+// 분석 요청에 실제로 반영되도록 한다(종전에는 파일명만 칩으로 표시하고 내용은 읽지 않았고, md 등은 선택조차 되지 않았다).
+function _klAttachMsg(text, kind) {
+  const el = document.getElementById('vv-attach-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'vv-attach-msg' + (kind ? ' ' + kind : '');
+}
+window.addEventListener('focus', () => setTimeout(() => { window._klPicking = false; }, 400));
+async function handleFileAttach(input) {
+  window._klPicking = false;
+  if (!window.KLawAttach) { input.value = ''; _klAttachMsg('첨부 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.', 'err'); return; }
+  await KLawAttach.handleInput(input, {
+    textarea: document.getElementById('case-input'),
+    list: attachedFiles, render: renderFileChips, status: _klAttachMsg
+  });
 }
 function renderFileChips() {
   const wrap = document.getElementById('file-chips');
@@ -1367,7 +1386,11 @@ function renderFileChips() {
 `<span class="file-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>${f.name.slice(0,18)}${f.name.length>18?"…":""}<span class="chip-remove" onclick="removeFile(${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>`
   ).join('');
 }
-function removeFile(idx) { attachedFiles.splice(idx, 1); renderFileChips(); }
+function removeFile(idx) {
+  if (window.KLawAttach) KLawAttach.removeBlock(attachedFiles, idx, document.getElementById('case-input'));
+  else attachedFiles.splice(idx, 1);
+  renderFileChips(); _klAttachMsg('', '');
+}
 
 // ══ 음성 입력 ════════════════════════════════════════════
 async function toggleVoice() {
@@ -2446,7 +2469,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const toolbar = document.getElementById('input-toolbar');
   if (!ta || !toolbar) return;
   function expand() { ta.classList.add('expanded'); toolbar.classList.add('visible'); }
-  function collapse() { if (!ta.value.trim() && attachedFiles.length===0) { ta.classList.remove('expanded'); toolbar.classList.remove('visible'); } }
+  function collapse() { if (!ta.value.trim() && attachedFiles.length===0 && !window._klPicking && !toolbar.matches(':hover')) { ta.classList.remove('expanded'); toolbar.classList.remove('visible'); } }
   ta.addEventListener('focus', expand);
   ta.addEventListener('input', expand);
   ta.addEventListener('blur', () => setTimeout(collapse, 150));

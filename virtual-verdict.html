@@ -386,6 +386,8 @@ button{font-family:var(--font);cursor:pointer}
   window.K_AUTH_CONFIG = { serviceLabel: 'K-Law' };
 </script>
 <script src="https://hondi.net/auth/k-service-auth-client.js"></script>
+<!-- 2026-11-10 신설 — 사건 개요 파일 첨부(모든 문서 형식의 글자 추출) -->
+<script src="klaw-attach.js?v=20261110"></script>
 
 
 <div class="progress-toast" id="progress-toast">
@@ -618,9 +620,9 @@ button{font-family:var(--font);cursor:pointer}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
               파일 첨부
             </label>
-            <input type="file" id="file-input" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" accept=".txt,.md,.csv,.docx,.pdf" multiple onchange="handleFileAttach(this)">
+            <input type="file" id="file-input" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" multiple onchange="handleFileAttach(this)">
             <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-            <div class="vv-attach-hint">txt · md · csv · docx · pdf 파일의 글자를 읽어 위 입력란에 추가합니다. 파일 자체는 올라가지 않으며, 추가된 내용은 직접 고칠 수 있습니다. 개인정보는 가린 뒤 첨부하세요.</div>
+            <div class="vv-attach-hint">txt · md · docx · hwp · hwpx · pdf · xlsx · pptx · rtf · html · zip 등 대부분의 문서와 이미지(글자 인식)를 읽어 위 입력란에 추가합니다. 파일 자체는 올라가지 않으며, 추가된 내용은 직접 고칠 수 있습니다. 개인정보는 가린 뒤 첨부하세요.</div>
             <div class="vv-attach-msg" id="vv-attach-msg" role="status" aria-live="polite"></div>
           </div>
           <div class="input-toolbar" id="input-toolbar">
@@ -1430,75 +1432,19 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ══ 파일 첨부 ════════════════════════════════════════════
-const VV_ATTACH_MAX_BYTES = 10 * 1024 * 1024;
-const VV_ATTACH_MAX_CHARS = 50000;
-const _vvLibs = {};
-function _vvLoadScript(url) {
-  if (!_vvLibs[url]) _vvLibs[url] = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = url; s.onload = resolve; s.onerror = () => { delete _vvLibs[url]; reject(new Error('라이브러리를 불러오지 못했습니다. 네트워크를 확인하세요.')); };
-    document.head.appendChild(s);
-  });
-  return _vvLibs[url];
-}
 function _vvAttachMsg(text, kind) {
   const el = document.getElementById('vv-attach-msg');
   if (!el) return;
   el.textContent = text || '';
   el.className = 'vv-attach-msg' + (kind ? ' ' + kind : '');
 }
-async function _vvReadFileText(file) {
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (ext === 'txt' || ext === 'md' || ext === 'csv') return await file.text();
-  if (ext === 'docx') {
-    await _vvLoadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js');
-    const r = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-    return r.value || '';
-  }
-  if (ext === 'pdf') {
-    await _vvLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-    const lib = window.pdfjsLib;
-    lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-    let out = '';
-    for (let n = 1; n <= pdf.numPages; n++) {
-      const page = await pdf.getPage(n);
-      const tc = await page.getTextContent();
-      out += tc.items.map(i => i.str).join(' ') + '\n';
-      if (out.length > VV_ATTACH_MAX_CHARS * 2) break;
-    }
-    return out;
-  }
-  if (ext === 'hwp' || ext === 'hwpx' || ext === 'doc') throw new Error('hwp·doc 파일은 읽을 수 없습니다. docx 또는 pdf로 저장하거나 내용을 직접 붙여넣어 주세요.');
-  throw new Error('지원하지 않는 형식입니다. txt, md, csv, docx, pdf 파일을 첨부하세요.');
-}
+// 2026-11-10 개편 — 형식별 글자 추출은 klaw-attach.js(공용)가 맡는다. hwp·hwpx·xlsx·pptx·rtf·html·이미지(OCR)·zip 등 추가 지원.
 async function handleFileAttach(input) {
-  const files = Array.from(input.files || []);
-  input.value = '';
-  if (!files.length) return;
-  const ta = document.getElementById('case-input');
-  const notes = [];
-  for (const file of files) {
-    try {
-      if (file.size > VV_ATTACH_MAX_BYTES) throw new Error('파일이 너무 큽니다(10MB 이하).');
-      _vvAttachMsg(file.name + ' 읽는 중…', '');
-      let text = (await _vvReadFileText(file)).replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-      if (!text) throw new Error('글자를 읽지 못했습니다. 스캔한 이미지 파일일 수 있습니다. 내용을 직접 붙여넣어 주세요.');
-      let cutNote = '';
-      if (text.length > VV_ATTACH_MAX_CHARS) { text = text.slice(0, VV_ATTACH_MAX_CHARS); cutNote = ' (앞부분 ' + VV_ATTACH_MAX_CHARS.toLocaleString('ko-KR') + '자만 넣었습니다)'; }
-      const block = '[첨부 파일: ' + file.name + ']\n' + text;
-      ta.value = ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n\n' + block : block;
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
-      attachedFiles.push({ name: file.name, block });
-      notes.push(file.name + ' 추가됨' + cutNote);
-    } catch (e) {
-      _vvAttachMsg(file.name + ': ' + (e && e.message ? e.message : '읽지 못했습니다.'), 'err');
-      renderFileChips();
-      return;
-    }
-  }
-  renderFileChips();
-  _vvAttachMsg(notes.join(' · ') + '. 입력란에서 내용을 확인하세요.', 'ok');
+  if (!window.KLawAttach) { input.value = ''; _vvAttachMsg('첨부 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.', 'err'); return; }
+  await KLawAttach.handleInput(input, {
+    textarea: document.getElementById('case-input'),
+    list: attachedFiles, render: renderFileChips, status: _vvAttachMsg
+  });
 }
 function renderFileChips() {
   const wrap = document.getElementById('file-chips');
