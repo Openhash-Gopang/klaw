@@ -528,15 +528,15 @@ button{font-family:var(--font);cursor:pointer}
           </div>
         </div>
         <div class="page-actions">
-          <a class="btn" id="doc-method" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v17_2.md" download>
+          <a class="btn" id="doc-method" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v17_3.md" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span class="doc-label">방법론 원문 v17.2</span></a>
           <a class="btn" id="doc-format" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span class="doc-label">출력형식 v13.3</span></a>
-          <a class="btn" id="doc-eval" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v3_1_%EC%B4%88%EC%95%88.md" download>
+          <a class="btn" id="doc-eval" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v3_2_%EC%B4%88%EC%95%88.md" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span class="doc-label">일치도 기준 v3.1 (초안)</span></a>
+            <span class="doc-label">일치도 기준 v3.2 (초안)</span></a>
           <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             판결문 저장
@@ -809,13 +809,13 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            일치도 평가 <span class="draft-chip" title="v3.1은 초안이며 확정 전입니다">초안</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-match" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
+            일치도 평가 <span class="draft-chip" title="v3.2는 초안이며 확정 전입니다">초안</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-match" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
           </div>
         </div>
         <div class="panel-bd">
           <div class="hint-box" id="hint-match" hidden style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
             🧾 <b>통합 판결문</b>(실제 1~3심을 통합한 가상 정답) 전문을 붙여넣으면, 방금 생성된 Agon 가상 판결문과 비교하여
-            <b>"일치도 평가 기준 v3.1 (초안)"</b> 방법론에 따라 평가 보고서를 작성합니다.
+            <b>"일치도 평가 기준 v3.2 (초안)"</b> 방법론에 따라 평가 보고서를 작성합니다.
             Agon은 제공된 사실만으로 판단하므로 <b>법리만</b> 비교하고, 사실 인정 차이는 감점하지 않으며, 결과(유·무죄)는 점수 없이 참고로 표시합니다.
             먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.
           </div>
@@ -1632,9 +1632,9 @@ async function loadKlawVersion() {
     const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^klaw_v[\d_]+\.md$/i.test(n));
     function parseVer(name){ const m=name.match(/klaw_v([\d]+)_?([\d]*)\.md/i); return m?parseFloat(m[1]+'.'+(m[2]||'0')):0; }
     vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
-    const latestFile = vFiles[0] || 'klaw_v17_2.md';
+    const latestFile = vFiles[0] || 'klaw_v17_3.md';
     const verMatch = latestFile.match(/klaw_v([\d]+_?[\d]*)\.md/i);
-    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v17.2';
+    klawVersion = verMatch ? 'v'+verMatch[1].replace('_','.') : 'v17.3';
     // 방법론 원문과 출력형식 원문을 병렬로 fetch (둘 다 세션 내내 불변 —
     // DeepSeek 프롬프트 캐시 적중을 위해 이후 절대 재조합하지 않고 그대로 재사용)
     const [rawMethod, rawFormat] = await Promise.all([
@@ -1673,8 +1673,8 @@ loadKlawVersion();
 let matchEvalVersion = '로딩 중…';
 let matchEvalText    = '';
 let matchEvalItemNames = [];
-const _MATCH_EVAL_CACHE_KEY = 'agon_matcheval_cache_v2'; // v2: Agon은 통합심 기준(.md) 사용 — 구 docx 캐시와 분리
-let matchEvalDraft = true, matchEvalFile = '일치도_평가_기준_v3_1_초안.md';
+const _MATCH_EVAL_CACHE_KEY = 'agon_matcheval_cache_v3'; // v2: Agon은 통합심 기준(.md) 사용 — 구 docx 캐시와 분리
+let matchEvalDraft = true, matchEvalFile = '일치도_평가_기준_v3_2_초안.md';
 
 // 2026-09-18 신설 — 실제 v1.6 문서를 mammoth로 추출해 확인한 결과, "제N장
 // 평가 항목 및 배점" 표가 (항목, 배점, 설명) 3줄 반복 패턴으로 풀린다.
@@ -1718,7 +1718,7 @@ async function loadMatchEvalCriteria() {
   } catch(e) {}
 
   try {
-    // Agon(통합심)은 법리 한정 기준(v3.1~, 마크다운)을 사용한다. 저장소에서 가장 높은 버전을 고른다.
+    // Agon(통합심)은 법리 한정 기준(v3.2~, 마크다운)을 사용한다. 저장소에서 가장 높은 버전을 고른다.
     const res   = await fetch(KLAW_REPO_API, {cache:'no-cache'});
     const files = await res.json();
     const vFiles = (Array.isArray(files)?files:[]).map(f=>f.name).filter(n=>/^일치도_평가_기준_v[\d_]+(_초안)?\.md$/i.test(n));
@@ -1726,7 +1726,7 @@ async function loadMatchEvalCriteria() {
     vFiles.sort((a,b)=>parseVer(b)-parseVer(a));
     matchEvalFile = vFiles[0] || matchEvalFile;
     const verMatch = matchEvalFile.match(/v(\d+)_(\d+)/i);
-    matchEvalVersion = verMatch ? 'v'+verMatch[1]+'.'+verMatch[2] : 'v3.1';
+    matchEvalVersion = verMatch ? 'v'+verMatch[1]+'.'+verMatch[2] : 'v3.2';
     matchEvalDraft = /초안/.test(matchEvalFile);
 
     const rawRes = await fetch(KLAW_RAW_BASE + encodeURIComponent(matchEvalFile), {cache:'no-cache'});
@@ -1740,7 +1740,7 @@ async function loadMatchEvalCriteria() {
     console.log('[Agon] 일치도 평가 기준 로드 완료:', matchEvalVersion, matchEvalDraft?'(초안)':'');
   } catch(e) {
     console.warn('[Agon] 일치도 평가 기준 로드 실패:', e.message);
-    matchEvalVersion = 'v3.1'; matchEvalText = '';
+    matchEvalVersion = 'v3.2'; matchEvalText = '';
   }
   _agonUpdateDocLinks();
   const note = document.getElementById('match-eval-ver-note');
@@ -1790,7 +1790,7 @@ async function runMatchEvaluation() {
     const buildPrompt = () => [{
       role: 'user',
       content: `당신은 Agon 일치도 평가관입니다. 아래 "일치도 평가 방법론"에 따라, Agon이 생성한 가상 판결문과 통합 판결문(실제 1~3심을 통합한 가상 정답)을 비교하여 일치도를 평가한 보고서를 작성하세요.
-Agon은 사건 개요로 제공된 일부 사실만으로 판단하고 증거 조사를 하지 못하므로, 비교는 오직 법리에 한정합니다. 사실 인정의 차이는 감점하지 말고, 결과(유·무죄 등)는 점수에 넣지 않고 "결과 참고 표시" 표로만 기록하세요(쟁점별 일치 여부와 원인 분류 포함). 통합 판결문에 법리 체크리스트(부록)가 있으면 그 항목을 기준으로 법리 항목별 판정(일치 1 / 부분 0.5 / 불일치·미포착 0)을 표로 제시하세요. 이 방법론(v3.1)은 초안이므로 보고서 첫머리에 "기준 v3.1 초안 적용"이라고 표시하세요.
+Agon은 사건 개요로 제공된 일부 사실만으로 판단하고 증거 조사를 하지 못하므로, 비교는 오직 법리에 한정합니다. 사실 인정의 차이는 감점하지 말고, 결과(유·무죄 등)는 점수에 넣지 않고 "결과 참고 표시" 표로만 기록하세요(쟁점별 일치 여부와 원인 분류 포함). 통합 판결문에 법리 체크리스트(부록)가 있으면 그 항목을 기준으로 법리 항목별 판정(일치 1 / 부분 0.5 / 불일치·미포착 0)을 표로 제시하세요. 이 방법론(v3.2)은 초안이므로 보고서 첫머리에 "기준 v3.2 초안 적용"이라고 표시하세요.
 
 [일치도 평가 방법론 ${matchEvalVersion}]
 ${matchEvalText || '(방법론 원문 로드 실패 — 법리 구성·사실관계 인정·결론(주문)의 일치 여부를 기준으로 항목별로 평가하세요)'}
