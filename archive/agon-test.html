@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<meta name="robots" content="noindex,nofollow">
+<base href="../">
+
 <link rel="icon" href="data:,">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,6 +138,8 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
 </style>
 </head>
 <body>
+<div role="note" style="background:#fef3c7;color:#92400e;border-bottom:1px solid #fde68a;font-size:12.5px;padding:7px 16px;text-align:center">📦 보관용 페이지입니다. 현재 서비스는 K-Law 판결 시뮬레이터로 통합되었으며 이 페이지는 더 이상 갱신되지 않습니다.</div>
+
 <div class="wrap">
   <a class="back-link" href="library.html">← 자료실로 돌아가기</a>
   <h1>K-Law 성능 테스트 하기</h1>
@@ -452,7 +457,7 @@ h1{font-size:22px;color:var(--txt);margin-bottom:6px}
     body.innerHTML = h + '</tbody></table></div>';
   }
   q.addEventListener('input', render); mine.addEventListener('change', render);
-  fetch('agon-test-results.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; })
+  fetch('archive/agon-test-results.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; })
     .catch(function () { return []; })
     .then(function (j) { rows = (Array.isArray(j) ? j : []).sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); }); index(); render(); });
 })();

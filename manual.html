@@ -122,7 +122,6 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
         <tr><th>하려는 일</th><th>누를 버튼</th></tr>
         <tr><td>내 사건(소송 중이거나 소송 전)의 가상 판결문을 받아 보고 싶다</td><td><a href="#b-virtual">가상 판결</a></td></tr>
         <tr><td>K-Law가 실제 대법원 판결과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-v151">성능 테스트 · K-Law v15.1</a></td></tr>
-        <tr><td>K-Law 최신 버전이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험해 보고 싶다</td><td><a href="#b-agon">성능 테스트 · K-Law 최신</a></td></tr>
         <tr><td>K-Law 방법론이 어떤 시험을 거쳐 어떻게 바뀌어 왔는지 보고 싶다</td><td><a href="#b-rounds">K-Law 갱신 이력</a></td></tr>
         <tr><td>스마트폰에서 AI와 대화하면서 가상 판결문을 만들고 싶다</td><td><a href="#b-mobile">모바일 웹앱</a></td></tr>
       </table>
@@ -169,7 +168,6 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     <div class="tablist" role="tablist" aria-label="첫 화면 버튼 설명">
       <button type="button" class="chip tab" role="tab" id="tab-b-virtual" aria-controls="b-virtual" aria-selected="true">가상 판결<small>작성 · 공개</small></button>
       <button type="button" class="chip tab" role="tab" id="tab-b-v151" aria-controls="b-v151" aria-selected="false" tabindex="-1">성능 테스트<small>K-Law v15.1</small></button>
-      <button type="button" class="chip tab" role="tab" id="tab-b-agon" aria-controls="b-agon" aria-selected="false" tabindex="-1">성능 테스트<small>K-Law 최신</small></button>
     </div>
   <article class="card tabpanel" id="b-virtual" role="tabpanel" aria-labelledby="tab-b-virtual" tabindex="0">
     <div class="card-head">
@@ -254,32 +252,6 @@ code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em
     </div>
   </article>
 
-  <article class="card tabpanel" id="b-agon" role="tabpanel" aria-labelledby="tab-b-agon" tabindex="0">
-    <div class="card-head">
-      <p class="what">K-Law 최신 버전이 가상의 1, 2, 3심 통합 판결문과 얼마나 맞는지 직접 시험합니다.</p>
-      <a class="chip outline open" href="desktop.html">이 화면 열기 →</a>
-    </div>
-    <div class="facts">
-      <div class="fact"><b>용도와 목적</b><p>K-Law의 통합심 방식은 1심, 2심, 3심과 헌법재판소로 나뉜 판단을 하나로 합친 가상의 "통합심"과 그 "표준 판결문"을 만드는 것이 목표인 방법론입니다. 이 페이지는 그 성능을 시험하는 곳입니다.</p></div>
-      <div class="fact"><b>이럴 때 쓰세요</b><p>통합심 방식(법리 한정 비교)의 결과를 직접 확인하고 싶을 때.</p></div>
-      <div class="fact"><b>적용 방법론</b><p>K-Law 최신 방법론(시험 단계, 해외 LLM).</p></div>
-    </div>
-    <div class="notice">
-      <b>준비물: API Key 2개 이상.</b> 하나는 <b>사건 개요 작성, 쉬운 설명, 일치도 평가</b>(키 A)에, 다른 하나는 <b>가상 판결문 생성</b>(키 B)에 씁니다. 가능하면 서로 다른 AI 제공자의 키를 쓰세요. 하나의 키로 사건 개요 작성과 가상 판결문 작성을 모두 하면, AI가 이미 정답을 알고 판결문을 쓰게 되어 데이터가 오염됩니다.
-    </div>
-    <h3>사용법</h3>
-    <ol>
-      <li>입력 화면은 앞의 "성능 테스트 · K-Law v15.1"과 같은 순서입니다. 최신 대법원 판례를 고르고, <b>키 A의 AI</b>로 사실관계만 뽑아 <b>"사건의 개요"</b>를 만듭니다.</li>
-      <li>K-Law의 사건 개요는 원심 결과를 가린 <b>독립 개요</b>입니다. 당사자, 경위, 청구와 주장만 넣고 1·2·3심의 결론, 법원명, 사건번호는 뺍니다.</li>
-      <li>개요를 <b>"사건의 개요"</b>에 넣고 AI 모델을 <b>키 B의 AI</b>로 바꿔 키 B를 입력한 뒤 <b>"분석 시작"</b>을 누릅니다. 원고 청구, 피고 방어, 재반박을 거치는 변증법적 공방과 자기 검증을 거쳐 가상 판결문이 만들어집니다.</li>
-      <li>AI 모델을 다시 <b>키 A의 AI</b>로 바꾸고 <b>"일치도 평가"</b>에서 실제 판결문과 비교합니다. 평가 기준은 통합 판결문과 법리만 비교하는 방식(법리 중심)을 씁니다.</li>
-    </ol>
-    <div class="note">
-      <ul>
-        <li>지금 단계의 결과는 잠정치이며 제3자 검증 전입니다.</li>
-      </ul>
-    </div>
-  </article>
 
   </section>
 
