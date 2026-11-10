@@ -1215,6 +1215,7 @@ async function recordKlawUsage(klawVer, llmModel, simData = {}) {
     // 2026-09-18 신설 — 이후 "일치도 평가"가 완료되면 이 레코드에
     // 항목별 점수를 채워넣어야 하므로 id를 기억해둔다.
     window._klawCurrentSessionId = json.id || null;
+    window._klawEvalRefLabel = '실제 판결문';
     console.log('[K-Law] \u2705 klaw_sessions 저장 완료');
     _loadKlawHistory();
   } catch(e) { console.warn('[K-Law] 이력 저장 실패:', e.message); }
@@ -1944,7 +1945,7 @@ ${(matchEvalItemNames.length ? matchEvalItemNames : ['법리 구성','사실관�
 
     // 기존 klaw_sessions 레코드(시뮬레이션 완료 시 이미 생성됨)에 항목별
     // 점수를 채워넣는다 — 본인 확인은 서버가 phone_verify_token으로 재확인.
-    if (window._klawCurrentSessionId && itemEntries.length) {
+    if (window._klawCurrentSessionId) {
       try {
         await fetch(KLAW_API_BASE + '/klaw/sessions/visibility', {
           method: 'POST',
@@ -1953,6 +1954,8 @@ ${(matchEvalItemNames.length ? matchEvalItemNames : ['법리 구성','사실관�
             id: window._klawCurrentSessionId,
             phone_verify_token: KAuth.getToken(),
             match_items: JSON.stringify(matchItems),
+            match_report: result + '\n\n---\n[비교에 사용한 ' + (window._klawEvalRefLabel || '실제 판결문') + ']\n' + actualJudgment,
+            match_basis: JSON.stringify({ version: (typeof matchEvalVersion!=='undefined'?matchEvalVersion:''), draft: !!(typeof matchEvalDraft!=='undefined'&&matchEvalDraft), at: new Date().toISOString() }),
           })
         });
         _loadKlawHistory();
@@ -2634,6 +2637,36 @@ function toggleVerdictFull(btn) {
   if (btn) btn.textContent = d.open ? '전문 접기' : '전문 보기';
   if (d.open) d.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
+// 2026-11-11 — 이력에서 "이 판결문으로 일치도 평가"로 들어온 경우(?eval=<이력 id>):
+// 저장된 판결문을 불러와 평가 대상으로 복원한다(세션 id도 복원 → 평가 결과가 같은 이력에 저장).
+async function _klawLoadForEval(id) {
+  window._klawEvalRefLabel = '실제 판결문';
+  const panel = document.getElementById('match-eval-panel');
+  const note = document.getElementById('match-eval-ver-note');
+  try {
+    if (typeof KAuth === 'undefined') throw new Error('로그인 모듈 없음');
+    if (!KAuth.getToken()) await KAuth.ensureLogin();
+    const res = await fetch(KLAW_API_BASE + '/klaw/sessions/detail?id=' + encodeURIComponent(id) + '&phone_verify_token=' + encodeURIComponent(KAuth.getToken() || ''));
+    const json = await res.json();
+    if (!json.ok || !json.verdict_full) throw new Error(json.message || '저장된 판결문이 없습니다');
+    window._verdictText = json.verdict_full;
+    window._klawCurrentSessionId = id;
+    window._verdictCaseNo = 'history-' + id.slice(-6);
+    if (panel) {
+      const bd = panel.querySelector('.panel-bd');
+      if (bd) bd.insertAdjacentHTML('afterbegin', '<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;font-size:12.5px;color:var(--txt2);margin-bottom:10px">📂 이력에서 불러온 판결문(' + escHtml(json.klaw_version || '') + ' · ' + escHtml(json.case_type || '') + ')을 평가합니다. 실제 판결문을 붙여넣고 평가를 시작하세요. 결과는 같은 이력에 저장됩니다.</div>');
+      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  } catch(e) {
+    if (note) note.textContent = '이력 판결문 불러오기 실패: ' + e.message;
+    console.warn('[K-Law] 이력 불러오기 실패:', e.message);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const id = new URLSearchParams(location.search).get('eval');
+  if (id) setTimeout(() => _klawLoadForEval(id), 600);
+});
+
 function goMatchEval() {
   const p = document.getElementById('match-eval-panel');
   if (p) { p.scrollIntoView({behavior:'smooth', block:'start'}); const t = document.getElementById('match-eval-input'); if (t) setTimeout(() => t.focus({preventScroll:true}), 500); }
