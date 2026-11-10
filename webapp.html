@@ -930,6 +930,11 @@ async function _updateKlawRegenQuotaLabel(btnId) {
     if (!json.ok) return;
     const btn = document.getElementById(btnId);
     if (!btn) return;
+    if (json.unlimited) {   // 2026-11-10 — 서버가 1일 횟수 제한을 해제함(잔액만 있으면 생성 가능)
+      const feeNote = _klawBetaUsageBillingActive() ? '실사용량만큼 과금' : '추가 요금 없음';
+      btn.textContent = `🔁 이 사건으로 다시 생성 (${feeNote})`;
+      return;
+    }
     if (json.remaining <= 0) {
       btn.textContent = '오늘 판결 생성 한도를 모두 사용했습니다(내일 다시 가능)';
       btn.disabled = true;
