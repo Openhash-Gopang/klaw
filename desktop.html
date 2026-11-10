@@ -256,6 +256,18 @@ button{font-family:var(--font);cursor:pointer}
 .verdict-title-row{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:8px}
 .verdict-meta{font-size:11px;color:var(--txt4);margin-top:3px;font-family:var(--mono)}
 .verdict-body{padding:20px 24px}
+.verdict-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
+.verdict-actions .btn{font-size:12px;padding:6px 12px}
+.verdict-full{margin-top:10px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur)}
+.verdict-full>summary{cursor:pointer;padding:10px 14px;font-size:12.5px;font-weight:600;color:var(--txt2);list-style:none}
+.verdict-full>summary::-webkit-details-marker{display:none}
+.verdict-full>summary::before{content:'▸ ';color:var(--txt4)}
+.verdict-full[open]>summary::before{content:'▾ '}
+.verdict-full>#verdict-steps{padding:4px 14px 14px}
+.verdict-order{margin:10px 0 0;padding:10px 14px;border-left:3px solid var(--pri);background:var(--bg);border-radius:4px;font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap}
+.verdict-order b{display:block;font-size:11px;color:var(--txt4);margin-bottom:2px}
+.eval-full{margin-top:8px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur)}
+.eval-full>summary{cursor:pointer;padding:10px 14px;font-size:12.5px;font-weight:600;color:var(--txt2)}
 .verdict-step{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
 .verdict-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .verdict-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -698,39 +710,6 @@ button{font-family:var(--font);cursor:pointer}
         </div>
       </div>
 
-      <!-- 일치도 평가 (2026-09-18 신설) -->
-      <div class="panel" id="match-eval-panel">
-        <div class="panel-hd">
-          <div class="panel-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            일치도 평가
-          </div>
-        </div>
-        <div class="panel-bd">
-          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
-            🧾 실제 대법원 판결문 전문을 붙여넣으면, 방금 생성된 K-Law 가상 판결문과 비교하여
-            <b>"일치도 평가 기준"</b> 방법론에 따라 평가 보고서를 작성합니다.
-            먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.
-          </div>
-          <textarea class="case-textarea" id="match-eval-input" data-requires-login="가상 재판 실행"
-            placeholder="실제 대법원 판결문 전문을 붙여넣으세요. (예: 종합법률정보 등에서 복사)"></textarea>
-          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" id="match-eval-btn" onclick="runMatchEvaluation()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              일치도 평가 시작
-            </button>
-            <span id="match-eval-ver-note" style="font-size:11px;color:var(--txt4)"></span>
-          </div>
-          <div class="analyze-progress-wrap" id="match-eval-progress-wrap">
-            <div class="analyze-live-text" id="match-eval-live-text"></div>
-            <div class="analyze-progress-track">
-              <div class="analyze-progress-fill" id="match-eval-progress-fill"></div>
-            </div>
-          </div>
-          <div id="match-eval-result"></div>
-        </div>
-      </div>
-
       <div class="panel" id="simproc-panel">
         <div class="panel-hd howto-hd" onclick="toggleSimProcPanel()">
           <div class="panel-title">
@@ -936,6 +915,39 @@ button{font-family:var(--font);cursor:pointer}
       <div class="analysis-panel" id="analysis-panel"></div>
       <div class="chat-panel" id="chat-panel"></div>
       <div class="sim-panel" id="sim-panel"></div>
+
+      <!-- 일치도 평가 (2026-09-18 신설, 2026-11-10 가상 판결문 아래로 이동) -->
+      <div class="panel" id="match-eval-panel">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            일치도 평가
+          </div>
+        </div>
+        <div class="panel-bd">
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
+            🧾 실제 대법원 판결문 전문을 붙여넣으면, 방금 생성된 K-Law 가상 판결문과 비교하여
+            <b>"일치도 평가 기준"</b> 방법론에 따라 평가 보고서를 작성합니다.
+            먼저 위에서 사건 분석 및 판결 시뮬레이션(STEP 0~C)을 완료해야 합니다.
+          </div>
+          <textarea class="case-textarea" id="match-eval-input" data-requires-login="가상 재판 실행"
+            placeholder="실제 대법원 판결문 전문을 붙여넣으세요. (예: 종합법률정보 등에서 복사)"></textarea>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="match-eval-btn" onclick="runMatchEvaluation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              일치도 평가 시작
+            </button>
+            <span id="match-eval-ver-note" style="font-size:11px;color:var(--txt4)"></span>
+          </div>
+          <div class="analyze-progress-wrap" id="match-eval-progress-wrap">
+            <div class="analyze-live-text" id="match-eval-live-text"></div>
+            <div class="analyze-progress-track">
+              <div class="analyze-progress-fill" id="match-eval-progress-fill"></div>
+            </div>
+          </div>
+          <div id="match-eval-result"></div>
+        </div>
+      </div>
 
     </div>
   </main>
@@ -1934,8 +1946,12 @@ ${(matchEvalItemNames.length ? matchEvalItemNames : ['법리 구성','사실관�
 
     resultEl.innerHTML = `
       ${itemsTable}
-      <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;color:var(--txt2)">${escHtml(result)}</div>
+      <div class="verdict-actions"><button class="btn btn-primary" type="button" onclick="downloadMatchEval()">평가 보고서 MD 다운로드</button><span style="font-size:11px;color:var(--txt4)">전문 ${Math.round(result.length/1000)}천 자</span></div>
+      <details class="eval-full"><summary>평가 보고서 전문 보기</summary>
+        <div style="padding:4px 14px 14px;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;color:var(--txt2)">${escHtml(result)}</div>
+      </details>
     `;
+    window._matchEvalText = result;
   } catch(e) {
     _stopMatchEvalProgress(false);
     resultEl.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-top:14px">⚠ 평가 중 오류: ${escHtml(e.message)}</div>`;
@@ -2331,7 +2347,10 @@ async function runJudgementSim() {
         </div>
       </div>
       <div class="verdict-body" id="verdict-body">
-        <div id="verdict-steps"></div>
+        <details class="verdict-full" id="verdict-full">
+          <summary>가상 판결문 전문 <span id="verdict-full-status" style="font-weight:400;color:var(--txt4)">(작성 중…)</span></summary>
+          <div id="verdict-steps"></div>
+        </details>
       </div>
     </div>`;
   simPanel.scrollIntoView({behavior:'smooth', block:'start'});
@@ -2407,6 +2426,8 @@ function updateProgressToast(doneCount, total, currentLabel) {
   }
   if (titleEl) titleEl.textContent = doneCount >= total ? '판결문 생성 완료' : `판결문 생성 중… (${doneCount + 1}/${total})`;
   if (labelEl) labelEl.textContent = currentLabel || '';
+  const _st = document.getElementById('verdict-full-status');
+  if (_st) _st.textContent = doneCount >= total ? '' : `(작성 중 — ${doneCount + 1}/${total} ${currentLabel || ''})`;
 }
 
 function hideProgressToast() {
@@ -2521,6 +2542,8 @@ function appendConfidenceBlock(fullText) {
   const complexity= complexM ? complexM[1] : null;
   const vType     = typeM    ? typeM[1].trim() : '—';
   const summary   = summM    ? summM[1].trim() : '';
+  const orderM    = fullText.match(/(?:主\s*文|主\s*문|주\s*문)\s*[:：]?[ \t]*\n?([^\n]{1,200}(?:\n[^\n]{1,200}){0,3})/);
+  const orderTxt  = orderM ? orderM[1].trim() : '';
   const cc = parseFloat(totalConf)>=7?'var(--green)':parseFloat(totalConf)>=5?'var(--primary)':'var(--orange)';
   const cx = parseFloat(complexity);
   const cxColor = cx<=3?'var(--green)':cx<=6?'var(--orange)':'var(--red)';
@@ -2543,6 +2566,14 @@ function appendConfidenceBlock(fullText) {
         <span style="font-size:13px;font-weight:600;color:var(--txt)">${escHtml(vType)}</span>
       </div>
     </div>
+    ${orderTxt?`<div class="verdict-order"><b>주문</b>${escHtml(orderTxt)}</div>`:''}
+    <div class="verdict-actions">
+      <button class="btn" type="button" onclick="toggleVerdictFull(this)">전문 보기</button>
+      <button class="btn btn-primary" type="button" onclick="downloadVerdict()">MD 다운로드</button>
+      <button class="btn" type="button" onclick="copyVerdict(this)">복사</button>
+      <button class="btn" type="button" onclick="goMatchEval()">일치도 평가로 ↓</button>
+      <span style="font-size:11px;color:var(--txt4)">전문 ${Math.round(fullText.length/1000)}천 자</span>
+    </div>
     <div class="caution-bar">
       본 판결문은 K-Law AI 시뮬레이션 결과입니다 (적용 방법론: K-Law ${escHtml(klawVersion)}).
       법률 정보 제공 목적이며 법률 자문이 아닙니다. 실제 소송에서는 반드시 자격 있는 법률 전문가와 상담하십시오.
@@ -2557,14 +2588,40 @@ function escHtml(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function _klawSaveMd(filename, text) {
+  const blob = new Blob([text], {type:'text/markdown;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+// 2026-11-10 — 가상 판결문은 화면에 전문을 펼치지 않고 요약 카드 + 접힌 전문 + MD 다운로드로 보여 준다.
 function downloadVerdict() {
   const text   = window._verdictText || '';
   const caseNo = window._verdictCaseNo || 'verdict';
-  const blob   = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const a      = document.createElement('a');
-  a.href       = URL.createObjectURL(blob);
-  a.download   = `K-Law_판결문_${caseNo}.txt`;
-  a.click();
+  _klawSaveMd(`K-Law_판결문_${caseNo}.md`, `# 가상 판결문 — ${caseNo}\n\n` + text);
+}
+function copyVerdict(btn) {
+  const text = window._verdictText || '';
+  const done = () => { if (btn) { const o = btn.textContent; btn.textContent = '복사됨'; setTimeout(() => { btn.textContent = o; }, 1500); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => alert('복사하지 못했습니다. MD 다운로드를 이용해 주세요.'));
+  else alert('이 브라우저에서는 복사를 쓸 수 없습니다. MD 다운로드를 이용해 주세요.');
+}
+function toggleVerdictFull(btn) {
+  const d = document.getElementById('verdict-full'); if (!d) return;
+  d.open = !d.open;
+  if (btn) btn.textContent = d.open ? '전문 접기' : '전문 보기';
+  if (d.open) d.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function goMatchEval() {
+  const p = document.getElementById('match-eval-panel');
+  if (p) { p.scrollIntoView({behavior:'smooth', block:'start'}); const t = document.getElementById('match-eval-input'); if (t) setTimeout(() => t.focus({preventScroll:true}), 500); }
+}
+function downloadMatchEval() {
+  const text = window._matchEvalText || '';
+  const caseNo = window._verdictCaseNo || 'verdict';
+  _klawSaveMd(`K-Law_일치도평가_${caseNo}.md`, `# 일치도 평가 보고서 — ${caseNo}\n\n` + text);
 }
 
 function showAnalysisPanel(show) {
