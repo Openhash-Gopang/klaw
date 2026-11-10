@@ -54,6 +54,28 @@ tr.row-clickable:hover{background:var(--bg)}
 .klaw-hd-meta b{color:var(--txt2);font-weight:600}
 .klaw-hd-items{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px}
 .klaw-hd-items td{border:1px solid var(--bdr);padding:6px 10px}
+/* 일치도 변화 추이 */
+.trend{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--shadow-1);padding:14px 18px 10px;margin-bottom:16px}
+.trend-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.trend-hd h2{font-size:14px;color:var(--txt);margin:0}
+.seg{display:inline-flex;border:1px solid var(--bdr2);border-radius:8px;overflow:hidden}
+.seg button{padding:5px 12px;font-size:12px;font-weight:600;color:var(--txt3);background:var(--sur);border:0;border-right:1px solid var(--bdr2);cursor:pointer;font-family:inherit}
+.seg button:last-child{border-right:0}.seg button.on{background:var(--pri-bg);color:var(--pri-dk)}
+.trend-sum{font-size:12px;color:var(--txt3);margin:0 0 4px}
+#trend-svg{width:100%;height:auto;display:block}
+.trend-empty{padding:34px 0;text-align:center;color:var(--txt4);font-size:13px}
+
+/* 자연어 검색 */
+.search{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--shadow-1);padding:14px 18px;margin-bottom:16px}
+.search-row{display:flex;gap:8px}
+.search-row input{flex:1;min-width:0;height:44px;padding:0 14px;border:1px solid var(--bdr2);border-radius:10px;font-size:15px;font-family:inherit;color:var(--txt);background:#fff}
+.search-row input:focus{outline:2px solid var(--pri);outline-offset:-1px}
+.search-row button{height:44px;padding:0 18px;border:0;border-radius:10px;background:var(--pri-dk);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+.search-row button.ghost{background:#fff;color:var(--txt3);border:1px solid var(--bdr2);font-weight:600}
+.search-hint{font-size:12px;color:var(--txt4);margin:8px 0 0;line-height:1.7}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.chip{font-size:12px;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri-dk);border-radius:999px;padding:3px 10px;font-weight:600}
+.chips .cnt{font-size:12px;color:var(--txt3);margin-left:4px}
 </style>
 </head>
 <body>
@@ -65,19 +87,40 @@ tr.row-clickable:hover{background:var(--bg)}
     <p>K-Law 사용자들이 공개로 전환한 가상 판결문 목록입니다. 작성자는 익명으로 표시되지만, 사용자가 입력한 사건 개요와 판결문 내용은 그대로 보입니다.</p>
   </div>
 
+  <div class="search">
+    <form class="search-row" id="search-form" onsubmit="return false">
+      <input type="search" id="q" placeholder="예: 지난달 형사 사기 사건 중 일치도 70% 이상, 올해 3분기 행정 사건, 이용자-a3f9가 쓴 글" aria-label="게시판 검색" autocomplete="off">
+      <button type="submit" id="q-go">검색</button><button type="button" class="ghost" id="q-clear">초기화</button>
+    </form>
+    <div class="chips" id="q-chips" aria-live="polite"></div>
+    <p class="search-hint">자연어로 입력하면 아래와 같이 해석해 조건으로 나눕니다 — <b>종류</b>(민사·형사·행정 등) · <b>기간</b>(오늘, 지난주, 이번 달, 10월, 2026년, 올해 3분기, 최근 30일) · <b>작성자</b>(이용자-a3f9) · <b>일치도</b>(70% 이상) · <b>사건번호</b> · <b>주제</b>(그 밖의 낱말: 제목·요약에서 찾음) · 정렬(일치도 높은 순, 오래된 순). 낱말의 뜻이 같은 다른 표현까지는 찾지 못합니다.</p>
+  </div>
+
+  <div class="trend" id="trend">
+    <div class="trend-hd">
+      <h2>일치도 변화 추이 <span style="font-weight:400;font-size:12px;color:var(--txt3)">· K-Law 이용자 전체</span></h2>
+      <div class="seg" role="group" aria-label="집계 단위" id="trend-seg">
+        <button type="button" data-u="day">일일</button><button type="button" data-u="week">주간</button><button type="button" data-u="month" class="on">월간</button><button type="button" data-u="quarter">분기</button><button type="button" data-u="year">연간</button>
+      </div>
+    </div>
+    <p class="trend-sum" id="trend-sum"></p>
+    <div id="trend-body"></div>
+  </div>
+
   <div class="board">
     <table>
       <thead>
         <tr>
           <th>생성 시각</th>
           <th>작성자</th>
+          <th>종류</th>
           <th>제목</th>
           <th>일치도<br><span style="font-weight:400;font-size:10px">AI 산정·제3자 검증 전</span></th>
           <th>항목별 평가</th>
         </tr>
       </thead>
       <tbody id="board-body">
-        <tr><td colspan="5"><div class="loading"><div class="spinner"></div>불러오는 중…</div></td></tr>
+        <tr><td colspan="6"><div class="loading"><div class="spinner"></div>불러오는 중…</div></td></tr>
       </tbody>
     </table>
   </div>
@@ -104,6 +147,102 @@ function escHtml(s) {
 }
 
 let _klawBoardRows = [];
+let _trendDays = [];            // 전체 이용자 일별 합산 [{d,t,s,n}]
+let _trendUnit = 'month';
+let _q = { types: [], from: null, to: null, author: '', min: null, max: null, caseNo: '', words: [], sort: 'new' };
+
+function _boardTitle(r) {
+  if (r.case_no) return r.case_no;
+  const t = String(r.title || '').replace(/^\(제목 없음\)$/, '').replace(/\s*판결 시뮬레이션\s*/g, ' ').replace(/\[[^\]]*\]\s*/, '').trim();
+  return (t || String(r.case_summary || '').trim().slice(0, 40) || '사건번호 미기재').slice(0, 100);
+}
+function _fmtD(d) { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()); }
+
+/* ───── 자연어 → 조건 해석(서버 호출 없이 이 브라우저에서 처리) ───── */
+const _TYPE_WORDS = ['민사', '형사', '행정', '가사', '특허', '헌법', '노동', '조세', '선거', '군사', '소년', '회생', '파산'];
+const _STOP = new Set(['사건', '사건들', '판결', '판결문', '관련', '대한', '대해', '중', '중에서', '인', '것', '보여줘', '보여', '찾아줘', '찾아', '알려줘', '목록', '모두', '전부', '조회', '검색', '해줘', '작성한', '작성', '쓴', '글', '게시글', '이용자', '의', '및', '그리고', '또는', '만', '에서', '에', '순', '순으로', '일치도', '가상', '다룬', '다루는', '관한', '있는', '높은', '낮은', '이상', '이하', '일치']);
+function parseQuery(raw) {
+  const q = { types: [], from: null, to: null, author: '', min: null, max: null, caseNo: '', words: [], sort: 'new' };
+  let t = ' ' + String(raw || '').replace(/\s+/g, ' ').trim() + ' ';
+  const take = (re, fn) => { const m = t.match(re); if (m) { fn(m); t = t.replace(re, ' '); return true; } return false; };
+  const now = new Date(), D = (y, m, d) => new Date(y, m, d);
+  const today = D(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = (dt, n) => D(dt.getFullYear(), dt.getMonth(), dt.getDate() + n);
+  const setR = (a, b) => { q.from = a; q.to = b; };
+  const monday = dt => day(dt, -((dt.getDay() + 6) % 7));
+  // 사건번호
+  take(/(\d{2,4}[가-힣]{1,4}\d{1,7})/, m => { q.caseNo = m[1]; });
+  // 작성자
+  take(/이용자\s*-?\s*([0-9a-f]{2,6})/i, m => { q.author = m[1].toLowerCase(); });
+  // 일치도 (70% 이상 / 이하 / 초과 / 미만) — 숫자와 비교어가 붙어 있을 때만
+  take(/(\d{1,3})\s*%?\s*(이상|이하|초과|미만|넘는|넘게|이내)/, m => { const n = +m[1]; const w = m[2]; if (/이상|넘/.test(w)) q.min = n; else if (/초과/.test(w)) q.min = n + 0.01; else if (/이하|이내/.test(w)) q.max = n; else q.max = n - 0.01; });
+  // 정렬
+  if (take(/일치도\s*(높은|높은순|높은\s*순)/, () => {}) || take(/(높은\s*순|높은순|내림차순)/, () => {})) q.sort = 'high';
+  if (take(/일치도\s*(낮은|낮은순|낮은\s*순)/, () => {}) || take(/(낮은\s*순|낮은순|오름차순)/, () => {})) q.sort = 'low';
+  if (take(/(오래된\s*순|오래된순|과거\s*순)/, () => {})) q.sort = 'old';
+  take(/(최신\s*순|최신순|최근\s*순)/, () => { q.sort = 'new'; });
+  // 기간
+  let m;
+  if ((m = t.match(/(\d{4})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})\s*일?/))) { const d = D(+m[1], +m[2] - 1, +m[3]); setR(d, d); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(\d{4})\s*년\s*(?:([1-4])\s*분기|(\d{1,2})\s*월)?/))) {
+    const y = +m[1];
+    if (m[2]) setR(D(y, (+m[2] - 1) * 3, 1), D(y, +m[2] * 3, 0)); else if (m[3]) setR(D(y, +m[3] - 1, 1), D(y, +m[3], 0)); else setR(D(y, 0, 1), D(y, 12, 0));
+    t = t.replace(m[0], ' ');
+  }
+  else if ((m = t.match(/(올해|금년|작년|지난해|재작년)\s*(?:([1-4])\s*분기|(\d{1,2})\s*월)?/))) {
+    const y = now.getFullYear() - (/작년|지난해/.test(m[1]) ? 1 : /재작년/.test(m[1]) ? 2 : 0);
+    if (m[2]) setR(D(y, (+m[2] - 1) * 3, 1), D(y, +m[2] * 3, 0)); else if (m[3]) setR(D(y, +m[3] - 1, 1), D(y, +m[3], 0)); else setR(D(y, 0, 1), D(y, 12, 0));
+    t = t.replace(m[0], ' ');
+  }
+  else if ((m = t.match(/(?:이번|이)\s*분기/))) { const qq = Math.floor(now.getMonth() / 3); setR(D(now.getFullYear(), qq * 3, 1), D(now.getFullYear(), qq * 3 + 3, 0)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?:지난|전)\s*분기/))) { let qq = Math.floor(now.getMonth() / 3) - 1, y = now.getFullYear(); if (qq < 0) { qq = 3; y--; } setR(D(y, qq * 3, 1), D(y, qq * 3 + 3, 0)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/([1-4])\s*분기/))) { const y = now.getFullYear(); setR(D(y, (+m[1] - 1) * 3, 1), D(y, +m[1] * 3, 0)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?:이번\s*달|금월|이달)/))) { setR(D(now.getFullYear(), now.getMonth(), 1), D(now.getFullYear(), now.getMonth() + 1, 0)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?:지난\s*달|전월|저번\s*달)/))) { setR(D(now.getFullYear(), now.getMonth() - 1, 1), D(now.getFullYear(), now.getMonth(), 0)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?:이번\s*주|금주|이번주)/))) { const a = monday(today); setR(a, day(a, 6)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?:지난\s*주|전주|저번\s*주|지난주)/))) { const a = day(monday(today), -7); setR(a, day(a, 6)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/최근\s*(\d{1,3})\s*(일|주|개월|달|년)/))) { const n = +m[1], u = m[2]; const f = u === '일' ? day(today, -(n - 1)) : u === '주' ? day(today, -(n * 7 - 1)) : u === '년' ? D(now.getFullYear() - n, now.getMonth(), now.getDate() + 1) : D(now.getFullYear(), now.getMonth() - n, now.getDate() + 1); setR(f, today); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/그저께|그제/))) { setR(day(today, -2), day(today, -2)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/어제/))) { setR(day(today, -1), day(today, -1)); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/오늘/))) { setR(today, today); t = t.replace(m[0], ' '); }
+  else if ((m = t.match(/(?<![0-9])(\d{1,2})\s*월\s*(?:(\d{1,2})\s*일)?/))) {
+    const mo = +m[1]; if (mo >= 1 && mo <= 12) { const y = now.getFullYear(); if (m[2]) { const d = D(y, mo - 1, +m[2]); setR(d, d); } else setR(D(y, mo - 1, 1), D(y, mo, 0)); t = t.replace(m[0], ' '); }
+  }
+  // 종류
+  _TYPE_WORDS.forEach(w => { if (t.includes(w)) { q.types.push(w); t = t.split(w + '사건').join(' ').split(w).join(' '); } });
+  // 남은 낱말 = 주제 키워드
+  t.split(/[\s,，.·/()]+/).forEach(w => {
+    w = w.replace(/%/g, '');
+    if (_STOP.has(w)) return;
+    if (w.length >= 3) w = w.replace(/(을|를|이|가|은|는|의|에|도|만|와|과|로|으로|에서|에게)$/, '');
+    if (w.length >= 2 && !_STOP.has(w) && !/^\d+$/.test(w)) q.words.push(w);
+  });
+  return q;
+}
+function _qActive(q) { return q.types.length || q.from || q.author || q.min != null || q.max != null || q.caseNo || q.words.length || q.sort !== 'new'; }
+function _qChips(q, shown, total) {
+  const c = [];
+  if (q.types.length) c.push('종류: ' + q.types.join(' · '));
+  if (q.from) c.push('기간: ' + (q.from.getTime() === q.to.getTime() ? _fmtD(q.from) : _fmtD(q.from) + ' ~ ' + _fmtD(q.to)));
+  if (q.author) c.push('작성자: 이용자-' + q.author);
+  if (q.min != null || q.max != null) c.push('일치도: ' + (q.min != null ? Math.ceil(q.min) + '% 이상' : '') + (q.min != null && q.max != null ? ' ' : '') + (q.max != null ? Math.floor(q.max) + '% 이하' : ''));
+  if (q.caseNo) c.push('사건번호: ' + q.caseNo);
+  if (q.words.length) c.push('주제: ' + q.words.join(' · '));
+  if (q.sort !== 'new') c.push('정렬: ' + ({ high: '일치도 높은 순', low: '일치도 낮은 순', old: '오래된 순' })[q.sort]);
+  return c.map(x => `<span class="chip">${escHtml(x)}</span>`).join('') + (_qActive(q) ? `<span class="cnt">${shown}건 / 전체 ${total}건</span>` : `<span class="cnt">전체 ${total}건</span>`);
+}
+function _rowMatches(r, q) {
+  if (q.types.length && !q.types.some(t => String(r.case_type || '').includes(t))) return false;
+  const d = new Date(r.created);
+  if (q.from) { const a = new Date(q.from.getFullYear(), q.from.getMonth(), q.from.getDate()), b = new Date(q.to.getFullYear(), q.to.getMonth(), q.to.getDate() + 1); if (!(d >= a && d < b)) return false; }
+  if (q.author && !String(r.author || '').toLowerCase().includes(q.author)) return false;
+  const rate = parseFloat(String(r.match_rate || '').replace('%', ''));
+  if (q.min != null && !(rate >= q.min)) return false;
+  if (q.max != null && !(rate <= q.max)) return false;
+  if (q.caseNo && !String(r.case_no || r.title || '').includes(q.caseNo)) return false;
+  const hay = (_boardTitle(r) + ' ' + (r.case_no || '') + ' ' + (r.case_summary || '') + ' ' + (r.case_type || '') + ' ' + (r.title || '')).toLowerCase();
+  return q.words.every(w => hay.includes(w.toLowerCase()));
+}
 
 async function loadPublicBoard() {
   const body = document.getElementById('board-body');
@@ -112,19 +251,36 @@ async function loadPublicBoard() {
     // 여부와 무관하게) is_public=true인 글만 볼 수 있다.
     const res = await fetch(KLAW_API_BASE + '/klaw/sessions/board');
     const json = await res.json();
-    if (!json.ok) { body.innerHTML = `<tr><td colspan="5"><div class="empty">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div></td></tr>`; return; }
+    if (!json.ok) { body.innerHTML = `<tr><td colspan="6"><div class="empty">⚠ 불러오지 못했습니다: ${escHtml(json.message || '')}</div></td></tr>`; return; }
     _klawBoardRows = json.items || [];
-    renderBoard();
+    applySearch();
   } catch(e) {
-    body.innerHTML = `<tr><td colspan="5"><div class="empty">⚠ 오류: ${escHtml(e.message)}</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="6"><div class="empty">⚠ 오류: ${escHtml(e.message)}</div></td></tr>`;
   }
+  try {   // 전체 이용자 일치도 추이(합산값만 받는다)
+    const r2 = await fetch(KLAW_API_BASE + '/klaw/sessions/trend'); const j2 = await r2.json();
+    _trendDays = j2.ok ? (j2.days || []) : [];
+  } catch (e) { _trendDays = []; }
+  renderTrend();
 }
 
-function renderBoard() {
-  const body = document.getElementById('board-body');
-  if (!_klawBoardRows.length) { body.innerHTML = '<tr><td colspan="5"><div class="empty">아직 공개된 판결문이 없습니다</div></td></tr>'; return; }
+function applySearch() {
+  _q = parseQuery(document.getElementById('q').value);
+  const rows = _klawBoardRows.filter(r => _rowMatches(r, _q));
+  const rate = r => { const v = parseFloat(String(r.match_rate || '').replace('%', '')); return isFinite(v) ? v : -1; };
+  if (_q.sort === 'high') rows.sort((a, b) => rate(b) - rate(a)); else if (_q.sort === 'low') rows.sort((a, b) => (rate(a) < 0 ? 999 : rate(a)) - (rate(b) < 0 ? 999 : rate(b))); else if (_q.sort === 'old') rows.sort((a, b) => new Date(a.created) - new Date(b.created)); else rows.sort((a, b) => new Date(b.created) - new Date(a.created));
+  document.getElementById('q-chips').innerHTML = _qChips(_q, rows.length, _klawBoardRows.length);
+  renderBoard(rows);
+  renderTrend();
+}
 
-  body.innerHTML = _klawBoardRows.map(r => {
+function renderBoard(rows) {
+  const body = document.getElementById('board-body');
+  rows = rows || _klawBoardRows;
+  if (!_klawBoardRows.length) { body.innerHTML = '<tr><td colspan="6"><div class="empty">아직 공개된 판결문이 없습니다</div></td></tr>'; return; }
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="6"><div class="empty">조건에 맞는 사건이 없습니다. 위 해석된 조건을 확인하고 표현을 바꿔 보세요.</div></td></tr>'; return; }
+
+  body.innerHTML = rows.map(r => {
     let items = {};
     try { items = JSON.parse(r.match_items || '{}'); } catch(e) {}
     const itemBadges = Object.entries(items)
@@ -135,12 +291,59 @@ function renderBoard() {
       <tr class="row-clickable" onclick="viewBoardDetail('${escHtml(r.id)}')">
         <td style="white-space:nowrap;color:var(--txt3)">${escHtml(when)}</td>
         <td class="author-cell">${escHtml(r.author || '익명')}</td>
-        <td class="title-cell">${escHtml(r.title || '(제목 없음)')}</td>
+        <td style="white-space:nowrap">${escHtml(r.case_type || '—')}</td>
+        <td class="title-cell">${escHtml(_boardTitle(r))}</td>
         <td><span class="rate-chip">${escHtml(r.match_rate || '—')}</span></td>
         <td><div class="items-chip">${itemBadges || '<span style="color:var(--txt4)">평가 전</span>'}</div></td>
       </tr>`;
   }).join('');
 }
+
+/* ───── 일치도 변화 추이(이용자 전체) ───── */
+function _trendKey(d, u) {
+  const p = n => String(n).padStart(2, '0');
+  const y = d.getFullYear(), m = d.getMonth() + 1;
+  if (u === 'year') return { k: String(y), l: y + '년', t: new Date(y, 0, 1).getTime() };
+  if (u === 'quarter') { const q = Math.floor((m - 1) / 3) + 1; return { k: y + 'Q' + q, l: y + ' ' + q + 'Q', t: new Date(y, (q - 1) * 3, 1).getTime() }; }
+  if (u === 'month') return { k: y + '-' + p(m), l: y + '.' + p(m), t: new Date(y, m - 1, 1).getTime() };
+  if (u === 'week') { const w = new Date(y, d.getMonth(), d.getDate()); w.setDate(w.getDate() - ((w.getDay() + 6) % 7)); return { k: 'W' + w.getTime(), l: p(w.getMonth() + 1) + '.' + p(w.getDate()) + '~', t: w.getTime() }; }
+  return { k: y + '-' + p(m) + '-' + p(d.getDate()), l: p(m) + '.' + p(d.getDate()), t: new Date(y, m - 1, d.getDate()).getTime() };
+}
+const _TREND_UNIT_NAME = { day: '일', week: '주', month: '월', quarter: '분기', year: '연' };
+function renderTrend() {
+  const body = document.getElementById('trend-body'), sum = document.getElementById('trend-sum');
+  document.querySelectorAll('#trend-seg button').forEach(b => b.classList.toggle('on', b.dataset.u === _trendUnit));
+  // 검색창의 종류·기간 조건은 그래프에도 적용한다(작성자·주제·일치도 조건은 합산값에 없어 적용하지 못함)
+  const q = _q, fa = q.from ? new Date(q.from.getFullYear(), q.from.getMonth(), q.from.getDate()).getTime() : null, fb = q.to ? new Date(q.to.getFullYear(), q.to.getMonth(), q.to.getDate()).getTime() : null;
+  const days = _trendDays.filter(x => {
+    if (q.types.length && !q.types.some(t => String(x.t).includes(t))) return false;
+    const [yy, mm, dd] = String(x.d).split('-').map(Number), tt = new Date(yy, mm - 1, dd).getTime();
+    return !(fa != null && (tt < fa || tt > fb));
+  });
+  const cond = [q.types.length ? '종류 ' + q.types.join('·') : '', q.from ? '기간 적용' : ''].filter(Boolean).join(' · ');
+  if (!days.length) { sum.textContent = cond ? '조건: ' + cond : ''; body.innerHTML = '<div class="trend-empty">' + (_trendDays.length ? '조건에 맞는 일치도 평가가 없습니다.' : '아직 일치도 평가 기록이 없습니다. 평가가 쌓이면 이용자 전체의 변화 추이가 여기에 표시됩니다.') + '</div>'; return; }
+  const map = new Map(); let S = 0, N = 0;
+  days.forEach(x => { const [yy, mm, dd] = String(x.d).split('-').map(Number); const b = _trendKey(new Date(yy, mm - 1, dd), _trendUnit); const e = map.get(b.k) || { l: b.l, t: b.t, s: 0, n: 0 }; e.s += x.s; e.n += x.n; map.set(b.k, e); S += x.s; N += x.n; });
+  let bs = Array.from(map.values()).sort((a, b) => a.t - b.t).map(e => ({ l: e.l, n: e.n, v: e.s / e.n }));
+  if (bs.length > 24) bs = bs.slice(-24);
+  const all = S / N, last = bs[bs.length - 1], prev = bs.length > 1 ? bs[bs.length - 2] : null, diff = prev ? last.v - prev.v : null;
+  sum.innerHTML = `전체 평균 <b>${all.toFixed(1)}%</b> · 평가 ${N}건 · 최근 ${_TREND_UNIT_NAME[_trendUnit]} 평균 <b>${last.v.toFixed(1)}%</b>` + (diff == null ? '' : ` (직전 대비 ${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%p)`) + (cond ? ' · 조건: ' + escHtml(cond) : '') + ' · 비공개 이력의 점수도 합산에 포함(개별 내용은 노출되지 않음)';
+  const W = 1100, H = 230, L = 44, R = 34, T = 14, B = 32, iw = W - L - R, ih = H - T - B;
+  const lo = Math.max(0, Math.floor((Math.min(...bs.map(b => b.v)) - 10) / 10) * 10), hi = Math.min(100, Math.ceil((Math.max(...bs.map(b => b.v)) + 10) / 10) * 10);
+  const X = i => L + (bs.length === 1 ? iw / 2 : iw * i / (bs.length - 1)), Y = v => T + ih * (1 - (v - lo) / (hi - lo || 1));
+  let g = '';
+  for (let v = lo; v <= hi; v += (hi - lo > 50 ? 20 : 10)) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e5e7eb"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="#9ca3af">${v}%</text>`;
+  const step = Math.ceil(bs.length / 10);
+  bs.forEach((b, i) => { if (i % step === 0 || i === bs.length - 1) g += `<text x="${X(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#6b7280">${escHtml(b.l)}</text>`; });
+  g += `<line x1="${L}" x2="${W - R}" y1="${Y(all)}" y2="${Y(all)}" stroke="#94a3b8" stroke-dasharray="4 4"/><text x="${L + 4}" y="${Y(all) - 5}" text-anchor="start" font-size="10.5" fill="#94a3b8">전체 평균 ${all.toFixed(1)}%</text>`;
+  if (bs.length > 1) g += `<polyline fill="none" stroke="#2baa74" stroke-width="2.5" stroke-linejoin="round" points="${bs.map((b, i) => X(i) + ',' + Y(b.v)).join(' ')}"/>`;
+  bs.forEach((b, i) => { g += `<g><circle cx="${X(i)}" cy="${Y(b.v)}" r="4.5" fill="#fff" stroke="#2baa74" stroke-width="2.5"><title>${escHtml(b.l)} · 평균 ${b.v.toFixed(1)}% · ${b.n}건</title></circle>${bs.length <= 14 ? `<text x="${X(i)}" y="${Y(b.v) - 10}" text-anchor="middle" font-size="11" font-weight="600" fill="#1f8a5c">${b.v.toFixed(0)}%</text>` : ''}</g>`; });
+  body.innerHTML = `<svg id="trend-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="일치도 변화 추이 그래프(이용자 전체)">${g}</svg>`;
+}
+document.getElementById('trend-seg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; _trendUnit = b.dataset.u; renderTrend(); });
+document.getElementById('search-form').addEventListener('submit', e => { e.preventDefault(); applySearch(); });
+document.getElementById('q-clear').addEventListener('click', () => { document.getElementById('q').value = ''; applySearch(); });
+document.getElementById('q').addEventListener('input', (() => { let t; return () => { clearTimeout(t); t = setTimeout(applySearch, 350); }; })());
 
 async function viewBoardDetail(id) {
   const modal = document.getElementById('klaw-history-detail-modal');
