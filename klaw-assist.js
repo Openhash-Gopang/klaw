@@ -259,6 +259,25 @@
     actions([inp, go]);
   }
 
+  /* adopt 가 없는 구버전 인증 모듈용: hondi_pvt / hondi_pvt_exp 쿠키(.hondi.net)를 심고, 작업 내용을 잠시 보관한 채 새로고침 */
+  var PEND_KEY = 'klaw-assist-pending';
+  function cookieAdopt(m) {
+    var tok = String(m.token || ''), exp = Number(m.exp);
+    if (tok.length < 20 || tok.length > 4000 || !(exp > Date.now() + 60000)) return false;
+    try {
+      var age = Math.min(Math.floor((exp - Date.now()) / 1000), 86400 * 30);
+      var dom = /(^|\.)hondi\.net$/.test(location.hostname) ? '.hondi.net' : location.hostname;
+      document.cookie = 'hondi_pvt=' + encodeURIComponent(tok) + '; domain=' + dom + '; path=/; max-age=' + age + '; secure; samesite=lax';
+      document.cookie = 'hondi_pvt_exp=' + encodeURIComponent(String(exp)) + '; domain=' + dom + '; path=/; max-age=' + age + '; secure; samesite=lax';
+      sessionStorage.setItem(PEND_KEY, JSON.stringify({ at: Date.now(), caseNo: String(m.caseNo || ''), files: Array.isArray(m.files) ? m.files.slice(0, 3) : [] }));
+      location.reload();
+      return true;
+    } catch (e) { return false; }
+  }
+  function takePending() {
+    try { var r = sessionStorage.getItem(PEND_KEY); sessionStorage.removeItem(PEND_KEY); var j = r && JSON.parse(r); return j && Date.now() - j.at < 120000 ? j : null; } catch (e) { return null; }
+  }
+
   /* ───────── 나비웹에서 넘겨받기 ───────── */
   function listenHandoff() {
     mountPanel(); setStep(0, STAGES.length, '대기'); headEl.textContent = '나비웹에서 정보를 받는 중…';
@@ -269,6 +288,8 @@
       done = true;
       var ok = false;
       try { ok = typeof KAuth.adopt === 'function' && KAuth.adopt(String(m.token || ''), Number(m.exp)); } catch (e) { ok = false; }
+      // 인증 모듈(hondi.net)이 아직 adopt 를 갖추지 못한 경우: 같은 쿠키 규칙으로 직접 심고 이 창을 다시 읽는다
+      if (!ok && typeof KAuth.adopt !== 'function' && cookieAdopt(m)) return;
       if (!ok) {
         // adopt 가 없거나(인증 모듈 갱신 전) 토큰이 맞지 않으면, 이미 이 사이트에 로그인돼 있는지 본다
         if (!(KAuth.hasValidLogin && KAuth.hasValidLogin())) say('나비웹의 로그인 정보를 받지 못했습니다. 이 창에서 로그인한 뒤 아래에서 시작해 주세요.', { err: true });
@@ -288,7 +309,11 @@
     var t0 = Date.now();
     (function wait() {
       if (typeof runSimulation === 'function' && typeof KAuth !== 'undefined' && $('case-input')) {
-        if (window.opener) listenHandoff(); else { mountPanel(); say('나비웹 도우미입니다. 대법원 사건번호를 입력하면 판결문 확보부터 방법론 갱신 제안까지 진행합니다.'); manualForm(); }
+        var pend = takePending();
+        if (pend && KAuth.hasValidLogin && KAuth.hasValidLogin()) {
+          mountPanel(); say('나비웹의 로그인 정보로 이 창을 열었습니다(다시 인증하지 않아도 됩니다).', { ok: true });
+          start(pend.caseNo, (pend.files || []).map(function (f) { var t = String(f.text || '').slice(0, 400000); return { level: ['supreme', 'appeal', 'first'].indexOf(f.level) >= 0 ? f.level : 'supreme', court: '', caseNo: '', text: t, body: t }; }));
+        } else if (window.opener) listenHandoff(); else { mountPanel(); say('나비웹 도우미입니다. 대법원 사건번호를 입력하면 판결문 확보부터 방법론 갱신 제안까지 진행합니다.'); manualForm(); }
       } else if (Date.now() - t0 < 15000) setTimeout(wait, 200);
     })();
   }
