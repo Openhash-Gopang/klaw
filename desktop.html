@@ -2147,6 +2147,7 @@ async function runSimulation() {
     conversationState.caseData = caseData;
 
     if (_klawAnalysisIsEmpty(caseData)) {
+      btn.dataset.failed = '1';
       showAnalysisPanel(false);
       showError(
         '⚠️ 두 번 시도했지만 K-Law가 사건 개요를 추출하지 못했습니다(응답이 비어 있음). ' +
@@ -2171,8 +2172,10 @@ async function runSimulation() {
     _stopAnalyzeProgress(false);
     showAnalysisPanel(false);
     showError('분석 중 오류: ' + e.message);
+    console.error('[K-Law] 분석 오류:', e);
+    btn.dataset.failed = '1';
   } finally {
-    btn.disabled = false; btn.textContent = '입력 완료';
+    btn.disabled = false; btn.textContent = btn.dataset.failed ? '다시 시도' : '입력 완료'; delete btn.dataset.failed;
   }
 }
 
@@ -2575,7 +2578,9 @@ function showAnalysisPanel(show) {
 function showError(msg) {
   const p = document.getElementById('analysis-panel');
   p.style.display = 'block';
-  p.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">${msg}</div>`;
+  p.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">${msg}</div>`;  // 2026-11-10 — 오류 패널은 입력란 아래쪽(화면 밖)에 그려져, 오류가 나도 사용자는 버튼 글자만 바뀐 채 멈춘 것으로 보였다.
+  p.setAttribute('role', 'alert');
+  p.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 // ── textarea 확장 + 툴바 표시
