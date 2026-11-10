@@ -530,18 +530,15 @@ button{font-family:var(--font);cursor:pointer}
           <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
         </div>
         <div class="page-actions">
-          <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v17_2.md" download>
+          <a class="btn" id="doc-method" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/klaw_v17_2.md" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            방법론 원문
-          </a>
-          <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download>
+            <span class="doc-label">방법론 원문 v17.2</span></a>
+          <a class="btn" id="doc-format" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EA%B0%80%EC%83%81%ED%8C%90%EA%B2%B0_%EC%B6%9C%EB%A0%A5%ED%98%95%EC%8B%9D_v13_3.txt" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            출력형식
-          </a>
-          <a class="btn" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v1_6.docx" download>
+            <span class="doc-label">출력형식 v13.3</span></a>
+          <a class="btn" id="doc-eval" href="https://raw.githubusercontent.com/Openhash-Gopang/klaw/main/%EC%9D%BC%EC%B9%98%EB%8F%84_%ED%8F%89%EA%B0%80_%EA%B8%B0%EC%A4%80_v3_0.docx" download>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            일치도 기준
-          </a>
+            <span class="doc-label">일치도 기준 v3.0</span></a>
           <button class="btn" onclick="downloadVerdict()" id="dl-btn" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             판결문 저장
@@ -1718,6 +1715,12 @@ const _KLAW_CACHE_KEY = 'klaw_method_cache_v2'; // v2: 출력형식 포함되며
 const _KLAW_CACHE_TTL  = 24 * 60 * 60 * 1000; // 24시간
 const KLAW_FORMAT_FILE = '가상판결_출력형식_v13_3.txt';
 
+// 상단 문서 버튼: 링크와 문구를 현재 적용 버전으로 갱신
+function _klawUpdateDocLinks() {
+  const set=(id,label,file)=>{ const a=document.getElementById(id); if(!a) return; a.href=KLAW_RAW_BASE+encodeURIComponent(file); const l=a.querySelector('.doc-label'); if(l) l.textContent=label; };
+  if (typeof klawVersion==='string' && /^v\d/.test(klawVersion)) set('doc-method','방법론 원문 '+klawVersion,'klaw_v'+klawVersion.slice(1).replace('.','_')+'.md');
+  if (typeof matchEvalVersion==='string' && matchEvalText && /^v\d/.test(matchEvalVersion)) set('doc-eval','일치도 기준 '+matchEvalVersion,'일치도_평가_기준_v'+matchEvalVersion.slice(1).replace('.','_')+'.docx');
+}
 async function loadKlawVersion() {
   // ── 캐시 확인: sessionStorage에 유효한 데이터가 있으면 재사용 ──
   try {
@@ -1729,6 +1732,7 @@ async function loadKlawVersion() {
       klawFormatText = cached.format;
       const badge = document.getElementById('klaw-ver-badge');
       if (badge) badge.textContent = klawVersion;
+      _klawUpdateDocLinks();
       console.log('[K-Law] 캐시 로드:', klawVersion);
       return;
     }
@@ -1769,6 +1773,7 @@ async function loadKlawVersion() {
   }
   const badge = document.getElementById('klaw-ver-badge');
   if (badge) badge.textContent = klawVersion;
+      _klawUpdateDocLinks();
 }
 loadKlawVersion();
 
@@ -1812,6 +1817,7 @@ async function loadMatchEvalCriteria() {
       matchEvalVersion = cached.version;
       matchEvalText    = cached.text;
       matchEvalItemNames = _klawExtractEvalItemNames(matchEvalText);
+      _klawUpdateDocLinks();
       return;
     }
   } catch(e) {}
@@ -1842,6 +1848,7 @@ async function loadMatchEvalCriteria() {
     matchEvalVersion = 'v1.6'; matchEvalText = '';
   }
   const note = document.getElementById('match-eval-ver-note');
+  _klawUpdateDocLinks();
   if (note) note.textContent = matchEvalText ? `일치도 평가 기준 ${matchEvalVersion} 적용` : '⚠ 평가 기준 원문 로드 실패 — 일반 기준으로 평가됩니다';
 }
 loadMatchEvalCriteria();
