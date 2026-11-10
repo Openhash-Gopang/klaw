@@ -566,142 +566,7 @@ button{font-family:var(--font);cursor:pointer}
 
     <div class="content">
 
-      <!-- 나비 AI (2026-10-13 신설) -->
-      <div class="panel" id="navi-intro">
-        <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-navi" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
-        <div class="hint-box" id="hint-navi" hidden style="padding:14px 16px">
-          <div class="cm-note"><b>Navi AI</b>는 <b>A.X 4.0</b>을 <b>대법원 가상 판결문 시뮬레이션에 특화</b>해 Fine-tuning한 모델입니다. LLM 선택 메뉴 없이 Navi AI가 판결문을 작성하며, 사건 개요를 입력하는 방식은 단일 AI 모델과 같습니다.</div>
-          <div class="cm-note warn" style="margin-bottom:0"><b>준비 중입니다.</b> 아직 이용할 수 없어 아래의 분석 시작은 동작하지 않습니다.</div>
-        </div>
-      </div>
-
-      <!-- 단일 AI 모델 설명·LLM 선택 (2026-10-13 신설) -->
-      <div class="panel" id="single-intro">
-        <div class="panel-hd"><div class="panel-title">AI 모델 선택 (단일)<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-single" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
-        <div style="padding:14px 16px">
-          <div class="cm-note hint-box" id="hint-single" hidden><b>단일 AI 모델</b>은 DeepSeek, Claude, Gemini 등 <b>하나의 LLM 모델</b>을 골라 가상 판결문을 생성합니다. 복합 AI 모델에 비해 <b>비용이 저렴</b>합니다. API Key가 필요하면 <a href="api-key-guide.html" target="_blank" rel="noopener">무료 API Key 획득 방법</a>을 참고하세요.</div>
-          <div class="sg-label">LLM 선택</div>
-          <div class="sg-pills" id="sg-pills">
-            <button type="button" class="sg-pill" data-llm="deepseek" onclick="sgPick('deepseek')">DeepSeek</button>
-            <button type="button" class="sg-pill" data-llm="claude" onclick="sgPick('claude')">Claude</button>
-            <button type="button" class="sg-pill" data-llm="gemini" onclick="sgPick('gemini')">Gemini</button>
-            <button type="button" class="sg-pill" data-llm="groq" onclick="sgPick('groq')">Groq (Llama)</button>
-          </div>
-          <!-- ── 모델 선택 드롭다운 ── -->
-          <div id="hdr-model-row" style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <!-- LLM 선택 -->
-            <select id="hdr-llm-select" hidden onchange="onHdrLLMChange()"
-              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--font);background:var(--sur);
-                color:var(--txt);outline:none;cursor:pointer">
-              <option value="deepseek">DeepSeek</option>
-              <option value="claude">Claude</option>
-              <option value="gemini">Gemini</option>
-              <option value="groq">Groq</option>
-            </select>
-            <!-- 모델 세부 선택 -->
-            <select id="hdr-model-select" onchange="onHdrModelChange()"
-              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--font);background:var(--sur);
-                color:var(--txt);outline:none;cursor:pointer;min-width:200px">
-              <option value="deepseek-v4-pro" selected>deepseek-v4-pro (기본)</option>
-            </select>
-            <!-- API Key (Claude/Gemini 선택 시) -->
-            <input id="hdr-api-key" type="password" placeholder="API Key 입력"
-              style="display:none;padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
-                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
-                outline:none;width:200px"
-              oninput="conversationState.apiKey=this.value">
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-hd">
-          <div class="panel-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            사건의 개요<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-case" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
-          </div>
-          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
-            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
-          </span>
-        </div>
-        <div class="panel-bd">
-          <div class="hint-box" id="hint-case" hidden>
-          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
-            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
-          </div>
-          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6" id="case-privacy-note">🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등 개인정보와 비밀 정보는 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택하신 AI 제공자(DeepSeek·Claude·Gemini·Groq 등)로 전송되며, 혼디에 로그인한 경우 결과와 함께 내 이력에 저장됩니다(기본 비공개 · 공개 전환은 이력 페이지에서 직접 선택).</div>
-            <div class="vv-attach-hint" id="kl-attach-hint" style="margin-top:0">📎 txt · md · docx · hwp · hwpx · pdf · xlsx · pptx · rtf · html · zip 등 대부분의 문서와 이미지(글자 인식)를 첨부할 수 있습니다. 글자만 읽어 위 입력란에 추가하며 파일 자체는 올라가지 않습니다. 개인정보는 가린 뒤 첨부하세요.</div>
-          </div>
-<textarea class="case-textarea" id="case-input" data-requires-login="가상 재판 실행"
-            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
-          <div class="input-toolbar" id="input-toolbar">
-            <div class="toolbar-left">
-              <label class="file-label" title="파일 첨부 — txt·md·docx·hwp·hwpx·pdf·xlsx·pptx·이미지 등" onclick="window._klPicking=true">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="file-input" style="display:none" multiple onchange="handleFileAttach(this)">
-              </label>
-              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
-              </button>
-              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-            </div>
-            <button class="btn btn-primary" id="run-btn" data-requires-login="가상 재판 실행" onclick="runSimulation()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              분석 시작
-            </button>
-            <span style="font-size:10.5px;color:var(--txt4);margin-left:6px;white-space:nowrap">Ctrl+Enter</span>
-          </div>
-          <div class="vv-attach-msg" id="vv-attach-msg" role="status" aria-live="polite"></div>
-          <div class="analyze-progress-wrap" id="analyze-progress-wrap">
-            <div class="analyze-live-text" id="analyze-live-text"></div>
-            <div class="analyze-progress-track">
-              <div class="analyze-progress-fill" id="analyze-progress-fill"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 복합 AI 모델 (2026-10-13 신설) -->
-      <div class="panel" id="composite-panel">
-        <div class="panel-hd">
-          <div class="panel-title">복합 AI 모델<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-comp" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
-        </div>
-        <div class="panel-bd">
-          <div class="hint-box" id="hint-comp" hidden>
-          <div class="cm-note">
-            같은 사건 개요로 <b>둘 이상의 AI 모델</b>이 각각 가상 판결문을 작성하고, <b>평가 모델</b>이 품질을 점수로 비교한 뒤, 최종 판결문으로 채택할 모델 하나를 고릅니다.
-            API Key는 사이트가 제공하며, 사용한 만큼 <b>GDC가 차감</b>됩니다. 선택한 모델 수만큼 호출이 늘어 비용도 그만큼 늘어납니다.
-          </div>
-          <div class="cm-note warn">
-            🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등은 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택한 모델의 AI 제공자에게 전송됩니다.
-            복합 모드는 추가 질문 없이 입력한 사건 개요만으로 작성하며, 심급은 정하지 않습니다.
-          </div>
-          </div>
-          <div class="cm-h" style="margin-top:0">사건의 개요</div>
-          <textarea class="case-textarea expanded" id="cm-case-input" data-requires-login="가상 재판 실행" style="resize:vertical"
-            placeholder="사건의 핵심 사실관계와 양측 주장을 입력하세요. 법원의 판단이나 결론은 넣지 마세요."></textarea>
-
-          <div class="cm-h">가상 판결문을 작성할 AI 모델 (2개 이상 선택)</div>
-          <div class="cm-models" id="cm-models"></div>
-          <div class="cm-count" id="cm-count"></div>
-          <div class="cm-count" id="cm-eval-note"></div>
-
-          <div class="cm-run-row">
-            <button class="btn btn-primary" id="cm-run-btn" data-requires-login="가상 재판 실행" type="button" onclick="cmRun()">복합 판결 시작</button>
-            <span class="cm-count" style="margin:0" id="cm-run-hint"></span>
-          </div>
-
-          <div id="cm-progress" style="display:none">
-            <div class="cm-h">1. 모델별 가상 판결문 작성</div>
-            <div class="cm-prog" id="cm-prog"></div>
-          </div>
-          <div id="cm-eval" style="display:none"></div>
-          <div id="cm-final" style="display:none"></div>
-        </div>
-      </div>
-
+      <!-- 안내 섹션 (2026-11-11 페이지 상단으로 이동) -->
       <div class="panel" id="simproc-panel">
         <div class="panel-hd howto-hd" onclick="toggleSimProcPanel()">
           <div class="panel-title">
@@ -852,6 +717,143 @@ button{font-family:var(--font);cursor:pointer}
             상당한 API 비용으로 인해 본 사이트의 데모에 포함하지 않았습니다.
           </div>
 
+        </div>
+      </div>
+
+
+      <!-- 나비 AI (2026-10-13 신설) -->
+      <div class="panel" id="navi-intro">
+        <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-navi" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
+        <div class="hint-box" id="hint-navi" hidden style="padding:14px 16px">
+          <div class="cm-note"><b>Navi AI</b>는 <b>A.X 4.0</b>을 <b>대법원 가상 판결문 시뮬레이션에 특화</b>해 Fine-tuning한 모델입니다. LLM 선택 메뉴 없이 Navi AI가 판결문을 작성하며, 사건 개요를 입력하는 방식은 단일 AI 모델과 같습니다.</div>
+          <div class="cm-note warn" style="margin-bottom:0"><b>준비 중입니다.</b> 아직 이용할 수 없어 아래의 분석 시작은 동작하지 않습니다.</div>
+        </div>
+      </div>
+
+      <!-- 단일 AI 모델 설명·LLM 선택 (2026-10-13 신설) -->
+      <div class="panel" id="single-intro">
+        <div class="panel-hd"><div class="panel-title">AI 모델 선택 (단일)<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-single" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
+        <div style="padding:14px 16px">
+          <div class="cm-note hint-box" id="hint-single" hidden><b>단일 AI 모델</b>은 DeepSeek, Claude, Gemini 등 <b>하나의 LLM 모델</b>을 골라 가상 판결문을 생성합니다. 복합 AI 모델에 비해 <b>비용이 저렴</b>합니다. API Key가 필요하면 <a href="api-key-guide.html" target="_blank" rel="noopener">무료 API Key 획득 방법</a>을 참고하세요.</div>
+          <div class="sg-label">LLM 선택</div>
+          <div class="sg-pills" id="sg-pills">
+            <button type="button" class="sg-pill" data-llm="deepseek" onclick="sgPick('deepseek')">DeepSeek</button>
+            <button type="button" class="sg-pill" data-llm="claude" onclick="sgPick('claude')">Claude</button>
+            <button type="button" class="sg-pill" data-llm="gemini" onclick="sgPick('gemini')">Gemini</button>
+            <button type="button" class="sg-pill" data-llm="groq" onclick="sgPick('groq')">Groq (Llama)</button>
+          </div>
+          <!-- ── 모델 선택 드롭다운 ── -->
+          <div id="hdr-model-row" style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <!-- LLM 선택 -->
+            <select id="hdr-llm-select" hidden onchange="onHdrLLMChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer">
+              <option value="deepseek">DeepSeek</option>
+              <option value="claude">Claude</option>
+              <option value="gemini">Gemini</option>
+              <option value="groq">Groq</option>
+            </select>
+            <!-- 모델 세부 선택 -->
+            <select id="hdr-model-select" onchange="onHdrModelChange()"
+              style="padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--font);background:var(--sur);
+                color:var(--txt);outline:none;cursor:pointer;min-width:200px">
+              <option value="deepseek-v4-pro" selected>deepseek-v4-pro (기본)</option>
+            </select>
+            <!-- API Key (Claude/Gemini 선택 시) -->
+            <input id="hdr-api-key" type="password" placeholder="API Key 입력"
+              style="display:none;padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;
+                font-size:12px;font-family:var(--mono);background:var(--sur);color:var(--txt);
+                outline:none;width:200px"
+              oninput="conversationState.apiKey=this.value">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            사건의 개요<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-case" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button>
+          </div>
+          <span id="voice-status" style="font-size:11px;color:var(--red);font-weight:600;display:none;align-items:center;gap:4px">
+            <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--red)"/></svg>녹음 중
+          </span>
+        </div>
+        <div class="panel-bd">
+          <div class="hint-box" id="hint-case" hidden>
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">
+            ✍️ 사건의 개요를 <b>상세히</b> 입력해야 합니다. 주요 사항(significant data)을 누락하면 K-Law 가상 판결문의 품질이 현저히 떨어집니다.
+          </div>
+          <div style="font-size:12px;color:#92400e;background:var(--org-bg);border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6" id="case-privacy-note">🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등 개인정보와 비밀 정보는 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택하신 AI 제공자(DeepSeek·Claude·Gemini·Groq 등)로 전송되며, 혼디에 로그인한 경우 결과와 함께 내 이력에 저장됩니다(기본 비공개 · 공개 전환은 이력 페이지에서 직접 선택).</div>
+            <div class="vv-attach-hint" id="kl-attach-hint" style="margin-top:0">📎 txt · md · docx · hwp · hwpx · pdf · xlsx · pptx · rtf · html · zip 등 대부분의 문서와 이미지(글자 인식)를 첨부할 수 있습니다. 글자만 읽어 위 입력란에 추가하며 파일 자체는 올라가지 않습니다. 개인정보는 가린 뒤 첨부하세요.</div>
+          </div>
+<textarea class="case-textarea" id="case-input" data-requires-login="가상 재판 실행"
+            placeholder="사건의 핵심 사실관계와 법적 쟁점을 입력하세요.&#10;예: 원고는 피고에게 2024년 3월 3,000만원을 대여하였으나 피고가 변제기 이후에도 변제하지 않고 있습니다. 피고는 해당 금액이 증여라고 주장합니다."></textarea>
+          <div class="input-toolbar" id="input-toolbar">
+            <div class="toolbar-left">
+              <label class="file-label" title="파일 첨부 — txt·md·docx·hwp·hwpx·pdf·xlsx·pptx·이미지 등" onclick="window._klPicking=true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                <input type="file" id="file-input" style="display:none" multiple onchange="handleFileAttach(this)">
+              </label>
+              <button class="icon-btn" id="voice-btn" title="음성 입력" onclick="toggleVoice()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <div id="file-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+            </div>
+            <button class="btn btn-primary" id="run-btn" data-requires-login="가상 재판 실행" onclick="runSimulation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              분석 시작
+            </button>
+            <span style="font-size:10.5px;color:var(--txt4);margin-left:6px;white-space:nowrap">Ctrl+Enter</span>
+          </div>
+          <div class="vv-attach-msg" id="vv-attach-msg" role="status" aria-live="polite"></div>
+          <div class="analyze-progress-wrap" id="analyze-progress-wrap">
+            <div class="analyze-live-text" id="analyze-live-text"></div>
+            <div class="analyze-progress-track">
+              <div class="analyze-progress-fill" id="analyze-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 복합 AI 모델 (2026-10-13 신설) -->
+      <div class="panel" id="composite-panel">
+        <div class="panel-hd">
+          <div class="panel-title">복합 AI 모델<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-comp" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
+        </div>
+        <div class="panel-bd">
+          <div class="hint-box" id="hint-comp" hidden>
+          <div class="cm-note">
+            같은 사건 개요로 <b>둘 이상의 AI 모델</b>이 각각 가상 판결문을 작성하고, <b>평가 모델</b>이 품질을 점수로 비교한 뒤, 최종 판결문으로 채택할 모델 하나를 고릅니다.
+            API Key는 사이트가 제공하며, 사용한 만큼 <b>GDC가 차감</b>됩니다. 선택한 모델 수만큼 호출이 늘어 비용도 그만큼 늘어납니다.
+          </div>
+          <div class="cm-note warn">
+            🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등은 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택한 모델의 AI 제공자에게 전송됩니다.
+            복합 모드는 추가 질문 없이 입력한 사건 개요만으로 작성하며, 심급은 정하지 않습니다.
+          </div>
+          </div>
+          <div class="cm-h" style="margin-top:0">사건의 개요</div>
+          <textarea class="case-textarea expanded" id="cm-case-input" data-requires-login="가상 재판 실행" style="resize:vertical"
+            placeholder="사건의 핵심 사실관계와 양측 주장을 입력하세요. 법원의 판단이나 결론은 넣지 마세요."></textarea>
+
+          <div class="cm-h">가상 판결문을 작성할 AI 모델 (2개 이상 선택)</div>
+          <div class="cm-models" id="cm-models"></div>
+          <div class="cm-count" id="cm-count"></div>
+          <div class="cm-count" id="cm-eval-note"></div>
+
+          <div class="cm-run-row">
+            <button class="btn btn-primary" id="cm-run-btn" data-requires-login="가상 재판 실행" type="button" onclick="cmRun()">복합 판결 시작</button>
+            <span class="cm-count" style="margin:0" id="cm-run-hint"></span>
+          </div>
+
+          <div id="cm-progress" style="display:none">
+            <div class="cm-h">1. 모델별 가상 판결문 작성</div>
+            <div class="cm-prog" id="cm-prog"></div>
+          </div>
+          <div id="cm-eval" style="display:none"></div>
+          <div id="cm-final" style="display:none"></div>
         </div>
       </div>
 
