@@ -180,6 +180,9 @@ button{font-family:var(--font);cursor:pointer}
 .hint-btn:hover{border-color:var(--pri);color:var(--pri)}
 .hint-btn[aria-expanded="true"]{background:var(--pri);border-color:var(--pri);color:#fff}
 .hint-box[hidden]{display:none!important}
+.hint-box.page-hint{font-size:12.5px;color:var(--txt2);line-height:1.7;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;margin-top:8px;max-width:760px}
+.hint-box.page-hint .page-subtitle{margin-top:0;color:var(--txt2)}
+
 .draft-chip{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:10px;font-weight:700;text-transform:none;letter-spacing:0}
 .vv-attach-hint{font-size:11.5px;color:var(--txt3);line-height:1.6;margin-top:8px}
 .vv-attach-msg{font-size:12px;line-height:1.6;margin-top:4px}
@@ -498,8 +501,10 @@ button{font-family:var(--font);cursor:pointer}
     <div class="page-header">
       <div class="page-header-top">
         <div>
-          <div class="page-title">판결 시뮬레이터</div>
-          <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
+          <div class="page-title">판결 시뮬레이터<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-page" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
+          <div class="hint-box page-hint" id="hint-page" hidden>
+            <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
+          </div>
           <!-- ── 모델 선택 드롭다운 ── -->
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
             <!-- LLM 선택 -->
@@ -605,7 +610,7 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd howto-hd" onclick="toggleSimProcPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            시뮬레이션 절차와 방법
+            시뮬레이션 절차와 방법<button type="button" class="hint-btn" aria-expanded="false" aria-controls="simproc-panel-bd" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="event.stopPropagation();toggleSimProcPanel();this.setAttribute('aria-expanded',document.getElementById('simproc-panel-bd').classList.contains('open'))">?</button>
           </div>
           <svg class="howto-chevron" id="simproc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -642,7 +647,7 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd howto-hd" onclick="toggleHowtoPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-            K-Law는 어떻게 동작하나요
+            K-Law는 어떻게 동작하나요<button type="button" class="hint-btn" aria-expanded="false" aria-controls="howto-panel-bd" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="event.stopPropagation();toggleHowtoPanel();this.setAttribute('aria-expanded',document.getElementById('howto-panel-bd').classList.contains('open'))">?</button>
           </div>
           <svg class="howto-chevron" id="howto-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>

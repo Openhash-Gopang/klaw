@@ -159,6 +159,9 @@ button{font-family:var(--font);cursor:pointer}
 .hint-btn:hover{border-color:var(--pri);color:var(--pri)}
 .hint-btn[aria-expanded="true"]{background:var(--pri);border-color:var(--pri);color:#fff}
 .hint-box[hidden]{display:none!important}
+.hint-box.page-hint{font-size:12.5px;color:var(--txt2);line-height:1.7;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;margin-top:8px;max-width:760px}
+.hint-box.page-hint .page-subtitle{margin-top:0;color:var(--txt2)}
+
 .vv-attach-hint{font-size:11.5px;color:var(--txt3);line-height:1.6;margin-top:8px}
 .vv-attach-msg{font-size:12px;line-height:1.6;margin-top:4px}
 .vv-attach-msg:empty{display:none}
@@ -441,7 +444,6 @@ button{font-family:var(--font);cursor:pointer}
     </button>
   <span class="hondi-user-slot" data-hondi-user-slot="dark" style="flex:none;display:flex;align-items:center;padding-left:10px"></span></div>
 </header>
-<div role="note" style="flex-shrink:0;background:#eff6ff;color:#1e40af;border-bottom:1px solid #bfdbfe;font-size:12.5px;line-height:1.5;padding:7px 16px;text-align:center">🆕 <strong>새 방법론 Agon</strong>은 K-Law(v15.x)와 입력·판단·채점 방법이 다른 별도 방법론입니다. <a href="verdict-generate.html" style="color:#1e3a8a;font-weight:700">Agon 가상 판결문 생성하기</a> · <a href="rounds.html" style="color:#1e3a8a;font-weight:700">Agon 라운드별 시험 기록</a></div>
 
 <div class="app-body">
   <nav class="sidebar">
@@ -526,8 +528,11 @@ button{font-family:var(--font);cursor:pointer}
     <div class="page-header">
       <div class="page-header-top">
         <div>
-          <div class="page-title">K-Law 판결 시뮬레이터</div>
-          <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
+          <div class="page-title">K-Law 판결 시뮬레이터<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-page" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
+          <div class="hint-box page-hint" id="hint-page" hidden>
+            <div class="page-subtitle">사건의 핵심 사실관계를 입력하면 K-Law가 참고용 가상 판결문을 작성합니다.</div>
+            <div style="margin-top:8px">🆕 <strong>새 방법론 Agon</strong>은 K-Law(v15.x)와 입력·판단·채점 방법이 다른 별도 방법론입니다. <a href="verdict-generate.html" style="color:#1e3a8a;font-weight:700">Agon 가상 판결문 생성하기</a> · <a href="rounds.html" style="color:#1e3a8a;font-weight:700">Agon 라운드별 시험 기록</a></div>
+          </div>
         </div>
         <div class="page-actions">
           <a class="btn" id="doc-guide" href="https://github.com/Openhash-Gopang/klaw/blob/main/K-Law_%EB%B0%A9%EB%B2%95%EB%A1%A0_%EC%A0%81%EC%9A%A9_%EB%B0%A9%EB%B2%95_%EB%B0%8F_%EC%98%88%EC%8B%9C.md" target="_blank" rel="noopener">
@@ -560,8 +565,8 @@ button{font-family:var(--font);cursor:pointer}
 
       <!-- K-Law와 Agon 비교 (2026-10-13 신설) -->
       <div class="panel" id="method-compare">
-        <div class="panel-hd"><div class="panel-title">K-Law와 Agon의 차이</div></div>
-        <div style="padding:14px 16px">
+        <div class="panel-hd"><div class="panel-title">K-Law와 Agon의 차이<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-compare" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
+        <div class="hint-box" id="hint-compare" hidden style="padding:14px 16px">
           <div class="cm-note" style="margin-bottom:10px">이 페이지는 <b>K-Law (v15.1)</b> 방법론을 시험하는 곳입니다. 새 방법론 <b>Agon</b>은 K-Law와 입력 데이터, 판단 방법, 채점 기준이 다른 별개의 방법론이며, 두 방법론의 일치도는 직접 비교할 수 없습니다. Agon은 <a href="verdict-generate.html">Agon 성능 테스트 페이지</a>에서 시험할 수 있습니다.</div>
           <details>
             <summary style="cursor:pointer;font-size:12.5px;font-weight:600;color:var(--txt2);margin-bottom:8px">K-Law와 Agon 비교표 보기 (목적 · 입력 데이터 · 판단 방법 · 채점 방식)</summary>
@@ -584,8 +589,8 @@ button{font-family:var(--font);cursor:pointer}
 
       <!-- 나비 AI (2026-10-13 신설) -->
       <div class="panel" id="navi-intro">
-        <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span></div></div>
-        <div style="padding:14px 16px">
+        <div class="panel-hd"><div class="panel-title">Navi AI (나비 AI)<span class="nv-badge">준비 중</span><button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-navi" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
+        <div class="hint-box" id="hint-navi" hidden style="padding:14px 16px">
           <div class="cm-note"><b>Navi AI</b>는 <b>A.X 4.0</b>을 <b>대법원 가상 판결문 시뮬레이션에 특화</b>해 Fine-tuning한 모델입니다. LLM 선택 메뉴 없이 Navi AI가 판결문을 작성하며, 사건 개요를 입력하는 방식은 단일 AI 모델과 같습니다.</div>
           <div class="cm-note warn" style="margin-bottom:0"><b>준비 중입니다.</b> 아직 이용할 수 없어 아래의 분석 시작은 동작하지 않습니다.</div>
         </div>
@@ -593,9 +598,9 @@ button{font-family:var(--font);cursor:pointer}
 
       <!-- 단일 AI 모델 설명·LLM 선택 (2026-10-13 신설) -->
       <div class="panel" id="single-intro">
-        <div class="panel-hd"><div class="panel-title">AI 모델 선택 (단일)</div></div>
+        <div class="panel-hd"><div class="panel-title">AI 모델 선택 (단일)<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-single" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div></div>
         <div style="padding:14px 16px">
-          <div class="cm-note"><b>단일 AI 모델</b>은 DeepSeek, Claude, Gemini 등 <b>하나의 LLM 모델</b>을 골라 가상 판결문을 생성합니다. 복합 AI 모델에 비해 <b>비용이 저렴</b>합니다. API Key가 필요하면 <a href="api-key-guide.html" target="_blank" rel="noopener">무료 API Key 획득 방법</a>을 참고하세요.</div>
+          <div class="cm-note hint-box" id="hint-single" hidden><b>단일 AI 모델</b>은 DeepSeek, Claude, Gemini 등 <b>하나의 LLM 모델</b>을 골라 가상 판결문을 생성합니다. 복합 AI 모델에 비해 <b>비용이 저렴</b>합니다. API Key가 필요하면 <a href="api-key-guide.html" target="_blank" rel="noopener">무료 API Key 획득 방법</a>을 참고하세요.</div>
           <div class="sg-label">LLM 선택</div>
           <div class="sg-pills" id="sg-pills">
             <button type="button" class="sg-pill" data-llm="deepseek" onclick="sgPick('deepseek')">DeepSeek</button>
@@ -682,9 +687,10 @@ button{font-family:var(--font);cursor:pointer}
       <!-- 복합 AI 모델 (2026-10-13 신설) -->
       <div class="panel" id="composite-panel">
         <div class="panel-hd">
-          <div class="panel-title">복합 AI 모델</div>
+          <div class="panel-title">복합 AI 모델<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-comp" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div>
         </div>
         <div class="panel-bd">
+          <div class="hint-box" id="hint-comp" hidden>
           <div class="cm-note">
             같은 사건 개요로 <b>둘 이상의 AI 모델</b>이 각각 가상 판결문을 작성하고, <b>평가 모델</b>이 품질을 점수로 비교한 뒤, 최종 판결문으로 채택할 모델 하나를 고릅니다.
             API Key는 사이트가 제공하며, 사용한 만큼 <b>GDC가 차감</b>됩니다. 선택한 모델 수만큼 호출이 늘어 비용도 그만큼 늘어납니다.
@@ -692,6 +698,7 @@ button{font-family:var(--font);cursor:pointer}
           <div class="cm-note warn">
             🔒 <b>개인정보를 입력하지 마세요.</b> 실명·주민등록번호·연락처·주소·계좌번호 등은 가명·익명으로 바꿔 입력해 주세요. 입력한 내용은 선택한 모델의 AI 제공자에게 전송됩니다.
             복합 모드는 추가 질문 없이 입력한 사건 개요만으로 작성하며, 심급은 정하지 않습니다.
+          </div>
           </div>
           <div class="cm-h" style="margin-top:0">사건의 개요</div>
           <textarea class="case-textarea expanded" id="cm-case-input" data-requires-login="가상 재판 실행" style="resize:vertical"
@@ -720,7 +727,7 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd howto-hd" onclick="toggleSimProcPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            시뮬레이션 절차와 방법
+            시뮬레이션 절차와 방법<button type="button" class="hint-btn" aria-expanded="false" aria-controls="simproc-panel-bd" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="event.stopPropagation();toggleSimProcPanel();this.setAttribute('aria-expanded',document.getElementById('simproc-panel-bd').classList.contains('open'))">?</button>
           </div>
           <svg class="howto-chevron" id="simproc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -757,7 +764,7 @@ button{font-family:var(--font);cursor:pointer}
         <div class="panel-hd howto-hd" onclick="toggleHowtoPanel()">
           <div class="panel-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-            K-Law는 어떻게 동작하나요
+            K-Law는 어떻게 동작하나요<button type="button" class="hint-btn" aria-expanded="false" aria-controls="howto-panel-bd" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="event.stopPropagation();toggleHowtoPanel();this.setAttribute('aria-expanded',document.getElementById('howto-panel-bd').classList.contains('open'))">?</button>
           </div>
           <svg class="howto-chevron" id="howto-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -1255,6 +1262,8 @@ document.addEventListener('click', e => {
 });
 
 // ══ "시뮬레이션 절차와 방법" 접이식 패널 (2026-09-17 신설) ═════════
+var _hintSeq=0;
+function _cmHint(html){ const id='hint-dyn-'+(++_hintSeq); return '<button type="button" class="hint-btn" aria-expanded="false" aria-controls="'+id+'" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)">?</button></div><div class="cm-note hint-box" id="'+id+'" hidden>'+html+'</div><div>'; }
 function toggleHint(btn){
   const box=document.getElementById(btn.getAttribute('aria-controls'));
   if(!box)return;
@@ -2868,8 +2877,9 @@ function cmUpdateCount() {
   const ev = cmEl('cm-eval-note');
   if (ev) {
     const same = [...cm.selected].some(id => id === CM_EVALUATOR.tier);
-    ev.textContent = '평가 모델: ' + CM_EVALUATOR.label +
-      (same || CM_EVALUATOR.independent === false ? ' — 작성 모델과 같은 계열이면 자기 계열의 판결문을 유리하게 평가할 수 있습니다.' : '');
+    const caution = same || CM_EVALUATOR.independent === false;
+    ev.innerHTML = '평가 모델: ' + escHtml(CM_EVALUATOR.label) +
+      (caution ? '<button type="button" class="hint-btn" aria-expanded="false" aria-controls="hint-evalnote" title="안내 보기/닫기" aria-label="안내 보기/닫기" onclick="toggleHint(this)" style="margin-left:6px">?</button><div class="hint-box" id="hint-evalnote" hidden>작성 모델과 같은 계열이면 자기 계열의 판결문을 유리하게 평가할 수 있습니다.</div>' : '');
   }
   const btn = cmEl('cm-run-btn');
   if (btn) btn.disabled = cm.running || n < 2;
@@ -3069,8 +3079,7 @@ async function cmEvaluate(okIds) {
     CM_CRITERIA.map(c => '<td class="n">' + r.comp[c.key] + '</td>').join('') +
     '<td>' + cmCompleteness(cm.results[r.id]) + '/' + STEP_DEFS.length + '</td><td>' + escHtml(r.comment) + '</td></tr>').join('');
   cmShowEval('<div class="cm-h">2. 판결문 품질 평가</div>' +
-    '<div class="cm-note">평가 모델이 판결문의 <b>품질</b>을 매긴 점수입니다. 실제 판결과 얼마나 맞는지를 나타내는 일치도가 아니며, 평가 모델의 판단도 틀릴 수 있습니다.' +
-    (cm.evalNote ? '<br>총평: ' + escHtml(cm.evalNote) : '') + '</div>' +
+    '<div class="cm-h" style="margin-top:0">안내' + _cmHint('평가 모델이 판결문의 <b>품질</b>을 매긴 점수입니다. 실제 판결과 얼마나 맞는지를 나타내는 일치도가 아니며, 평가 모델의 판단도 틀릴 수 있습니다.' + (cm.evalNote ? '<br>총평: ' + escHtml(cm.evalNote) : '')) + '</div>' +
     '<div class="cm-tablewrap"><table class="cm-table"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>');
   cmRenderFinalPick(rows[0].id);
 }
@@ -3085,7 +3094,7 @@ function cmRenderFinalPick(defaultId) {
   const views = cm.ranking.map(r => '<details class="cm-sec"><summary>' + escHtml(cmModelById(r.id).label) + ' — 가상 판결문 보기</summary><div class="step-body">' +
     escHtml(cm.results[r.id].text) + '</div></details>').join('');
   box.innerHTML = '<div class="cm-h">3. 최종 판결문을 낼 모델 선택</div>' +
-    '<div class="cm-note">평가 1위가 미리 선택되어 있습니다. 판결문을 읽어 보고 다른 모델로 바꿀 수 있습니다. 확정하면 그 모델이 쓴 판결문이 최종 판결문이 되고 이력에 저장됩니다.</div>' +
+    '<div class="cm-h" style="margin-top:0">안내' + _cmHint('평가 1위가 미리 선택되어 있습니다. 판결문을 읽어 보고 다른 모델로 바꿀 수 있습니다. 확정하면 그 모델이 쓴 판결문이 최종 판결문이 되고 이력에 저장됩니다.') + '</div>' +
     '<div class="cm-pick">' + opts + '</div>' +
     '<div class="cm-run-row"><button class="btn btn-primary" type="button" id="cm-final-btn" onclick="cmFinalize()">이 모델의 판결문을 최종 판결문으로 확정</button></div>' +
     '<div id="cm-final-out" class="cm-final"></div>' + views;
