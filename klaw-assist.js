@@ -153,15 +153,72 @@
     });
   }
 
+
+  // ── 익명화 보조: 방법론(SP) 로드, 원문 식별 토큰 추출, 잔여 검사, 재식별 시도 ──
+  var _anonSp = null;
+  async function loadAnonSp() {
+    if (_anonSp) return _anonSp;
+    try { var r = await fetch('klaw_anonymize_v1.md', { cache: 'no-cache' }); if (!r.ok) throw 0; _anonSp = await r.text(); }
+    catch (e) { _anonSp = '당신은 사건 변형 담당자입니다. 실명·법인명·지명·물품·수량·일시·법령명·조문번호·사건번호를 모두 삭제하거나 가상 값으로 바꾸고, 법적 구조(지위·권한·인과·절차)는 유지하세요. 결론·판단·재판 경과·쟁점 해설은 쓰지 마세요.'; }
+    return _anonSp;
+  }
+  var _GENERIC = /^(해당|이후|이전|관할|당시|현재|각각|지금|구분|지역|전체|일부|기존|등기|단지)(시|군|구)$/;
+  function idTokens(src) {
+    var set = {}, add = function (a) { (a || []).forEach(function (t) { t = t.replace(/\s+/g, ' ').trim(); if (t.length >= 2 && !_GENERIC.test(t)) set[t] = 1; }); };
+    add(src.match(/\d{2,4}\s?[가-힣]{1,3}\s?\d{1,6}/g));                                  // 사건번호
+    add(src.match(/\d{4}\s?[.년]\s?\d{1,2}\s?[.월]\s?\d{1,2}\s?일?/g));                    // 날짜
+    add(src.match(/\d{4}년\s?\d{1,2}월/g));
+    add(src.match(/\d{1,3}(,\d{3})+/g)); add(src.match(/\d{5,}/g));                          // 금액·수량
+    add((src.match(/주식회사\s?[가-힣A-Za-z0-9]{2,}|\(주\)\s?[가-힣A-Za-z0-9]{2,}|[가-힣A-Za-z0-9]{2,}\(주\)/g) || []).map(function (t) { return t.replace(/([가-힣]{3,})[은는이가을를의에와과로도]$/, '$1'); }).concat((src.match(/(?:주식회사|\(주\))\s?([가-힣A-Za-z0-9]{2,})/g) || []).map(function (t) { return t.replace(/^(?:주식회사|\(주\))\s?/, '').replace(/([가-힣]{3,})[은는이가을를의에와과로도]$/, '$1'); }))); // 법인명
+    add(src.match(/[가-힣]{2,4}(?:특별시|광역시|시|군|구)(?![가-힣])/g));                        // 지명
+    return Object.keys(set);
+  }
+  function words(t) { return String(t).replace(/[^가-힣A-Za-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean); }
+  function residue(anon, tok, src) {
+    var out = [], n = anon.replace(/\s+/g, ' ');
+    tok.forEach(function (t) { if (n.indexOf(t) >= 0 || anon.indexOf(t.replace(/\s+/g, '')) >= 0) out.push(t); });
+    var sw = words(src), aw = words(anon), sh = {}, i;                                      // 6어절 연속 복사
+    for (i = 0; i + 6 <= sw.length; i++) sh[sw.slice(i, i + 6).join(' ')] = 1;
+    for (i = 0; i + 6 <= aw.length; i++) { var g = aw.slice(i, i + 6).join(' '); if (sh[g]) { out.push('문장 복사: ' + g); i += 5; } }
+    return out.slice(0, 60);
+  }
+  async function probe(anon, tok) {
+    var ans = '';
+    try {
+      ans = await llm([{ role: 'user', content: '아래 사건은 실제 한국 판결에 기초한 것일 수 있습니다. 기억나는 실제 사건이 있으면 사건번호·법원·당사자·결론을 적고, 없으면 "기억나지 않음"이라고만 적으세요.\n\n' + anon }], 600, { label: '재식별 시험 중' });
+    } catch (e) { return false; }
+    if (/기억나지\s*않/.test(ans) && ans.length < 80) return false;
+    var cn = String(S.caseNo || '').replace(/\s+/g, ''), core = cn.match(/\d{2,4}[가-힣]{1,3}\d{1,6}/);
+    if (core && ans.replace(/\s+/g, '').indexOf(core[0]) >= 0) return true;
+    return tok.some(function (t) { return /[가-힣A-Za-z]/.test(t) && !/^\d/.test(t) && ans.indexOf(t) >= 0; });
+  }
+
   async function stageAnon() {
     var js = S.out.judgments, pick = function (lv) { var f = js.filter(function (x) { return x.level === lv; })[0]; return f ? clip(f.body || f.text, CAP) : ''; };
     var src = ['supreme', 'appeal', 'first'].map(function (lv) { var t = pick(lv); return t ? '[' + LEVEL_LABEL[lv] + ' 판결문]\n' + t : ''; }).filter(Boolean).join('\n\n');
     say('DeepSeek V4 Flash로 사실관계를 추출하고 있습니다(판결 결과를 암시하는 내용은 제외).');
     var facts = await llm([{ role: 'user', content:
       '아래 판결문(들)에서 "사건의 사실관계"만 추출하세요.\n- 포함: 당사자와 지위, 거래·행위의 경과(시간순), 처분·기소 경위, 양측 주장\n- 제외: 법원의 판단·이유·결론·주문, 법령 해석, 판결 결과를 짐작하게 하는 표현(예: 유죄, 기각, 책임이 인정), 법령명과 쟁점 해설\n- 사실과 주장을 구분하고, 다툼이 있는 사실은 "~라고 주장" 형태로 적으세요.\n\n' + src }], 9000, { label: '사실관계 추출 중' });
-    say('DeepSeek V4 Flash로 익명화 작업을 진행하고 있습니다.');
-    var anon = await llm([{ role: 'user', content:
-      '아래 사건 개요를 익명화·변형하세요.\n- 실명·법인명·지명·물품·수량·일시를 모두 가상의 값으로 바꾸고(갑·을·병, A사 등), 실제 사건과 대조해도 알아볼 수 없게 하세요.\n- 법적 구조(당사자의 지위, 권한·책임 관계, 절차, 업무 범위)는 바꾸지 마세요.\n- 새 사실을 추가하거나 결론·법령명·쟁점 해설을 넣지 마세요.\n- 결과는 사건 개요 본문만 출력하세요(머리말·설명 없이).\n\n' + facts }], 9000, { label: '익명화 중' });
+    say('DeepSeek V4 Flash로 익명화 작업을 진행하고 있습니다(익명화 방법론 적용).');
+    var sp = await loadAnonSp();
+    var anon = (await llm([{ role: 'system', content: sp }, { role: 'user', content: '아래 사실관계를 익명화 방법론에 따라 가상 사건 개요로 바꾸세요.\n\n' + facts }], 9000, { label: '익명화 중' })).trim();
+    // 1) 잔여 식별자 검사(문자열 비교) — 걸리면 목록을 알려 주고 1회 다시 쓰게 한다
+    var tok = idTokens(src), left = residue(anon, tok, src);
+    if (left.length) {
+      say('익명화본에 원문의 식별 단서 ' + left.length + '건이 남아 있어 다시 쓰게 합니다.');
+      anon = (await llm([{ role: 'system', content: sp }, { role: 'user', content: '아래 사실관계를 익명화 방법론에 따라 가상 사건 개요로 바꾸세요.\n\n' + facts },
+        { role: 'assistant', content: anon }, { role: 'user', content: '다음 단서가 원문 그대로 남아 있습니다. 모두 삭제하거나 변용해 처음부터 다시 쓰세요(출력 형식은 같게).\n- ' + left.slice(0, 40).join('\n- ') }], 9000, { label: '익명화 다시 쓰는 중' })).trim();
+      left = residue(anon, tok, src);
+    }
+    // 2) 재식별 시도 시험 — 익명화본만 보고 실제 사건을 떠올리는지 확인(실패하면 더 강하게 1회 다시 쓰기)
+    var hit = await probe(anon, tok);
+    if (hit) {
+      say('익명화본에서 실제 사건이 떠올려져 변형을 강화해 다시 씁니다.');
+      anon = (await llm([{ role: 'system', content: sp + '\n\n[강화 지시] 장소·업종·물건·사건 경위를 전부 법적 성질만 같은 다른 것으로 교체하고(§3-3, §3-6), 금액·수량·기간은 모두 다시 변용하세요.' }, { role: 'user', content: '아래 사실관계를 익명화 방법론에 따라 가상 사건 개요로 바꾸세요.\n\n' + facts }], 9000, { label: '익명화 강화 중' })).trim();
+      left = residue(anon, tok, src); hit = await probe(anon, tok);
+    }
+    S.out.anonRisk = (left.length || hit) ? '사건 기억 가능성 배제 불가' : '';
+    if (S.out.anonRisk) say('익명화 검증을 완전히 통과하지 못했습니다(' + (left.length ? '식별 단서 ' + left.length + '건 잔존' : '재식별 시험 실패') + '). 진행은 하되 일치도 보고서에 "사건 기억 가능성 배제 불가"를 남깁니다.', { err: true });
     S.out.anon = anon.trim();
     say('익명화가 완료되었습니다.', { ok: true, links: [docLink('사건개요_익명화_' + S.caseNo + '.md', '익명화된 사건 개요', S.out.anon), docLink('사실관계_추출_' + S.caseNo + '.md', '추출한 사실관계(익명화 전)', facts)] });
   }
@@ -218,7 +275,7 @@
     try { await runMatchEvaluation(); } finally { clearInterval(iv); live.end(); }
     var rep = String(window._matchEvalText || '');
     if (!rep || rep === before) throw new Error('일치도 평가 보고서를 받지 못했습니다.');
-    S.out.eval = rep;
+    S.out.eval = rep + (S.out.anonRisk ? '\n\n※ 주의: ' + S.out.anonRisk + ' (익명화 검증을 완전히 통과하지 못함).' : '');
     var m = rep.match(/\[항목:\s*종합 일치도\]\s*\[점수:\s*([\d.]+%)\]/);
     say('일치도 평가가 완료되었습니다' + (m ? ' (종합 일치도 ' + m[1] + ')' : '') + '. 결과는 사용 이력에도 저장됩니다.', { ok: true, links: [docLink('일치도평가_' + S.caseNo + '.md', '일치도 평가 보고서', rep)] });
   }
